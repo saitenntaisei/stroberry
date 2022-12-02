@@ -21,6 +21,13 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "type": "shell",
+            "label": "Flash program",
+            "command": "openocd -f ./openocd.cfg -c \"flash_elf build/${workspaceFolderBasename}.elf\"",
+            "problemMatcher": [],
+            "group": "none",
         }
     ]
 }

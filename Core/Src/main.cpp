@@ -32,7 +32,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+extern "C" void initialise_monitor_handles(void);
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -40,7 +40,7 @@
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
+/* USER extern void initialise_monitor_handles(void);CODE BEGIN PM */
 
 /* USER CODE END PM */
 
@@ -68,6 +68,7 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+  initialise_monitor_handles();
   std::vector<int>v(0);
   /* USER CODE END 1 */
 
@@ -102,16 +103,17 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  float t=0.1;
   while (1)
   {
-    /* USER CODE END WHILE */
-    
+    printf("Hello World%f\n",t+=0.1);
+    /* USER CODE END WHILE */ 
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
 
-/**
+/**extern void initialise_monitor_handles(void);
   * @brief System Clock Configuration
   * @retval None
   */
