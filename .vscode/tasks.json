@@ -1,20 +1,19 @@
 {
+    // See https://go.microsoft.com/fwlink/?LinkId=733558 
+    // for the documentation about the tasks.json format
     "version": "2.0.0",
-    "type": "shell",
-    "echoCommand": true,
     "tasks": [
         {
+            "type": "shell",
             "label": "Build project",
             "command": "make",
             "args": [
+                "DEBUG=1",
+                "-j2",
                 "all",
-                "GCC_PATH=C:\\tools\\gcc-arm-none-eabi-10-2020-q4-major\\bin"
+                "GCC_PATH=/opt/gcc-arm-none-eabi/bin/"
+                
             ],
-            "options": {
-                "env": {
-                    "PATH": "C:\\tools\\GnuWin32\\bin"
-                }
-            },
             "problemMatcher": [
                 "$gcc"
             ],
@@ -22,18 +21,6 @@
                 "kind": "build",
                 "isDefault": true
             }
-        },
-        {
-            "label": "Clean project",
-            "command": "powershell -Command Remove-Item",
-            "args": [
-                "${workspaceFolder}\\build",
-                "-Recurse"
-            ],
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": "build"
         }
     ]
 }
