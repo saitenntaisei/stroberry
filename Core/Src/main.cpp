@@ -6,13 +6,12 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2022 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -40,7 +39,7 @@ extern "C" void initialise_monitor_handles(void);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
-/* USER extern void initialise_monitor_handles(void);CODE BEGIN PM */
+/* USER CODE BEGIN PM */
 
 /* USER CODE END PM */
 
@@ -97,23 +96,26 @@ int main(void)
   MX_UART4_Init();
   MX_SPI1_Init();
   MX_TIM6_Init();
+  MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
   v.push_back(1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  float t=0.1;
+  // float t=0.1;
   while (1)
   {
-    printf("Hello World%f\n",t+=0.1);
+    // printf("Hello World%f\n",t+=0.1);
+    HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_4);
+    HAL_Delay(100);
     /* USER CODE END WHILE */ 
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
 
-/**extern void initialise_monitor_handles(void);
+/**
   * @brief System Clock Configuration
   * @retval None
   */
@@ -126,6 +128,7 @@ void SystemClock_Config(void)
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -196,5 +199,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
