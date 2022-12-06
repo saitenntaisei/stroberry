@@ -57,7 +57,68 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+int16_t read_encoder_value(void){
+    int16_t enc_buff = (int16_t)TIM2->CNT;
+    TIM2->CNT = 0; 
+    return (int16_t)enc_buff;
+  }
 
+uint8_t spi_gyro_read(uint8_t);
+float gyro_offset = 0.0f;
+float spi_gyro_OUT_Z(void)
+{
+  /*HAL_Delay(1);*/
+
+  uint16_t Z_H = spi_gyro_read(0x2D);
+  uint16_t Z_L = spi_gyro_read(0x2C);
+  /*printf("Z = %d\r\n", (int16_t)((Z_H << 8) + Z_L));*/
+  /*HAL_Delay(1);*/
+  return (float)((int16_t)((Z_H << 8) + Z_L)) * 0.00875f;
+}
+void imu_calibulation()
+{
+  float temp = 0.0f;
+  int times = 1000;
+  for(int i=0; i < times; i++){
+    temp += spi_gyro_OUT_Z();
+    HAL_Delay(1);
+  }
+  gyro_offset = temp / times;
+}
+float read_gyro()
+{
+  return spi_gyro_OUT_Z() - gyro_offset;
+}
+void spi_gyro_who_am_i(void)
+{
+  HAL_Delay(100);
+  uint8_t report = spi_gyro_read(0x0f);
+  printf("WHO_AM_I = %d\r\n", report);
+  HAL_Delay(100);
+}
+
+void spi_gyro_write(uint8_t address, uint8_t value)
+{
+  uint8_t transmit[2] = {address, value};
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); //CSピン立ち下げ
+  HAL_Delay(1);
+  HAL_SPI_Transmit(&hspi1, transmit, 2, 100);
+  HAL_Delay(1);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); //CSピン立ち上げ
+}
+
+uint8_t spi_gyro_read(uint8_t address)
+{
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); //CSピン立ち下げ
+  //HAL_Delay(1);
+  uint8_t transmit[2];
+  transmit[0] = address | 0x80;
+  uint8_t receive[2];
+  HAL_SPI_TransmitReceive(&hspi1, transmit, receive, 2, 100);
+  //HAL_Delay(1);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); //CSピン立ち上げ
+  return receive[1];
+}
 /* USER CODE END 0 */
 
 /**
@@ -68,7 +129,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   initialise_monitor_handles();
-  std::vector<int>v(0);
+  setbuf(stdout,NULL);
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -81,7 +142,6 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
-
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
@@ -98,17 +158,38 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
-  v.push_back(1);
+  HAL_TIM_Encoder_Start(&htim2,TIM_CHANNEL_ALL);
+  HAL_TIM_Encoder_Start(&htim8,TIM_CHANNEL_ALL);
+  printf("0x20=%d\r\n",spi_gyro_read(0x20));
+  spi_gyro_write(0x20,0x0f);
+  spi_gyro_who_am_i();
+  printf("0x20=%d\r\n",spi_gyro_read(0x20));
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  // float t=0.1;
+  int16_t encCntInt =0;
+  int16_t cnt=0;
+  float sum=0;
   while (1)
   {
-    // printf("Hello World%f\n",t+=0.1);
-    HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_4);
-    HAL_Delay(100);
+    // printf("Hello World% f\n",t+=0.1);
+    HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
+    for (int i=0;i<1000;i++){
+      sum+=read_gyro()*0.001f;
+      HAL_Delay(1);
+    }
+    sum-=2;
+    printf("%d\r\n",(int16_t)sum);
+    sum=0;
+    encCntInt = read_encoder_value();
+    cnt++;
+    if(cnt%2==0){
+      // printf("%.1f\n",(float)encCntInt*200.0f/120.0f);
+      cnt=0;
+    }
+    HAL_Delay(5);
     /* USER CODE END WHILE */ 
     /* USER CODE BEGIN 3 */
   }
