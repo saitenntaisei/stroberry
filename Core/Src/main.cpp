@@ -23,7 +23,6 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-#include"stdio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -159,7 +158,7 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
-  //setbuf(stdout,NULL);
+  setbuf(stdout,NULL);
   // HAL_TIM_Encoder_Start(&htim2,TIM_CHANNEL_ALL);
   // HAL_TIM_Encoder_Start(&htim8,TIM_CHANNEL_ALL);
 
@@ -173,7 +172,7 @@ int main(void)
     // printf("Hello World% f\n",t+=0.1);
     
     HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
-    printf("H\n");
+    printf("hello\r\n");
     HAL_Delay(100);
     /* USER CODE END WHILE */ 
     /* USER CODE BEGIN 3 */
@@ -227,11 +226,16 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-int _write(int file, char *ptr, int len)
+extern "C" int _write(int file, char *ptr, int len)
 {
-  HAL_UART_Transmit(&huart4, (uint8_t *)ptr, len, 10);
+  HAL_UART_Transmit(&huart4, (uint8_t *)ptr, len, 100);
   return len;
 }
+// int _io_put_char(int ch)
+// {
+//   HAL_UART_Transmit(&huart4, (uint8_t *)&ch, 1, 100);
+//   return ch;
+// }
 /* USER CODE END 4 */
 
 /**
