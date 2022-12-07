@@ -23,6 +23,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include"stdio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -31,7 +32,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-extern "C" void initialise_monitor_handles(void);
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -52,7 +53,7 @@ extern "C" void initialise_monitor_handles(void);
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+// extern "C" void initialise_monitor_handles(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -128,8 +129,8 @@ uint8_t spi_gyro_read(uint8_t address)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  initialise_monitor_handles();
-  setbuf(stdout,NULL);
+  // initialise_monitor_handles();
+  
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -158,38 +159,22 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Encoder_Start(&htim2,TIM_CHANNEL_ALL);
-  HAL_TIM_Encoder_Start(&htim8,TIM_CHANNEL_ALL);
-  printf("0x20=%d\r\n",spi_gyro_read(0x20));
-  spi_gyro_write(0x20,0x0f);
-  spi_gyro_who_am_i();
-  printf("0x20=%d\r\n",spi_gyro_read(0x20));
+  //setbuf(stdout,NULL);
+  // HAL_TIM_Encoder_Start(&htim2,TIM_CHANNEL_ALL);
+  // HAL_TIM_Encoder_Start(&htim8,TIM_CHANNEL_ALL);
+
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  int16_t encCntInt =0;
-  int16_t cnt=0;
-  float sum=0;
   while (1)
   {
     // printf("Hello World% f\n",t+=0.1);
+    
     HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
-    for (int i=0;i<1000;i++){
-      sum+=read_gyro()*0.001f;
-      HAL_Delay(1);
-    }
-    sum-=2;
-    printf("%d\r\n",(int16_t)sum);
-    sum=0;
-    encCntInt = read_encoder_value();
-    cnt++;
-    if(cnt%2==0){
-      // printf("%.1f\n",(float)encCntInt*200.0f/120.0f);
-      cnt=0;
-    }
-    HAL_Delay(5);
+    printf("H\n");
+    HAL_Delay(100);
     /* USER CODE END WHILE */ 
     /* USER CODE BEGIN 3 */
   }
