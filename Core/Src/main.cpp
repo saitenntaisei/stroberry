@@ -159,23 +159,25 @@ int main(void)
   MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
   setbuf(stdout,NULL);
-  // HAL_TIM_Encoder_Start(&htim2,TIM_CHANNEL_ALL);
-  // HAL_TIM_Encoder_Start(&htim8,TIM_CHANNEL_ALL);
+  HAL_TIM_Encoder_Start(&htim2,TIM_CHANNEL_ALL);
+  HAL_TIM_Encoder_Start(&htim8,TIM_CHANNEL_ALL);
 
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
+  int32_t cnt_total=0;
   /* USER CODE BEGIN WHILE */
   while (1)
   {
     // printf("Hello World% f\n",t+=0.1);
     
     HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
-    printf("hello\r\n");
-    HAL_Delay(100);
+    cnt_total+=read_encoder_value();
+    printf("%ld\r\n",cnt_total);
     /* USER CODE END WHILE */ 
     /* USER CODE BEGIN 3 */
+    HAL_Delay(1);
   }
   /* USER CODE END 3 */
 }
