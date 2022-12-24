@@ -92,7 +92,7 @@ float read_gyro()
 void spi_gyro_who_am_i(void)
 {
   HAL_Delay(100);
-  uint8_t report = spi_gyro_read(0x0f);
+  uint8_t report = spi_gyro_read(0x0F);
   printf("WHO_AM_I = %d\r\n", report);
   HAL_Delay(100);
 }
@@ -111,7 +111,7 @@ uint8_t spi_gyro_read(uint8_t address)
 {
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); //CSピン立ち下げ
   //HAL_Delay(1);
-  uint8_t transmit[2];
+  uint8_t transmit[2]={0x00,0x00};
   transmit[0] = address | 0x80;
   uint8_t receive[2];
   HAL_SPI_TransmitReceive(&hspi1, transmit, receive, 2, 100);
@@ -168,13 +168,20 @@ int main(void)
   /* Infinite loop */
   int32_t cnt_total=0;
   /* USER CODE BEGIN WHILE */
+  // HAL_Delay(3000);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+  spi_gyro_who_am_i();
+  spi_gyro_who_am_i();
+  // imu_calibulation();
   while (1)
   {
     // printf("Hello World% f\n",t+=0.1);
     
-    HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
-    cnt_total+=read_encoder_value();
-    printf("%ld\r\n",cnt_total);
+    // HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
+    // cnt_total+=read_encoder_value();
+    // read_gyro();
+    // spi_gyro_who_am_i();
+    // printf("%ld\r\n",cnt_total);
     /* USER CODE END WHILE */ 
     /* USER CODE BEGIN 3 */
     HAL_Delay(1);
