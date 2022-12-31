@@ -64,6 +64,7 @@ int16_t read_encoder_value(void){
   }
 
 uint8_t spi_gyro_read(uint8_t);
+void spi_gyro_write(uint8_t address, uint8_t value);
 float gyro_offset = 0.0f;
 float spi_gyro_OUT_Z(void)
 {
@@ -71,23 +72,31 @@ float spi_gyro_OUT_Z(void)
 
   uint16_t Z_H = spi_gyro_read(0x2D);
   uint16_t Z_L = spi_gyro_read(0x2C);
-  /*printf("Z = %d\r\n", (int16_t)((Z_H << 8) + Z_L));*/
+  //printf("Z = %d\r\n", (int16_t)((Z_H << 8) + Z_L));
   /*HAL_Delay(1);*/
   return (float)((int16_t)((Z_H << 8) + Z_L)) * 0.00875f;
 }
 void imu_calibulation()
 {
+  HAL_Delay(100);
+  spi_gyro_write(0x20,0x00);
+  HAL_Delay(100);
+  spi_gyro_write(0x20,0x0F);
+  HAL_Delay(100);
   float temp = 0.0f;
-  int times = 1000;
+  int times = 2000;
   for(int i=0; i < times; i++){
     temp += spi_gyro_OUT_Z();
     HAL_Delay(1);
   }
   gyro_offset = temp / times;
+  printf("%f",gyro_offset);
 }
 float read_gyro()
 {
-  return spi_gyro_OUT_Z() - gyro_offset;
+  float Z_vel = spi_gyro_OUT_Z() -gyro_offset;
+  if(abs(Z_vel)<0.5)Z_vel=0;
+  return Z_vel;
 }
 void spi_gyro_who_am_i(void)
 {
@@ -111,13 +120,15 @@ uint8_t spi_gyro_read(uint8_t address)
 {
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); //CSピン立ち下げ
   //HAL_Delay(1);
-  uint8_t transmit[2]={0x00,0x00};
-  transmit[0] = address | 0x80;
-  uint8_t receive[2];
-  HAL_SPI_TransmitReceive(&hspi1, transmit, receive, 2, 100);
+  uint8_t transmit;
+  transmit = address | 0x80;
+  uint8_t receive=0x00;
+  HAL_SPI_Transmit(&hspi1,&transmit,1,100);
+  HAL_SPI_Receive(&hspi1,&receive,1,100);
+  //HAL_SPI_TransmitReceive(&hspi1, &transmit, &receive, 2, 100);
   //HAL_Delay(1);
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); //CSピン立ち上げ
-  return receive[1];
+  return receive;
 }
 /* USER CODE END 0 */
 
@@ -172,7 +183,8 @@ int main(void)
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
   spi_gyro_who_am_i();
   spi_gyro_who_am_i();
-  // imu_calibulation();
+  imu_calibulation();
+  float sum = 0;
   while (1)
   {
     // printf("Hello World% f\n",t+=0.1);
@@ -180,11 +192,13 @@ int main(void)
     // HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
     // cnt_total+=read_encoder_value();
     // read_gyro();
-    // spi_gyro_who_am_i();
     // printf("%ld\r\n",cnt_total);
     /* USER CODE END WHILE */ 
     /* USER CODE BEGIN 3 */
+  
+    sum += read_gyro()*0.001f;
     HAL_Delay(1);
+    printf("%f\r\n", sum);
   }
   /* USER CODE END 3 */
 }
