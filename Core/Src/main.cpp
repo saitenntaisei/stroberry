@@ -24,6 +24,7 @@
 #include "usart.h"
 #include "gpio.h"
 #include "gyro.hpp"
+#include "encoder.hpp"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -58,12 +59,16 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-int16_t read_encoder_value(void)
+std::unique_ptr<pwm::Encoder> enc;
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  int16_t enc_buff = (int16_t)TIM2->CNT;
-  TIM2->CNT = 0;
-  return (int16_t)enc_buff;
+  if (htim == &htim10)
+  {
+    enc->read_encoder_value();
+    // LED_2.toggle();
+  }
 }
+
 /* USER CODE END 0 */
 
 /**
@@ -82,7 +87,7 @@ int main(void)
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
   /* USER CODE BEGIN Init */
-
+  enc = std::make_unique<pwm::Encoder>();
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -102,32 +107,35 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM6_Init();
   MX_TIM8_Init();
+  MX_TIM10_Init();
   /* USER CODE BEGIN 2 */
   setbuf(stdout, NULL);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
-
+  HAL_TIM_Base_Start_IT(&htim10);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   // HAL_Delay(3000);
+
   spi::Gyro gyro;
-  float sum = 0;
+  float cnt_total = 0;
+  // float sum = 0;
   while (1)
   {
     // printf("Hello World% f\n",t+=0.1);
 
     // HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
-    // cnt_total+=read_encoder_value();
+    // cnt_total += enc->read_encoder_value().l;
     // read_gyro();
-    // printf("%ld\r\n",cnt_total);
+    // printf("%f\r\n", cnt_total / (12.0 * 10) * 360); // 12 is encoder Resolution, 10 IS GEAR DUTY
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
-
-    sum = gyro.read_gyro().y * 0.001f;
-    HAL_Delay(1);
-    printf("%f\r\n", sum);
+    printf("%f\r\n", enc->cnt_total.r);
+    // sum = gyro.read_gyro().y * 0.001f;
+    HAL_Delay(10);
+    // printf("%f\r\n", sum);
   }
   /* USER CODE END 3 */
 }
@@ -162,6 +170,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
   /** Initializes the CPU, AHB and APB buses clocks
    */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;

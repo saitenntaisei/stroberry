@@ -18,6 +18,7 @@
 
 #ifdef __cplusplus
 #include <vector>
+#include <memory>
 extern "C"
 {
 #endif /* __cplusplus */
