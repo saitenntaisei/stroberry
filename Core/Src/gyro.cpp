@@ -38,21 +38,18 @@ namespace spi
     {
         uint16_t Z_H = spi_gyro_read(0x2D);
         uint16_t Z_L = spi_gyro_read(0x2C);
-        // printf("Z = %d\r\n", (int16_t)((Z_H << 8) + Z_L));
         return (float)((int16_t)((Z_H << 8) + Z_L)) * gyro_sensitivty;
     }
     float Gyro::spi_gyro_OUT_X(void)
     {
         uint16_t X_H = spi_gyro_read(0x29);
         uint16_t X_L = spi_gyro_read(0x28);
-        // printf("X = %d\r\n", (int16_t)((X_H << 8) + X_L));
         return (float)((int16_t)((X_H << 8) + X_L)) * gyro_sensitivty;
     }
     float Gyro::spi_gyro_OUT_Y(void)
     {
         uint16_t Y_H = spi_gyro_read(0x2B);
         uint16_t Y_L = spi_gyro_read(0x2A);
-        // printf("Y = %d\r\n", (int16_t)((Y_H << 8) + Y_L));
         return (float)((int16_t)((Y_H << 8) + Y_L)) * gyro_sensitivty;
     }
     geometry Gyro::read_gyro()

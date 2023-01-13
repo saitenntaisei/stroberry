@@ -6,7 +6,7 @@
  ******************************************************************************
  * @attention
  *
- * Copyright (c) 2022 STMicroelectronics.
+ * Copyright (c) 2023 STMicroelectronics.
  * All rights reserved.
  *
  * This software is licensed under terms that can be found in the LICENSE file
@@ -69,9 +69,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   }
 }
 
-void HAL_SYSTICK_Callback(void)
+void HAL_SYSTICK_Callback(void) // 1kHz
 {
-  enc->read_encoder_value();
+  enc->read_encoder_value(1000);
 }
 
 /* USER CODE END 0 */
@@ -112,10 +112,10 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM8_Init();
   MX_TIM10_Init();
-  MX_TIM5_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   setbuf(stdout, NULL);
-  HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
+  HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
   HAL_TIM_Base_Start_IT(&htim10);
   /* USER CODE END 2 */
@@ -138,9 +138,9 @@ int main(void)
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
 
-    printf("%f\r\n", enc->cnt_total.l);
+    printf("%f %f\r\n", enc->encoder.l, enc->encoder.r);
     // sum = gyro.read_gyro().y * 0.001f;
-    HAL_Delay(1);
+    HAL_Delay(10);
     // printf("%f\r\n", sum);
   }
   /* USER CODE END 3 */
