@@ -21,7 +21,7 @@ namespace pwm
     private:
         const float gear_duty = 10;
         const uint8_t encoder_resolution = 12;
-        int16_t read_left_encoder_value(void);  // LSB
+        int32_t read_left_encoder_value(void);  // LSB
         int16_t read_right_encoder_value(void); // LSB
 
     public:

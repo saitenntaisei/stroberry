@@ -5,14 +5,14 @@ namespace pwm
 
     Encoder::Encoder() : encoder(0, 0), cnt_total(0, 0)
     {
-        HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
+        HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
         HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
     }
-    int16_t Encoder::read_left_encoder_value(void)
+    int32_t Encoder::read_left_encoder_value(void)
     {
-        int16_t enc_buff = (int16_t)TIM2->CNT;
-        TIM2->CNT = 0;
-        return (int16_t)enc_buff;
+        int32_t enc_buff = (int32_t)TIM5->CNT;
+        TIM5->CNT = 0;
+        return (int32_t)enc_buff;
     }
     int16_t Encoder::read_right_encoder_value(void)
     {

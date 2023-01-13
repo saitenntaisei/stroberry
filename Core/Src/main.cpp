@@ -64,9 +64,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if (htim == &htim10)
   {
-    enc->read_encoder_value();
+
     // LED_2.toggle();
   }
+}
+
+void HAL_SYSTICK_Callback(void)
+{
+  enc->read_encoder_value();
 }
 
 /* USER CODE END 0 */
@@ -99,7 +104,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ADC1_Init();
-  MX_TIM2_Init();
   MX_TIM4_Init();
   MX_TIM9_Init();
   MX_TIM12_Init();
@@ -108,9 +112,10 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM8_Init();
   MX_TIM10_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
   setbuf(stdout, NULL);
-  HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
+  HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
   HAL_TIM_Base_Start_IT(&htim10);
   /* USER CODE END 2 */
@@ -132,9 +137,10 @@ int main(void)
     // printf("%f\r\n", cnt_total / (12.0 * 10) * 360); // 12 is encoder Resolution, 10 IS GEAR DUTY
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
-    printf("%f\r\n", enc->cnt_total.r);
+
+    printf("%f\r\n", enc->cnt_total.l);
     // sum = gyro.read_gyro().y * 0.001f;
-    HAL_Delay(10);
+    HAL_Delay(1);
     // printf("%f\r\n", sum);
   }
   /* USER CODE END 3 */
@@ -176,8 +182,8 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV8;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV8;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
