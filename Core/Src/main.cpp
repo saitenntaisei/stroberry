@@ -18,13 +18,14 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+
 #include "adc.h"
+#include "encoder.hpp"
+#include "gpio.h"
+#include "gyro.hpp"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
-#include "gpio.h"
-#include "gyro.hpp"
-#include "encoder.hpp"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -60,16 +61,13 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 std::unique_ptr<pwm::Encoder> enc;
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  if (htim == &htim10)
-  {
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+  if (htim == &htim10) {
     // LED_2.toggle();
   }
 }
 
-void HAL_SYSTICK_Callback(void) // 1kHz
+void HAL_SYSTICK_Callback(void)  // 1kHz
 {
   enc->read_encoder_value(1000);
 }
@@ -80,8 +78,7 @@ void HAL_SYSTICK_Callback(void) // 1kHz
  * @brief  The application entry point.
  * @retval int
  */
-int main(void)
-{
+int main(void) {
   /* USER CODE BEGIN 1 */
   // initialise_monitor_handles();
 
@@ -89,7 +86,8 @@ int main(void)
 
   /* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick.
+   */
   HAL_Init();
   /* USER CODE BEGIN Init */
   enc = std::make_unique<pwm::Encoder>();
@@ -129,14 +127,14 @@ int main(void)
   float sum = 0;
   uint16_t adc_Value = 0;
   float adc_volt, batt_volt;
-  while (1)
-  {
+  while (1) {
     // printf("Hello World% f\n",t+=0.1);
 
     // HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
     // cnt_total += enc->read_encoder_value().l;
     // read_gyro();
-    // printf("%f\r\n", cnt_total / (12.0 * 10) * 360); // 12 is encoder Resolution, 10 IS GEAR DUTY
+    // printf("%f\r\n", cnt_total / (12.0 * 10) * 360); // 12 is encoder
+    // Resolution, 10 IS GEAR DUTY
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
 
@@ -150,7 +148,8 @@ int main(void)
     adc_volt = (float)adc_Value * 3.3 / 4095;
     // Voltage divider resistor Vbatt -> 20kΩ -> 6.8kΩ -> GND
     batt_volt = adc_volt * (20 + 10) / 10.0f;
-    printf("adc_Value = %d, adc_volt = %.3f, batt_volt = %.3f\n\r", adc_Value, adc_volt, batt_volt);
+    printf("adc_Value = %d, adc_volt = %.3f, batt_volt = %.3f\n\r", adc_Value,
+           adc_volt, batt_volt);
     HAL_ADC_Stop(&hadc1);
     HAL_Delay(500);
   }
@@ -161,8 +160,7 @@ int main(void)
  * @brief System Clock Configuration
  * @retval None
  */
-void SystemClock_Config(void)
-{
+void SystemClock_Config(void) {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
@@ -183,21 +181,20 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 4;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
     Error_Handler();
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
    */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK |
+                                RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
-  {
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK) {
     Error_Handler();
   }
 }
@@ -219,13 +216,11 @@ void SystemClock_Config(void)
  * @brief  This function is executed in case of error occurrence.
  * @retval None
  */
-void Error_Handler(void)
-{
+void Error_Handler(void) {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
-  while (1)
-  {
+  while (1) {
   }
   /* USER CODE END Error_Handler_Debug */
 }
@@ -238,11 +233,11 @@ void Error_Handler(void)
  * @param  line: assert_param error line source number
  * @retval None
  */
-void assert_failed(uint8_t *file, uint32_t line)
-{
+void assert_failed(uint8_t *file, uint32_t line) {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* User can add his own implementation to report the file name and line
+     number, ex: printf("Wrong parameters value: file %s on line %d\r\n", file,
+     line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
