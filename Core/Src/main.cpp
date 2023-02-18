@@ -20,6 +20,7 @@
 #include "main.h"
 
 #include "adc.h"
+#include "battery.hpp"
 #include "encoder.hpp"
 #include "gpio.h"
 #include "gyro.hpp"
@@ -116,6 +117,7 @@ int main(void) {
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
   HAL_TIM_Base_Start_IT(&htim10);
+  adc::Battery batt(&hadc1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -124,9 +126,6 @@ int main(void) {
 
   spi::Gyro gyro;
   // float cnt_total = 0;
-  float sum = 0;
-  uint16_t adc_Value = 0;
-  float adc_volt, batt_volt;
   while (1) {
     // printf("Hello World% f\n",t+=0.1);
 
@@ -142,15 +141,8 @@ int main(void) {
     // sum = gyro.read_gyro().y * 0.001f;
     // HAL_Delay(10);
     // printf("%f\r\n", sum);
-    HAL_ADC_Start(&hadc1);
-    HAL_ADC_PollForConversion(&hadc1, 1000);
-    adc_Value = HAL_ADC_GetValue(&hadc1);
-    adc_volt = (float)adc_Value * 3.3 / 4095;
-    // Voltage divider resistor Vbatt -> 20kΩ -> 10kΩ -> GND
-    batt_volt = adc_volt * (20 + 10) / 10.0f;
-    printf("adc_Value = %d, adc_volt = %.3f, batt_volt = %.3f\n\r", adc_Value,
-           adc_volt, batt_volt);
-    HAL_ADC_Stop(&hadc1);
+    batt.read_batt();
+
     HAL_Delay(500);
   }
   /* USER CODE END 3 */
