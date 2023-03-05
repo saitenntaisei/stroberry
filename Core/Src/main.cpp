@@ -24,6 +24,7 @@
 #include "encoder.hpp"
 #include "gpio.h"
 #include "gyro.hpp"
+#include "motor.hpp"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -125,7 +126,9 @@ int main(void) {
   // HAL_Delay(3000);
 
   spi::Gyro gyro;
+  pwm::Motor motor(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2);
   // float cnt_total = 0;
+  int cnt = 0;
   while (1) {
     // printf("Hello World% f\n",t+=0.1);
 
@@ -142,8 +145,10 @@ int main(void) {
     // HAL_Delay(10);
     // printf("%f\r\n", sum);
     batt.read_batt();
-
-    HAL_Delay(500);
+    motor.drive(250);
+    HAL_Delay(3000);
+    motor.drive(999);
+    HAL_Delay(3000);
   }
   /* USER CODE END 3 */
 }
