@@ -127,7 +127,7 @@ int main(void) {
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   spi::Gyro gyro;
-  adc::Battery batt(&hadc1);
+  adc::Battery<float, uint16_t> batt(&hadc1);
   enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
   enc.left = std::make_unique<pwm::Encoder<float, int32_t>>(TIM2);
   motor.left = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_1,
@@ -144,11 +144,11 @@ int main(void) {
     // sum = gyro.read_gyro().y * 0.001f;
     // HAL_Delay(10);
     // printf("%f\r\n", sum);
-    // batt.read_batt();
+    batt.read_batt();
     // motor.right->drive(250);
     // HAL_Delay(3000);
     // motor.right->drive(999);
-    printf("%f %f\r\n", enc.left->encoder, enc.right->encoder);
+    // printf("%f %f\r\n", enc.left->encoder, enc.right->encoder);
     enc.right->read_encoder_value(1000);
     enc.left->read_encoder_value(1000);
     HAL_Delay(1000);
