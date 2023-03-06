@@ -25,6 +25,7 @@
 #include "gpio.h"
 #include "gyro.hpp"
 #include "motor.hpp"
+#include "parts.hpp"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -62,8 +63,12 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-std::unique_ptr<pwm::Encoder<float, int16_t>> enc_right;
-std::unique_ptr<pwm::Encoder<float, int32_t>> enc_left;
+
+// std::unique_ptr<pwm::Encoder<float, int16_t>> enc_right;
+// std::unique_ptr<pwm::Encoder<float, int32_t>> enc_left;
+parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>,
+             std::unique_ptr<pwm::Encoder<float, int16_t>>>
+    enc;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
     // LED_2.toggle();
@@ -122,8 +127,8 @@ int main(void) {
 
   HAL_TIM_Base_Start_IT(&htim10);
   adc::Battery batt(&hadc1);
-  enc_right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
-  enc_left = std::make_unique<pwm::Encoder<float, int32_t>>(TIM2);
+  enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
+  enc.left = std::make_unique<pwm::Encoder<float, int32_t>>(TIM2);
   /* USER CODE END 2 */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -143,9 +148,9 @@ int main(void) {
     // Resolution, 10 IS GEAR DUTY
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
-    enc_right->read_encoder_value(1000);
-    enc_left->read_encoder_value(1000);
-    printf("%f %f\r\n", enc_left->cnt_total, enc_right->cnt_total);
+    enc.right->read_encoder_value(1000);
+    enc.left->read_encoder_value(1000);
+    printf("%f %f\r\n", enc.left->cnt_total, enc.right->cnt_total);
     // sum = gyro.read_gyro().y * 0.001f;
     // HAL_Delay(10);
     // printf("%f\r\n", sum);
