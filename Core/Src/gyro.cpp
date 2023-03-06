@@ -61,21 +61,25 @@ geometry Gyro::read_gyro() {
 
 void Gyro::spi_gyro_write(uint8_t address, uint8_t value) {
   uint8_t transmit[2] = {address, value};
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);  // CSピン立ち下げ
+  HAL_GPIO_WritePin(IMU_CS_GPIO_Port, IMU_CS_Pin,
+                    GPIO_PIN_RESET);  // CSピン立ち下げ
   HAL_Delay(1);
   HAL_SPI_Transmit(&hspi1, transmit, 2, 100);
   HAL_Delay(1);
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);  // CSピン立ち上げ
+  HAL_GPIO_WritePin(IMU_CS_GPIO_Port, IMU_CS_Pin,
+                    GPIO_PIN_SET);  // CSピン立ち上げ
 }
 uint8_t Gyro::spi_gyro_read(uint8_t address) {
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);  // CSピン立ち下げ
+  HAL_GPIO_WritePin(IMU_CS_GPIO_Port, IMU_CS_Pin,
+                    GPIO_PIN_RESET);  // CSピン立ち下げ
   uint8_t transmit;
   transmit = address | 0x80;
   uint8_t receive = 0x00;
   HAL_SPI_Transmit(&hspi1, &transmit, 1, 100);
   HAL_SPI_Receive(&hspi1, &receive, 1, 100);
   // HAL_SPI_TransmitReceive(&hspi1, &transmit, &receive, 2, 100);
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);  // CSピン立ち上げ
+  HAL_GPIO_WritePin(IMU_CS_GPIO_Port, IMU_CS_Pin,
+                    GPIO_PIN_SET);  // CSピン立ち上げ
   return receive;
 }
 }  // namespace spi

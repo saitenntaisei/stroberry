@@ -137,6 +137,7 @@ int main(void) {
   printf("stroberry\n");
   while (1) {
     // HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
+    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
     // read_gyro();
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
@@ -151,7 +152,7 @@ int main(void) {
     // printf("%f %f\r\n", enc.left->encoder, enc.right->encoder);
     enc.right->read_encoder_value(1000);
     enc.left->read_encoder_value(1000);
-    HAL_Delay(1000);
+    HAL_Delay(1);
   }
   /* USER CODE END 3 */
 }
