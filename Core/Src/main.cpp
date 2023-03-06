@@ -20,19 +20,19 @@
 #include "main.h"
 
 #include "adc.h"
-#include "battery.hpp"
-#include "encoder.hpp"
 #include "gpio.h"
-#include "gyro.hpp"
-#include "motor.hpp"
-#include "parts.hpp"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "battery.hpp"
+#include "encoder.hpp"
+#include "gyro.hpp"
 #include "mine.hpp"
+#include "motor.hpp"
+#include "parts.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,12 +63,10 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-// std::unique_ptr<pwm::Encoder<float, int16_t>> enc_right;
-// std::unique_ptr<pwm::Encoder<float, int32_t>> enc_left;
 parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>,
              std::unique_ptr<pwm::Encoder<float, int16_t>>>
     enc;
+parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
     // LED_2.toggle();
@@ -77,8 +75,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 void HAL_SYSTICK_Callback(void)  // 1kHz
 {
-  // enc_right->read_encoder_value(1000);
-  // enc_left->read_encoder_value(1000);
+  // This is system clock timer
 }
 
 /* USER CODE END 0 */
@@ -124,36 +121,23 @@ int main(void) {
   setbuf(stdout, NULL);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
-
   HAL_TIM_Base_Start_IT(&htim10);
-  adc::Battery batt(&hadc1);
-  enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
-  enc.left = std::make_unique<pwm::Encoder<float, int32_t>>(TIM2);
+
   /* USER CODE END 2 */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  // HAL_Delay(3000);
   spi::Gyro gyro;
-  // pwm::Motor motor(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2);
-  parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
-  // {
-  //     (&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2),
-  //     (&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4)};
+  adc::Battery batt(&hadc1);
+  enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
+  enc.left = std::make_unique<pwm::Encoder<float, int32_t>>(TIM2);
   motor.left = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_1,
                                             TIM_CHANNEL_2);
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3,
                                              TIM_CHANNEL_4);
-  // float cnt_total = 0;
-  // int cnt = 0;
-  printf("Hello World\n");
+  printf("stroberry\n");
   while (1) {
-    // printf("Hello World% f\n",t+=0.1);
-
     // HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
-    // cnt_total += enc_left.read_encoder_value();
     // read_gyro();
-    // printf("%f\r\n", cnt_total / (12.0 * 10) * 360);  // 12 is encoder
-    // Resolution, 10 IS GEAR DUTY
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
 
@@ -161,9 +145,9 @@ int main(void) {
     // HAL_Delay(10);
     // printf("%f\r\n", sum);
     // batt.read_batt();
-    motor.right->drive(250);
-    HAL_Delay(3000);
-    motor.right->drive(999);
+    // motor.right->drive(250);
+    // HAL_Delay(3000);
+    // motor.right->drive(999);
     printf("%f %f\r\n", enc.left->encoder, enc.right->encoder);
     enc.right->read_encoder_value(1000);
     enc.left->read_encoder_value(1000);
