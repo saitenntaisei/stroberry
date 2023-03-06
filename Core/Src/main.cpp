@@ -134,7 +134,15 @@ int main(void) {
   /* USER CODE BEGIN WHILE */
   // HAL_Delay(3000);
   spi::Gyro gyro;
-  pwm::Motor motor(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2);
+  // pwm::Motor motor(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2);
+  parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
+  // {
+  //     (&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2),
+  //     (&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4)};
+  motor.left = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_1,
+                                            TIM_CHANNEL_2);
+  motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3,
+                                             TIM_CHANNEL_4);
   // float cnt_total = 0;
   // int cnt = 0;
   printf("Hello World\n");
@@ -148,17 +156,18 @@ int main(void) {
     // Resolution, 10 IS GEAR DUTY
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
-    enc.right->read_encoder_value(1000);
-    enc.left->read_encoder_value(1000);
-    printf("%f %f\r\n", enc.left->cnt_total, enc.right->cnt_total);
+
     // sum = gyro.read_gyro().y * 0.001f;
     // HAL_Delay(10);
     // printf("%f\r\n", sum);
     // batt.read_batt();
-    // motor.drive(250);
-    // HAL_Delay(3000);
-    // motor.drive(999);
-    HAL_Delay(1);
+    motor.right->drive(250);
+    HAL_Delay(3000);
+    motor.right->drive(999);
+    printf("%f %f\r\n", enc.left->encoder, enc.right->encoder);
+    enc.right->read_encoder_value(1000);
+    enc.left->read_encoder_value(1000);
+    HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
