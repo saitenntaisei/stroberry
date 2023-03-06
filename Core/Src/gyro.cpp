@@ -22,7 +22,8 @@ Gyro::Gyro() : gyro_offset(0, 0, 0) {
   gyro_offset.z = temp.z / times;
   gyro_offset.y = temp.y / times;
   gyro_offset.y = temp.y / times;
-  printf("x:%f y:%f z:%f", gyro_offset.x, gyro_offset.y, gyro_offset.z);
+  printf("offset:=x:%f y:%f z:%f\r\n", gyro_offset.x, gyro_offset.y,
+         gyro_offset.z);
 }
 void Gyro::spi_gyro_who_am_i(void) {
   HAL_Delay(100);

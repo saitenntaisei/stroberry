@@ -127,6 +127,7 @@ int main(void) {
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   spi::Gyro gyro;
+  HAL_Delay(100);
   adc::Battery<float, uint16_t> batt(&hadc1);
   enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
   enc.left = std::make_unique<pwm::Encoder<float, int32_t>>(TIM2);
@@ -134,7 +135,7 @@ int main(void) {
                                             TIM_CHANNEL_2);
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3,
                                              TIM_CHANNEL_4);
-  printf("stroberry\n");
+  printf("stroberry\r\n");
   while (1) {
     // HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
