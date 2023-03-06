@@ -8,26 +8,43 @@
 #include "tim.h"
 #include "usart.h"
 namespace pwm {
-typedef struct wheel {
-  float l;
-  float r;
-  wheel(float l, float r) : l(l), r(r) {}
-} wheel;
 
+template <typename T, typename CNT>
 class Encoder {
  private:
   const float gear_duty = 10;
   const uint8_t encoder_resolution = 12;
-  int32_t read_left_encoder_value(void);   // LSB
-  int16_t read_right_encoder_value(void);  // LSB
+  CNT read_encoder_cnt(void);  // LSB
+  TIM_TypeDef* tim;
 
  public:
-  wheel encoder;
-  wheel cnt_total;
-  Encoder();
-  wheel read_encoder_value(
+  T encoder;
+  T cnt_total;
+  Encoder(TIM_TypeDef* tim);
+  T read_encoder_value(
       uint16_t control_cycle_Hz = 1000);  // dps and considered gear duty
 };
+template <typename T, typename CNT>
+Encoder<T, CNT>::Encoder(TIM_TypeDef* tim) : tim(tim) {
+  encoder = 0;
+  cnt_total = 0;
+  // HAL_TIM_Encoder_Start(htim, tim_channel);
+}
 
+template <typename T, typename CNT>
+CNT Encoder<T, CNT>::read_encoder_cnt(void) {
+  CNT enc_buff = (CNT)tim->CNT;
+  tim->CNT = 0;
+  return (CNT)enc_buff;
+}
+template <typename T, typename CNT>
+T Encoder<T, CNT>::read_encoder_value(uint16_t control_cycle_Hz) {
+  T encoder_temp = (T)read_encoder_cnt();
+  encoder_temp *= 360;
+  encoder_temp /= (gear_duty * encoder_resolution);
+  cnt_total += encoder_temp;
+  encoder = encoder_temp * control_cycle_Hz;
+  return encoder;
+}
 }  // namespace pwm
 #endif
