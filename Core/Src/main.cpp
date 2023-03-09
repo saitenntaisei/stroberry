@@ -63,7 +63,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>,
+parts::wheel<std::unique_ptr<pwm::Encoder<float, int16_t>>,
              std::unique_ptr<pwm::Encoder<float, int16_t>>>
     enc;
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
@@ -133,7 +133,7 @@ int main(void) {
   HAL_Delay(100);
   adc::Battery<float, uint16_t> batt(&hadc1);
   enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
-  enc.left = std::make_unique<pwm::Encoder<float, int32_t>>(TIM2);
+  enc.left = std::make_unique<pwm::Encoder<float, int16_t>>(TIM2);
   motor.left = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_1,
                                             TIM_CHANNEL_2);
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3,
@@ -153,9 +153,11 @@ int main(void) {
     // motor.right->drive(250);
     // HAL_Delay(3000);
     // motor.right->drive(999);
-    printf("%f %f\r\n", enc.left->cnt_total, enc.right->cnt_total);
+    // printf("%f %f\r\n", enc.left->cnt_total * 3.3 / 360 * 3.14,
+    //        enc.right->cnt_total * 3.3 / 360 * 3.14);
+    printf("is: %f %f\r\n", enc.left->cnt_total, enc.right->cnt_total);
 
-    HAL_Delay(100);
+    HAL_Delay(1);
   }
   /* USER CODE END 3 */
 }

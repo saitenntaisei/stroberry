@@ -43,7 +43,7 @@ T Encoder<T, CNT>::read_encoder_value(uint16_t control_cycle_Hz) {
   encoder_temp *= 360;
   encoder_temp /= (gear_duty * encoder_resolution);
   cnt_total += encoder_temp;
-  speed = encoder_temp * control_cycle_Hz;
+  speed = encoder_temp;  // * control_cycle_Hz;
   return speed;
 }
 }  // namespace pwm
