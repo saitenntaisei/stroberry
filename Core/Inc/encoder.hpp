@@ -18,7 +18,7 @@ class Encoder {
   TIM_TypeDef* tim;
 
  public:
-  T encoder;
+  T speed;
   T cnt_total;
   Encoder(TIM_TypeDef* tim);
   T read_encoder_value(
@@ -26,7 +26,7 @@ class Encoder {
 };
 template <typename T, typename CNT>
 Encoder<T, CNT>::Encoder(TIM_TypeDef* tim) : tim(tim) {
-  encoder = 0;
+  speed = 0;
   cnt_total = 0;
   // HAL_TIM_Encoder_Start(htim, tim_channel);
 }
@@ -43,8 +43,8 @@ T Encoder<T, CNT>::read_encoder_value(uint16_t control_cycle_Hz) {
   encoder_temp *= 360;
   encoder_temp /= (gear_duty * encoder_resolution);
   cnt_total += encoder_temp;
-  encoder = encoder_temp * control_cycle_Hz;
-  return encoder;
+  speed = encoder_temp * control_cycle_Hz;
+  return speed;
 }
 }  // namespace pwm
 #endif

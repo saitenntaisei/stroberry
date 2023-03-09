@@ -69,7 +69,10 @@ parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>,
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
-    // LED_2.toggle();
+  }
+  if (htim == &htim1) {
+    enc.right->read_encoder_value(1000);
+    enc.left->read_encoder_value(1000);
   }
 }
 
@@ -122,7 +125,7 @@ int main(void) {
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
   HAL_TIM_Base_Start_IT(&htim10);
-
+  HAL_TIM_Base_Start_IT(&htim1);
   /* USER CODE END 2 */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -150,10 +153,9 @@ int main(void) {
     // motor.right->drive(250);
     // HAL_Delay(3000);
     // motor.right->drive(999);
-    // printf("%f %f\r\n", enc.left->encoder, enc.right->encoder);
-    enc.right->read_encoder_value(1000);
-    enc.left->read_encoder_value(1000);
-    HAL_Delay(1);
+    printf("%f %f\r\n", enc.left->cnt_total, enc.right->cnt_total);
+
+    HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }
