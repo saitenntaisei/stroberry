@@ -30,10 +30,8 @@ extern "C" {
 
 extern char _backup_flash_start;
 bool Flash_clear();
-bool Flash_store(uint8_t *data, uint32_t size,
-                 uint32_t address = (uint32_t)(&_backup_flash_start));
-uint8_t *Flash_load(uint8_t *data, uint32_t size,
-                    uint32_t address = (uint32_t)(&_backup_flash_start));
+bool Flash_store();
+uint8_t *Flash_load();
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

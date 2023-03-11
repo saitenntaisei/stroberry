@@ -120,6 +120,7 @@ int main(void) {
   MX_TIM8_Init();
   MX_TIM10_Init();
   MX_TIM2_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   setbuf(stdout, NULL);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
@@ -148,7 +149,16 @@ int main(void) {
   //   printf("Failed to write flash\n");
   //   Error_Handler();
   // }
-  Flash_clear();
+  // Flash_clear();
+  uint32_t *flash_data = (uint32_t *)Flash_load();
+  printf("flash_data:%lu\n", *flash_data);
+
+  (*flash_data)++;
+
+  if (!Flash_store()) {
+    printf("Failed to write flash\n");
+  }
+  // Flash_clear();
   while (1) {
     // HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
