@@ -18,7 +18,7 @@ static uint8_t work_ram[BACKUP_FLASH_SECTOR_SIZE] __attribute__((aligned(4)));
 extern char _backup_flash_start;
 
 // Flashのsectoe1を消去
-bool Flash_clear() {
+extern "C" bool Flash_clear() {
   FLASH_WaitForLastOperation((uint32_t)50000U);
   HAL_FLASH_Unlock();
 
@@ -40,13 +40,13 @@ bool Flash_clear() {
 
 // Flashのsector1の内容を全てwork_ramに読み出す
 // work_ramの先頭アドレスを返す
-uint8_t *Flash_load() {
+extern "C" uint8_t *Flash_load() {
   memcpy(work_ram, &_backup_flash_start, BACKUP_FLASH_SECTOR_SIZE);
   return work_ram;
 }
 
 // Flashのsector1を消去後、work_ramにあるデータを書き込む
-bool Flash_store() {
+extern "C" bool Flash_store() {
   // Flashをclear
   if (!Flash_clear()) return false;
 
