@@ -139,6 +139,16 @@ int main(void) {
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3,
                                              TIM_CHANNEL_4);
   printf("stroberry\r\n");
+  // uint8_t test;
+  // uint8_t *flash_data = (uint8_t *)Flash_load(&test, sizeof(uint8_t));
+  // printf("flash_data:%u\n", *flash_data);
+  // (*flash_data)++;
+
+  // if (!Flash_store(&test, sizeof(uint8_t))) {
+  //   printf("Failed to write flash\n");
+  //   Error_Handler();
+  // }
+  Flash_clear();
   while (1) {
     // HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
@@ -155,7 +165,7 @@ int main(void) {
     // motor.right->drive(999);
     // printf("%f %f\r\n", enc.left->cnt_total * 3.3 / 360 * 3.14,
     //        enc.right->cnt_total * 3.3 / 360 * 3.14);
-    printf("is: %f %f\r\n", enc.left->cnt_total, enc.right->cnt_total);
+    // printf("is: %f %f\r\n", enc.left->cnt_total, enc.right->cnt_total);
 
     HAL_Delay(1);
   }

@@ -63,7 +63,8 @@ MEMORY
 {
 RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 128K
 CCMRAM (xrw)      : ORIGIN = 0x10000000, LENGTH = 64K
-FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 1024K
+FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 896K
+DATA (rx)     : ORIGIN = 0x80E0000, LENGTH = 128k
 }
 
 /* Define output sections */
@@ -76,6 +77,13 @@ SECTIONS
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
   } >FLASH
+
+  /* Store the data you do not want to lose after shutdown */
+  .backup_flash :
+  {
+    _backup_flash_start = .;
+    . = . + LENGTH(DATA);
+  } >DATA
 
   /* The program code and other data goes into FLASH */
   .text :
