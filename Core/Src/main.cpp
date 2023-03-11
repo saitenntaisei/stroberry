@@ -150,10 +150,11 @@ int main(void) {
   //   Error_Handler();
   // }
   // Flash_clear();
+  char d[100];
+  sprintf(d, "USSR %d\r\n", (uint16_t)1991);
   uint32_t *flash_data = (uint32_t *)Flash_load();
-  printf("flash_data:%lu\n", *flash_data);
-
-  (*flash_data)++;
+  printf("%c\r\n", *flash_data);
+  memcpy(flash_data, d, sizeof d);
 
   if (!Flash_store()) {
     printf("Failed to write flash\n");

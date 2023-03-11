@@ -1,6 +1,4 @@
 #include "mine.hpp"
-#define BACKUP_FLASH_SECTOR_NUM FLASH_SECTOR_1
-#define BACKUP_FLASH_SECTOR_SIZE 1024 * 16
 // Flashのsector1の先頭に配置される変数(ラベル)
 // 配置と定義はリンカスクリプトで行う
 
@@ -8,14 +6,6 @@ extern "C" int _write(int file, char *ptr, int len) {
   HAL_UART_Transmit(&huart4, (uint8_t *)ptr, len, 100);
   return len;
 }
-
-// Flashから読みだしたデータを退避するRAM上の領域
-// 4byteごとにアクセスをするので、アドレスが4の倍数になるように配置する
-static uint8_t work_ram[BACKUP_FLASH_SECTOR_SIZE] __attribute__((aligned(4)));
-
-// Flashのsector1の先頭に配置される変数(ラベル)
-// 配置と定義はリンカスクリプトで行う
-extern char _backup_flash_start;
 
 // Flashのsectoe1を消去
 extern "C" bool Flash_clear() {
