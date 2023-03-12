@@ -3,7 +3,9 @@
 #define BACKUP_FLASH_SECTOR_NUM FLASH_SECTOR_1
 #define BACKUP_FLASH_SECTOR_SIZE 1024 * 16
 
+#include <cstdio>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "gyro.hpp"
@@ -38,8 +40,19 @@ static uint8_t work_ram[BACKUP_FLASH_SECTOR_SIZE] __attribute__((aligned(4)));
 extern char _backup_flash_start;
 bool Flash_clear();
 bool Flash_store();
-uint8_t *Flash_load();
+uint8_t* Flash_load();
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+namespace text {
+uint16_t Flash_string(std::string* str, uint16_t pos = 0);
+template <typename... Args>
+std::string format(const std::string& fmt, Args... args) {
+  size_t len = std::snprintf(nullptr, 0, fmt.c_str(), args...);
+  std::vector<char> buf(len + 1);
+  std::snprintf(&buf[0], len + 1, fmt.c_str(), args...);
+  return std::string(&buf[0], &buf[0] + len);
+}
+}  // namespace text
+
 #endif
