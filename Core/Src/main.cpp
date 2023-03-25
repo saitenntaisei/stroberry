@@ -33,6 +33,7 @@
 #include "mine.hpp"
 #include "motor.hpp"
 #include "parts.hpp"
+#include "state.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,16 +64,19 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+std::unique_ptr<spi::Gyro> gyro;
 parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>,
              std::unique_ptr<pwm::Encoder<float, int16_t>>>
     enc;
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
+std::unique_ptr<state::Status<double>> status;
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
   }
   if (htim == &htim1) {
-    enc.right->read_encoder_value(1000);
-    enc.left->read_encoder_value(1000);
+    status->update(enc.left->read_encoder_value,
+                          enc.right->read_encoder_value);
   }
 }
 
@@ -130,7 +134,7 @@ int main(void) {
   /* USER CODE END 2 */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  spi::Gyro gyro;
+  gyro = std::make_unique<spi::Gyro>();
   HAL_Delay(100);
   adc::Battery<float, uint16_t> batt(&hadc1);
   enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
@@ -139,6 +143,7 @@ int main(void) {
                                             TIM_CHANNEL_2);
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3,
                                              TIM_CHANNEL_4);
+  status = std::make_unique<state::Status<double>>();
   printf("stroberry\r\n");
   // uint8_t test;
   // uint8_t *flash_data = (uint8_t *)Flash_load(&test, sizeof(uint8_t));
