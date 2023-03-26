@@ -19,17 +19,18 @@ class Status {
   T len_mouse;
   T ang_vel, I_ang_vel;
   Status(/* args */);
-  template <class ENCODER>
-  void update(ENCODER left_enc_fn, ENCODER right_enc_fn);
+  template <class ENCODER, typename FnP>
+  void update(ENCODER left_enc, ENCODER right_enc, FnP fn_pointer);
 };
 template <typename T>
 Status<T>::Status() {}
 template <typename T>
-template <class ENCODER>
-void Status<T>::update(ENCODER left_enc_fn,
-                       ENCODER right_enc_fn) {  // unit is control freq(1ms)
-  T left_rads = left_enc_fn();
-  T right_rads = right_enc_fn();
+template <class ENCODER, typename FnP>
+void Status<T>::update(ENCODER left_enc, ENCODER right_enc,
+                       FnP fn_pointer) {  // unit is control freq(1ms)
+  // printf("update\r\n");
+  T left_rads = (left_enc.*fn_pointer)(1000);
+  T right_rads = 0;  //(right_enc.*fn_pointer)(1000);
   left_speed_new = left_rads * (T)radius_wheel;
   right_speed_new = right_rads * (T)diameter_wheel;
   left_speed_old = left_speed;

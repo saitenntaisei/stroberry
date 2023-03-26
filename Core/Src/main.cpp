@@ -75,8 +75,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
   }
   if (htim == &htim1) {
-    status->update(enc.left->read_encoder_value,
-                          enc.right->read_encoder_value);
+    // float (pwm::Encoder<float, int32_t>::*p)(uint16_t) =
+    //     &pwm::Encoder<float, int32_t>::read_encoder_value;
+    // printf("good\r\n");
+    enc.left->read_encoder_value();
+    // status->update(*(enc.left), *(enc.left), p);
   }
 }
 
@@ -185,7 +188,7 @@ int main(void) {
     // motor.right->drive(999);
     // printf("%f %f\r\n", enc.left->cnt_total * 3.3 / 360 * 3.14,
     //        enc.right->cnt_total * 3.3 / 360 * 3.14);
-    // printf("is: %f %f\r\n", enc.left->cnt_total, enc.right->cnt_total);
+    printf("is: %f %f\r\n", enc.left->cnt_total, enc.right->cnt_total);
 
     HAL_Delay(1);
   }
