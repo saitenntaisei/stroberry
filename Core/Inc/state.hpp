@@ -22,16 +22,18 @@ class Status {
   T ang_vel, I_ang_vel;
   Status(/* args */);
   template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(),
-            T (RIGHTENC::*RIGHTENCFn)(), class GYRO>
-  void update(LEFTENC &left_enc, RIGHTENC &right_enc, GYRO gyro_yaw);
+            T (RIGHTENC::*RIGHTENCFn)()>
+  void update(LEFTENC &left_enc, RIGHTENC &right_enc,
+              std::function<T(void)> gyro_yaw);
 };
 template <typename T>
 Status<T>::Status() {}
 template <typename T>
 template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(),
-          T (RIGHTENC::*RIGHTENCFn)(), class GYRO>
-void Status<T>::update(LEFTENC &left_enc, RIGHTENC &right_enc,
-                       GYRO gyro_yaw) {  // unit is control freq(1ms)
+          T (RIGHTENC::*RIGHTENCFn)()>
+void Status<T>::update(
+    LEFTENC &left_enc, RIGHTENC &right_enc,
+    std::function<T(void)> gyro_yaw) {  // unit is control freq(1ms)
   T left_rads = (left_enc.*LEFTENCFn)();
   T right_rads = (right_enc.*RIGHTENCFn)();
   left_speed_new = left_rads * (T)radius_wheel;
@@ -54,12 +56,12 @@ void Status<T>::update(LEFTENC &left_enc, RIGHTENC &right_enc,
   len_mouse += (left_speed_new + right_speed) / 2.0;
 
   ang_vel = gyro_yaw();
-  // I_ang_vel += ang_vel;
-  // if (I_ang_vel > 30 * 10000000000) {
-  //   I_ang_vel = 30 * 10000000000;
-  // } else if (I_ang_vel < -1 * 10000000000) {
-  //   I_ang_vel = -1 * 10000000000;
-  // }
+  I_ang_vel += ang_vel;
+  if (I_ang_vel > 30 * 10000000000) {
+    I_ang_vel = 30 * 10000000000;
+  } else if (I_ang_vel < -1 * 10000000000) {
+    I_ang_vel = -1 * 10000000000;
+  }
 }
 }  // namespace state
 #endif

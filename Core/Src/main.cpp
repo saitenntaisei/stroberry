@@ -69,23 +69,14 @@ parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>,
     enc;
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
 std::unique_ptr<state::Status<float>> status;
-uint32_t cnt;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
   }
   if (htim == &htim1) {
-    // cnt++;
-    // float (pwm::Encoder<float, int32_t>::*p)(uint16_t) =
-    //     &pwm::Encoder<float, int32_t>::read_encoder_value;
-    // printf("good\r\n");
-    // enc.right->read_encoder_value(1000);
-    // enc.left->read_encoder_value(1000);
-
     status->update<pwm::Encoder<float, int32_t>, pwm::Encoder<float, int16_t>,
                    &pwm::Encoder<float, int32_t>::read_encoder_value,
                    &pwm::Encoder<float, int16_t>::read_encoder_value>(
         *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
-    printf("%f\r\n", gyro->check);
   };
 }
 
@@ -157,8 +148,7 @@ int main(void) {
   /* USER CODE BEGIN WHILE */
 
   printf("stroberry\r\n");
-  // printf("%ld\r\n", cnt);
-  // Error_Handler();
+
   // uint8_t test;
   // uint8_t *flash_data = (uint8_t *)Flash_load(&test, sizeof(uint8_t));
   // printf("flash_data:%u\n", *flash_data);

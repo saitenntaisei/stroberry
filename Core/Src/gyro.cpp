@@ -57,7 +57,7 @@ geometry Gyro::read_gyro() {
   //     dps.x = 0;
   // if (abs(dps.y) < 0.5)
   //     dps.y = 0;
-  check = 5;
+
   return dps;
 }
 
