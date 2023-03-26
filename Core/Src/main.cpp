@@ -69,21 +69,24 @@ parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>,
     enc;
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
 std::unique_ptr<state::Status<float>> status;
-
+uint32_t cnt;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
   }
   if (htim == &htim1) {
+    // cnt++;
     // float (pwm::Encoder<float, int32_t>::*p)(uint16_t) =
     //     &pwm::Encoder<float, int32_t>::read_encoder_value;
     // printf("good\r\n");
     // enc.right->read_encoder_value(1000);
     // enc.left->read_encoder_value(1000);
+
     status->update<pwm::Encoder<float, int32_t>, pwm::Encoder<float, int16_t>,
                    &pwm::Encoder<float, int32_t>::read_encoder_value,
                    &pwm::Encoder<float, int16_t>::read_encoder_value>(
-        *(enc.left), *(enc.right));
-  }
+        *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
+    gyro->read_gyro();
+  };
 }
 
 void HAL_SYSTICK_Callback(void)  // 1kHz
@@ -103,9 +106,11 @@ int main(void) {
 
   /* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+  /* MCU
+   * Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick.
+  /* Reset of all peripherals, Initializes the Flash interface and the
+   * Systick.
    */
   HAL_Init();
   /* USER CODE BEGIN Init */
@@ -135,11 +140,6 @@ int main(void) {
   setbuf(stdout, NULL);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
-  HAL_TIM_Base_Start_IT(&htim10);
-  HAL_TIM_Base_Start_IT(&htim1);
-  /* USER CODE END 2 */
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
   gyro = std::make_unique<spi::Gyro>();
   HAL_Delay(100);
   adc::Battery<float, uint16_t> batt(&hadc1);
@@ -150,7 +150,15 @@ int main(void) {
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3,
                                              TIM_CHANNEL_4);
   status = std::make_unique<state::Status<float>>();
+  HAL_TIM_Base_Start_IT(&htim10);
+  HAL_TIM_Base_Start_IT(&htim1);
+  /* USER CODE END 2 */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+
   printf("stroberry\r\n");
+  // printf("%ld\r\n", cnt);
+  // Error_Handler();
   // uint8_t test;
   // uint8_t *flash_data = (uint8_t *)Flash_load(&test, sizeof(uint8_t));
   // printf("flash_data:%u\n", *flash_data);
@@ -191,7 +199,7 @@ int main(void) {
     // motor.right->drive(999);
     // printf("%f %f\r\n", enc.left->cnt_total * 3.3 / 360 * 3.14,
     //        enc.right->cnt_total * 3.3 / 360 * 3.14);
-    printf("is: %f %f\r\n", enc.left->cnt_total, enc.right->cnt_total);
+    // printf("is: %f %f\r\n", enc.left->cnt_total, enc.right->cnt_total);
 
     HAL_Delay(1);
   }
@@ -260,7 +268,8 @@ void SystemClock_Config(void) {
  */
 void Error_Handler(void) {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
+  /* User can add his own implementation to report the HAL error return state
+   */
   __disable_irq();
   while (1) {
   }
@@ -278,8 +287,8 @@ void Error_Handler(void) {
 void assert_failed(uint8_t *file, uint32_t line) {
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line
-     number, ex: printf("Wrong parameters value: file %s on line %d\r\n", file,
-     line) */
+     number, ex: printf("Wrong parameters value: file %s on line %d\r\n",
+     file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
