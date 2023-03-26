@@ -33,11 +33,11 @@
 #include "mine.hpp"
 #include "motor.hpp"
 #include "parts.hpp"
+#include "state.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -63,16 +63,26 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+std::unique_ptr<spi::Gyro> gyro;
 parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>,
              std::unique_ptr<pwm::Encoder<float, int16_t>>>
     enc;
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
+std::unique_ptr<state::Status<float>> status;
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
   }
   if (htim == &htim1) {
-    enc.right->read_encoder_value(1000);
-    enc.left->read_encoder_value(1000);
+    // float (pwm::Encoder<float, int32_t>::*p)(uint16_t) =
+    //     &pwm::Encoder<float, int32_t>::read_encoder_value;
+    // printf("good\r\n");
+    // enc.right->read_encoder_value(1000);
+    // enc.left->read_encoder_value(1000);
+    status->update<pwm::Encoder<float, int32_t>, pwm::Encoder<float, int16_t>,
+                   &pwm::Encoder<float, int32_t>::read_encoder_value,
+                   &pwm::Encoder<float, int16_t>::read_encoder_value>(
+        *(enc.left), *(enc.right));
   }
 }
 
@@ -130,7 +140,7 @@ int main(void) {
   /* USER CODE END 2 */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  spi::Gyro gyro;
+  gyro = std::make_unique<spi::Gyro>();
   HAL_Delay(100);
   adc::Battery<float, uint16_t> batt(&hadc1);
   enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
@@ -139,6 +149,7 @@ int main(void) {
                                             TIM_CHANNEL_2);
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3,
                                              TIM_CHANNEL_4);
+  status = std::make_unique<state::Status<float>>();
   printf("stroberry\r\n");
   // uint8_t test;
   // uint8_t *flash_data = (uint8_t *)Flash_load(&test, sizeof(uint8_t));
@@ -180,7 +191,7 @@ int main(void) {
     // motor.right->drive(999);
     // printf("%f %f\r\n", enc.left->cnt_total * 3.3 / 360 * 3.14,
     //        enc.right->cnt_total * 3.3 / 360 * 3.14);
-    // printf("is: %f %f\r\n", enc.left->cnt_total, enc.right->cnt_total);
+    printf("is: %f %f\r\n", enc.left->cnt_total, enc.right->cnt_total);
 
     HAL_Delay(1);
   }
