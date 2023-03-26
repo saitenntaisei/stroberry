@@ -28,7 +28,7 @@ class Gyro {
 
  public:
   Gyro();
-
+  float check = 2;
   geometry read_gyro();
   void spi_gyro_who_am_i(void);
 };

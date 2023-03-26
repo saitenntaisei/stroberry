@@ -85,7 +85,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
                    &pwm::Encoder<float, int32_t>::read_encoder_value,
                    &pwm::Encoder<float, int16_t>::read_encoder_value>(
         *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
-    gyro->read_gyro();
+    printf("%f\r\n", gyro->check);
   };
 }
 

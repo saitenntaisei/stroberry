@@ -53,7 +53,7 @@ void Status<T>::update(LEFTENC &left_enc, RIGHTENC &right_enc,
   D_speed = (previous_speed - speed);
   len_mouse += (left_speed_new + right_speed) / 2.0;
 
-  // ang_vel = gyro_yaw();
+  ang_vel = gyro_yaw();
   // I_ang_vel += ang_vel;
   // if (I_ang_vel > 30 * 10000000000) {
   //   I_ang_vel = 30 * 10000000000;
