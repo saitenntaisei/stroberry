@@ -38,7 +38,6 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#include <functional>
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
