@@ -21,8 +21,7 @@ class Encoder {
   T speed_rads;
   T cnt_total;
   Encoder(TIM_TypeDef* tim);
-  T read_encoder_value(
-      uint16_t control_cycle_Hz = 1000);  // dps and considered gear duty
+  T read_encoder_value();  // dps and considered gear duty
 };
 template <typename T, typename CNT>
 Encoder<T, CNT>::Encoder(TIM_TypeDef* tim) : tim(tim) {
@@ -38,8 +37,7 @@ CNT Encoder<T, CNT>::read_encoder_cnt(void) {
   return (CNT)enc_buff;
 }
 template <typename T, typename CNT>
-T Encoder<T, CNT>::read_encoder_value(uint16_t control_cycle_Hz) {
-  printf("%f\r\n", cnt_total);
+T Encoder<T, CNT>::read_encoder_value() {
   T encoder_temp = (T)read_encoder_cnt();
   encoder_temp *= 360;
   encoder_temp /= (gear_duty * encoder_resolution);

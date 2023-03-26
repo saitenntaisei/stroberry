@@ -38,7 +38,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+#include <functional>
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -69,7 +69,7 @@ parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>,
              std::unique_ptr<pwm::Encoder<float, int16_t>>>
     enc;
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
-std::unique_ptr<state::Status<double>> status;
+std::unique_ptr<state::Status<float>> status;
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
@@ -78,8 +78,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     // float (pwm::Encoder<float, int32_t>::*p)(uint16_t) =
     //     &pwm::Encoder<float, int32_t>::read_encoder_value;
     // printf("good\r\n");
-    enc.left->read_encoder_value();
-    // status->update(*(enc.left), *(enc.left), p);
+    // enc.right->read_encoder_value(1000);
+    // enc.left->read_encoder_value(1000);
+    status->update<pwm::Encoder<float, int32_t>, pwm::Encoder<float, int16_t>,
+                   &pwm::Encoder<float, int32_t>::read_encoder_value,
+                   &pwm::Encoder<float, int16_t>::read_encoder_value>(
+        *(enc.left), *(enc.right));
   }
 }
 
@@ -146,7 +150,7 @@ int main(void) {
                                             TIM_CHANNEL_2);
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3,
                                              TIM_CHANNEL_4);
-  status = std::make_unique<state::Status<double>>();
+  status = std::make_unique<state::Status<float>>();
   printf("stroberry\r\n");
   // uint8_t test;
   // uint8_t *flash_data = (uint8_t *)Flash_load(&test, sizeof(uint8_t));
