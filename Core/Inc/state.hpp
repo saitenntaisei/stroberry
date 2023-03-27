@@ -8,18 +8,19 @@ namespace state {
 template <typename T>
 class Status {
  private:
-  T right_speed_old, left_speed_old;
-  T right_speed_new, left_speed_new;
-  T previous_speed;
-  const float diameter_wheel = 3.4;
-  const float radius_wheel = diameter_wheel / 2.0;
+  T right_speed_old = 0, left_speed_old = 0;
+  T right_speed_new = 0, left_speed_new = 0;
+  T previous_speed = 0, previous_ang_vel = 0;
+  const float diameter_wheel = 3.17f;
+  const float radius_wheel = 3.17f / 2.0f;
   /* data */
  public:
-  T speed, I_speed, D_speed;
-  T left_speed, right_speed;
+  T speed = 0, I_speed = 0, D_speed = 0;
+  T left_speed = 0, right_speed = 0;
+  T len_mouse = 0;
 
-  T len_mouse;
-  T ang_vel, I_ang_vel;
+  T ang_vel = 0, I_ang_vel = 0, D_ang_vel = 0;
+  T degree = 0;
   Status(/* args */);
   template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(),
             T (RIGHTENC::*RIGHTENCFn)()>
@@ -34,10 +35,10 @@ template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(),
 void Status<T>::update(
     LEFTENC &left_enc, RIGHTENC &right_enc,
     std::function<T(void)> gyro_yaw) {  // unit is control freq(1ms)
-  T left_rads = (left_enc.*LEFTENCFn)();
+  T left_rads = -(left_enc.*LEFTENCFn)();
   T right_rads = (right_enc.*RIGHTENCFn)();
   left_speed_new = left_rads * (T)radius_wheel;
-  right_speed_new = right_rads * (T)diameter_wheel;
+  right_speed_new = right_rads * (T)radius_wheel;
   left_speed_old = left_speed;
   right_speed_old = right_speed;
   // lowpass
@@ -52,16 +53,20 @@ void Status<T>::update(
   } else if (I_speed < -1 * 10000000000) {
     I_speed = -1 * 10000000000;
   }
-  D_speed = (previous_speed - speed);
+  D_speed = (speed - previous_speed);
   len_mouse += (left_speed_new + right_speed) / 2.0;
 
   ang_vel = gyro_yaw();
+  D_ang_vel = (ang_vel - previous_ang_vel);
+  previous_ang_vel = ang_vel;
   I_ang_vel += ang_vel;
+  degree += ang_vel * 0.001f;
   if (I_ang_vel > 30 * 10000000000) {
     I_ang_vel = 30 * 10000000000;
   } else if (I_ang_vel < -1 * 10000000000) {
     I_ang_vel = -1 * 10000000000;
   }
+  printf("%f\r\n", len_mouse);
 }
 }  // namespace state
 #endif

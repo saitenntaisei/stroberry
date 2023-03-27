@@ -159,19 +159,19 @@ int main(void) {
   //   Error_Handler();
   // }
   // Flash_clear();
-  std::string s = text::format("USSR %d\r\n", (uint16_t)1992);
-  // sprintf(d, "USSR %d\r\n", (uint16_t)1905);
-  // printf("%d,%d,%d", sizeof(char), sizeof(uint32_t), sizeof(uint8_t));
-  char *flash_data = (char *)Flash_load();
-  printf("%s\r\n", flash_data);
-  // memcpy(flash_data, d, sizeof d);
-  uint16_t pos = text::Flash_string(&s);
-  s = text::format("Soviet %d\r\n", (uint16_t)1905);
-  text::Flash_string(&s, pos);
-  printf("%s\r\n", flash_data);
-  if (!Flash_store()) {
-    printf("Failed to write flash\n");
-  }
+  // std::string s = text::format("USSR %d\r\n", (uint16_t)1992);
+  // // sprintf(d, "USSR %d\r\n", (uint16_t)1905);
+  // // printf("%d,%d,%d", sizeof(char), sizeof(uint32_t), sizeof(uint8_t));
+  // char *flash_data = (char *)Flash_load();
+  // printf("%s\r\n", flash_data);
+  // // memcpy(flash_data, d, sizeof d);
+  // uint16_t pos = text::Flash_string(&s);
+  // s = text::format("Soviet %d\r\n", (uint16_t)1905);
+  // text::Flash_string(&s, pos);
+  // printf("%s\r\n", flash_data);
+  // if (!Flash_store()) {
+  //   printf("Failed to write flash\n");
+  // }
   // Flash_clear();
   while (1) {
     // HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
