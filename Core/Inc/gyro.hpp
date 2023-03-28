@@ -1,6 +1,7 @@
-#ifndef MY_GYRO_HPP
-#define MY_GYRO_HPP
-#include "mine.hpp"
+#ifndef CORE_INC_GYRO_HPP_
+#define CORE_INC_GYRO_HPP_
+
+#include "./mine.hpp"
 
 namespace spi {
 typedef struct geometry {
@@ -28,4 +29,4 @@ class Gyro {
 };
 
 }  // namespace spi
-#endif
+#endif  // CORE_INC_GYRO_HPP_

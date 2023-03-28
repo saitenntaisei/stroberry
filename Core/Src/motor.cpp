@@ -1,4 +1,4 @@
-#include "motor.hpp"
+#include "./motor.hpp"
 namespace pwm {
 Motor::Motor(TIM_HandleTypeDef* tim_1, TIM_HandleTypeDef* tim_2,
              unsigned int channel_1, unsigned int channel_2) {

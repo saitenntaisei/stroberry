@@ -1,8 +1,8 @@
-#ifndef MY_MOTOR_HPP
-#define MY_MOTOR_HPP
+#ifndef CORE_INC_MOTOR_HPP_
+#define CORE_INC_MOTOR_HPP_
 
-#include "mine.hpp"
-#include "tim.h"
+#include "./mine.hpp"
+#include "./tim.h"
 
 namespace pwm {
 typedef struct timer_pin {
@@ -22,4 +22,4 @@ class Motor {
 };
 
 }  // namespace pwm
-#endif
+#endif  // CORE_INC_MOTOR_HPP_

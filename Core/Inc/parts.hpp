@@ -1,5 +1,5 @@
-#ifndef MY_PART_HPP
-#define MY_PART_HPP
+#ifndef CORE_INC_PARTS_HPP_
+#define CORE_INC_PARTS_HPP_
 
 namespace parts {
 template <class LEFT, class RIGHT>
@@ -9,4 +9,4 @@ struct wheel {
 };
 
 }  // namespace parts
-#endif
+#endif  // CORE_INC_PARTS_HPP_

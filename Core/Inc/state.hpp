@@ -1,7 +1,6 @@
-#ifndef MY_STATE_HPP
-#define MY_STATE_HPP
+#ifndef CORE_INC_STATE_HPP_
+#define CORE_INC_STATE_HPP_
 #include <functional>
-
 
 namespace state {
 template <typename T>
@@ -67,4 +66,4 @@ void Status<T>::update(
   }
 }
 }  // namespace state
-#endif
+#endif  // CORE_INC_STATE_HPP_

@@ -27,13 +27,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "battery.hpp"
-#include "encoder.hpp"
-#include "gyro.hpp"
-#include "mine.hpp"
-#include "motor.hpp"
-#include "parts.hpp"
-#include "state.hpp"
+#include "./battery.hpp"
+#include "./encoder.hpp"
+#include "./gyro.hpp"
+#include "./mine.hpp"
+#include "./motor.hpp"
+#include "./parts.hpp"
+#include "./state.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -77,7 +77,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
                    &pwm::Encoder<float, int32_t>::read_encoder_value,
                    &pwm::Encoder<float, int16_t>::read_encoder_value>(
         *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
-  };
+  }
 }
 
 void HAL_SYSTICK_Callback(void)  // 1kHz

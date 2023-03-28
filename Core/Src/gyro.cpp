@@ -1,4 +1,4 @@
-#include "gyro.hpp"
+#include "./gyro.hpp"
 namespace spi {
 Gyro::Gyro() : gyro_offset(0, 0, 0) {
   spi_gyro_who_am_i();
@@ -34,17 +34,17 @@ void Gyro::spi_gyro_who_am_i(void) {
 float Gyro::spi_gyro_OUT_Z(void) {
   uint16_t Z_H = spi_gyro_read(0x2D);
   uint16_t Z_L = spi_gyro_read(0x2C);
-  return (float)((int16_t)((Z_H << 8) + Z_L)) * gyro_sensitivty;
+  return static_cast<float>((int16_t)((Z_H << 8) + Z_L)) * gyro_sensitivty;
 }
 float Gyro::spi_gyro_OUT_X(void) {
   uint16_t X_H = spi_gyro_read(0x29);
   uint16_t X_L = spi_gyro_read(0x28);
-  return (float)((int16_t)((X_H << 8) + X_L)) * gyro_sensitivty;
+  return static_cast<float>((int16_t)((X_H << 8) + X_L)) * gyro_sensitivty;
 }
 float Gyro::spi_gyro_OUT_Y(void) {
   uint16_t Y_H = spi_gyro_read(0x2B);
   uint16_t Y_L = spi_gyro_read(0x2A);
-  return (float)((int16_t)((Y_H << 8) + Y_L)) * gyro_sensitivty;
+  return static_cast<float>((int16_t)((Y_H << 8) + Y_L)) * gyro_sensitivty;
 }
 geometry Gyro::read_gyro() {
   geometry dps(0, 0, 0);

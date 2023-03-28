@@ -62,7 +62,7 @@ extern "C" bool Flash_store() {
 namespace text {
 uint16_t Flash_string(std::string *str, uint16_t pos) {
   const char *cstr = str->c_str();
-  if (strlen(cstr) + 1 > (size_t)(BACKUP_FLASH_SECTOR_SIZE - pos)) {
+  if (strlen(cstr) + 1 > static_cast<size_t>(BACKUP_FLASH_SECTOR_SIZE - pos)) {
     return -1;
   }
   memcpy(work_ram + pos, cstr, strlen(cstr) + 1);  // sizeof(char) := 1

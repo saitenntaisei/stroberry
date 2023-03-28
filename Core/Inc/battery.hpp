@@ -1,8 +1,8 @@
-#ifndef MY_BATTERY_HPP
-#define MY_BATTERY_HPP
+#ifndef CORE_INC_BATTERY_HPP_
+#define CORE_INC_BATTERY_HPP_
 
-#include "main.h"
-#include "mine.hpp"
+#include "./main.h"
+#include "./mine.hpp"
 
 namespace adc {
 template <typename T, typename RESO>
@@ -17,7 +17,7 @@ class Battery {
   ADC_HandleTypeDef* hadc;
 
  public:
-  Battery(ADC_HandleTypeDef* hadc);
+  explicit Battery(ADC_HandleTypeDef* hadc);
   T read_batt(void);
 };
 
@@ -31,7 +31,7 @@ T Battery<T, RESO>::read_batt(void) {
   HAL_ADC_Start(hadc);
   HAL_ADC_PollForConversion(&hadc1, 1000);
   adc_Value = HAL_ADC_GetValue(&hadc1);
-  adc_volt = (float)adc_Value * 3.3 / resolution;
+  adc_volt = static_cast<float>(adc_Value) * 3.3 / resolution;
   // Voltage divider resistor Vbatt -> 20kΩ -> 10kΩ -> GND
   batt_volt = adc_volt * (20 + 10) / 10.0f;
   // printf("adc_Value = %d, adc_volt = %.3f, batt_volt = %.3f\n\r", adc_Value,
@@ -46,4 +46,4 @@ T Battery<T, RESO>::read_batt(void) {
 }
 
 }  // namespace adc
-#endif
+#endif  // CORE_INC_BATTERY_HPP_

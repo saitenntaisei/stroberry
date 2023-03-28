@@ -1,5 +1,5 @@
-#ifndef MY_MINE_HPP
-#define MY_MINE_HPP
+#ifndef CORE_INC_MINE_HPP_
+#define CORE_INC_MINE_HPP_
 #define BACKUP_FLASH_SECTOR_NUM FLASH_SECTOR_1
 #define BACKUP_FLASH_SECTOR_SIZE 1024 * 16
 
@@ -17,8 +17,8 @@ extern "C" {
 #include <stdint.h>
 #include <string.h>
 
-#include "spi.h"
-#include "usart.h"
+#include "./spi.h"
+#include "./usart.h"
 // Flashから読みだしたデータを退避するRAM上の領域
 // 4byteごとにアクセスをするので、アドレスが4の倍数になるように配置する
 static uint8_t work_ram[BACKUP_FLASH_SECTOR_SIZE] __attribute__((aligned(4)));
@@ -53,4 +53,4 @@ std::string format(const std::string& fmt, Args... args) {
 // if (!Flash_store()) {
 //   printf("Failed to write flash\n");
 // }
-#endif
+#endif  // CORE_INC_MINE_HPP_
