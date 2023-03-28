@@ -2,8 +2,7 @@
 #define MY_STATE_HPP
 #include <functional>
 
-#include "gyro.hpp"
-#include "mine.hpp"
+
 namespace state {
 template <typename T>
 class Status {

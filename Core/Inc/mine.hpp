@@ -8,8 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "gyro.hpp"
-
 #define PI 3.14159
 
 #ifdef __cplusplus
@@ -19,17 +17,7 @@ extern "C" {
 #include <stdint.h>
 #include <string.h>
 
-#include "adc.h"
-#include "gpio.h"
-#include "main.h"
-#include "math.h"
 #include "spi.h"
-#include "stdarg.h"
-#include "stdbool.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "stm32f405xx.h"
-#include "tim.h"
 #include "usart.h"
 // Flashから読みだしたデータを退避するRAM上の領域
 // 4byteごとにアクセスをするので、アドレスが4の倍数になるように配置する
@@ -55,4 +43,14 @@ std::string format(const std::string& fmt, Args... args) {
 }
 }  // namespace text
 
+// std::string s = text::format("USSR %d\r\n", (uint16_t)1991);
+// char *flash_data = (char *)Flash_load();
+// printf("%s\r\n", flash_data);
+// uint16_t pos = text::Flash_string(&s);
+// s = text::format("Soviet %d\r\n", (uint16_t)1905);
+// text::Flash_string(&s, pos);
+// printf("%s\r\n", flash_data);
+// if (!Flash_store()) {
+//   printf("Failed to write flash\n");
+// }
 #endif

@@ -1,12 +1,6 @@
-#ifndef MY_ENCODER_HPP
-#define MY_ENCODER_HPP
-#include "adc.h"
-#include "gpio.h"
-#include "main.h"
-#include "mine.hpp"
-#include "spi.h"
-#include "tim.h"
-#include "usart.h"
+#ifndef CORE_INC_ENCODER_HPP_
+#define CORE_INC_ENCODER_HPP_
+#include "./mine.hpp"
 namespace pwm {
 
 template <typename T, typename CNT>
@@ -20,7 +14,7 @@ class Encoder {
  public:
   T speed_rads;
   T cnt_total;
-  Encoder(TIM_TypeDef* tim);
+  explicit Encoder(TIM_TypeDef* tim);
   T read_encoder_value();  // dps and considered gear duty
 };
 template <typename T, typename CNT>
@@ -46,4 +40,4 @@ T Encoder<T, CNT>::read_encoder_value() {
   return speed_rads;
 }
 }  // namespace pwm
-#endif
+#endif  // CORE_INC_ENCODER_HPP_

@@ -1,12 +1,7 @@
 #ifndef MY_GYRO_HPP
 #define MY_GYRO_HPP
-#include "adc.h"
-#include "gpio.h"
-#include "main.h"
 #include "mine.hpp"
-#include "spi.h"
-#include "tim.h"
-#include "usart.h"
+
 namespace spi {
 typedef struct geometry {
   float x;

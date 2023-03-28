@@ -149,49 +149,13 @@ int main(void) {
 
   printf("stroberry\r\n");
 
-  // uint8_t test;
-  // uint8_t *flash_data = (uint8_t *)Flash_load(&test, sizeof(uint8_t));
-  // printf("flash_data:%u\n", *flash_data);
-  // (*flash_data)++;
-
-  // if (!Flash_store(&test, sizeof(uint8_t))) {
-  //   printf("Failed to write flash\n");
-  //   Error_Handler();
-  // }
-  // Flash_clear();
-  // std::string s = text::format("USSR %d\r\n", (uint16_t)1992);
-  // // sprintf(d, "USSR %d\r\n", (uint16_t)1905);
-  // // printf("%d,%d,%d", sizeof(char), sizeof(uint32_t), sizeof(uint8_t));
-  // char *flash_data = (char *)Flash_load();
-  // printf("%s\r\n", flash_data);
-  // // memcpy(flash_data, d, sizeof d);
-  // uint16_t pos = text::Flash_string(&s);
-  // s = text::format("Soviet %d\r\n", (uint16_t)1905);
-  // text::Flash_string(&s, pos);
-  // printf("%s\r\n", flash_data);
-  // if (!Flash_store()) {
-  //   printf("Failed to write flash\n");
-  // }
-  // Flash_clear();
   while (1) {
-    // HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_2);
-    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
-    // read_gyro();
+    // motor.right->drive(250);
+    // motor.right->drive(999);
+    batt.read_batt();
+    HAL_Delay(1);
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
-
-    // sum = gyro.read_gyro().y * 0.001f;
-    // HAL_Delay(10);
-    // printf("%f\r\n", sum);
-    batt.read_batt();
-    // motor.right->drive(250);
-    // HAL_Delay(3000);
-    // motor.right->drive(999);
-    // printf("%f %f\r\n", enc.left->cnt_total * 3.3 / 360 * 3.14,
-    //        enc.right->cnt_total * 3.3 / 360 * 3.14);
-    // printf("is: %f %f\r\n", enc.left->cnt_total, enc.right->cnt_total);
-
-    HAL_Delay(1);
   }
   /* USER CODE END 3 */
 }

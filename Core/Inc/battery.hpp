@@ -1,12 +1,9 @@
 #ifndef MY_BATTERY_HPP
 #define MY_BATTERY_HPP
-#include "adc.h"
-#include "gpio.h"
+
 #include "main.h"
 #include "mine.hpp"
-#include "spi.h"
-#include "tim.h"
-#include "usart.h"
+
 namespace adc {
 template <typename T, typename RESO>
 class Battery {
