@@ -66,7 +66,6 @@ void Status<T>::update(
   } else if (I_ang_vel < -1 * 10000000000) {
     I_ang_vel = -1 * 10000000000;
   }
-  printf("%f\r\n", len_mouse);
 }
 }  // namespace state
 #endif
