@@ -8,5 +8,7 @@ struct wheel {
   RIGHT right;
 };
 
+enum class Run_mode_t : uint8_t { STRAIGHT_MODE, TURN_MODE };
+
 }  // namespace parts
 #endif  // CORE_INC_PARTS_HPP_

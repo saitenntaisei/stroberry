@@ -28,11 +28,13 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "./battery.hpp"
+#include "./controller.hpp"
 #include "./encoder.hpp"
 #include "./gyro.hpp"
 #include "./mine.hpp"
 #include "./motor.hpp"
 #include "./parts.hpp"
+#include "./pid.hpp"
 #include "./state.hpp"
 /* USER CODE END Includes */
 
@@ -150,8 +152,10 @@ int main(void) {
   printf("stroberry\r\n");
 
   while (1) {
-    // motor.right->drive(250);
+    // motor.right->drive(-250);
+    // motor.left->drive(250);
     // motor.right->drive(999);
+    printf("deg:%f\r\n", status->degree);
     batt.read_batt();
     HAL_Delay(1);
     /* USER CODE END WHILE */

@@ -9,8 +9,8 @@ class Status {
   T right_speed_old = 0, left_speed_old = 0;
   T right_speed_new = 0, left_speed_new = 0;
   T previous_speed = 0, previous_ang_vel = 0;
-  const float diameter_wheel = 3.17f;
-  const float radius_wheel = 3.17f / 2.0f;
+  const float diameter_wheel = 31.7f;
+  const float radius_wheel = diameter_wheel / 2.0f;
   /* data */
  public:
   T speed = 0, I_speed = 0, D_speed = 0;
