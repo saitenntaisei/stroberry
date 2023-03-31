@@ -71,14 +71,31 @@ parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>,
     enc;
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
 std::unique_ptr<state::Status<float>> status;
+std::unique_ptr<
+    state::Controller<float, state::Status<float>, state::Pid<float>>>
+    ctrl;
+uint16_t pos = 0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
+    // ctrl->update();
   }
   if (htim == &htim1) {
-    status->update<pwm::Encoder<float, int32_t>, pwm::Encoder<float, int16_t>,
-                   &pwm::Encoder<float, int32_t>::read_encoder_value,
-                   &pwm::Encoder<float, int16_t>::read_encoder_value>(
-        *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
+    // status->update<pwm::Encoder<float, int32_t>, pwm::Encoder<float,
+    // int16_t>,
+    //                &pwm::Encoder<float, int32_t>::read_encoder_value,
+    //                &pwm::Encoder<float, int16_t>::read_encoder_value>(
+    //     *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
+    ctrl->status
+        .update<pwm::Encoder<float, int32_t>, pwm::Encoder<float, int16_t>,
+                &pwm::Encoder<float, int32_t>::read_encoder_value,
+                &pwm::Encoder<float, int16_t>::read_encoder_value>(
+            *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
+    ctrl->status.speed;
+    std::string s = text::format("%f, %d\r\n", ctrl->status.speed, 250);
+    text::Flash_string(&s, pos);
+    if (!Flash_store()) {
+      printf("Failed to write flash\n");
+    }
   }
 }
 
@@ -143,6 +160,8 @@ int main(void) {
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3,
                                              TIM_CHANNEL_4);
   status = std::make_unique<state::Status<float>>();
+  ctrl = std::make_unique<
+      state::Controller<float, state::Status<float>, state::Pid<float>>>();
   HAL_TIM_Base_Start_IT(&htim10);
   HAL_TIM_Base_Start_IT(&htim1);
   /* USER CODE END 2 */
@@ -152,10 +171,15 @@ int main(void) {
   printf("stroberry\r\n");
 
   while (1) {
-    // motor.right->drive(-250);
-    // motor.left->drive(250);
+    HAL_Delay(2000);
+    motor.right->drive(-250);
+    motor.left->drive(250);
+    HAL_Delay(2000);
+    motor.right->drive(0);
+    motor.left->drive(0);
+    Error_Handler();
     // motor.right->drive(999);
-    printf("deg:%f\r\n", status->degree);
+    // printf("deg:%f\r\n", ctrl->status.degree);
     batt.read_batt();
     HAL_Delay(1);
     /* USER CODE END WHILE */

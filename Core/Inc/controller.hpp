@@ -7,31 +7,33 @@ namespace state {
 template <typename T, class STATUS, class PID>
 class Controller {
  private:
-  STATUS state;
-  parts::wheel<T, T> speed, ang_vel;
+  parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed, ang_vel;
   parts::wheel<T, T> motor_duty;
-  T tar_speed, accel;
-  T tar_ang_vel, ang_acc, tar_degree;
-  T max_speed, max_ang_vel, max_degree;
+  T tar_speed = 1, accel = 0;
+  T tar_ang_vel = 0, ang_acc = 0, tar_degree = 0;
+  T max_speed = 0, max_ang_vel = 0, max_degree = 0;
 
  public:
+  STATUS status;
   parts::Run_mode_t run_mode;
-  Controller() {
-    state();
-    speed.left(0, 0, 0);
-    speed.right(0, 0, 0);
-    ang_vel.left(0, 0, 0);
-    ang_vel.right(0, 0, 0);
+  Controller() : status() {
+    speed.left = std::make_unique<PID>(0.0f, 0.0f, 0.0f);
+    speed.right = std::make_unique<PID>(0.0f, 0.0f, 0.0f);
+    ang_vel.right = std::make_unique<PID>(0.0f, 0.0f, 0.0f);
+    ang_vel.left = std::make_unique<PID>(0.0f, 0.0f, 0.0f);
     motor_duty.left = 0;
     motor_duty.right = 0;
   }
   void update() {
     motor_duty.left = 0;
     motor_duty.right = 0;
-    motor_duty.left += speed.left().update(tar_speed, state.speed);
-    motor_duty.right += speed.right().update(tar_speed, state.speed);
-    motor_duty.left += ang_vel.left().update(tar_ang_vel, state.ang_vel);
-    motor_duty.right += ang_vel.right.update(tar_ang_vel, state.ang_vel);
+    motor_duty.left += speed.left->update(tar_speed, status.speed);
+    motor_duty.right += speed.right->update(tar_speed, status.speed);
+    motor_duty.left += ang_vel.left->update(tar_ang_vel, status.ang_vel);
+    motor_duty.right += ang_vel.right->update(tar_ang_vel, status.ang_vel);
+    // printf("motor_duty.left = %f, motor_duty.right = %f\r\n",
+    // motor_duty.left,
+    //        motor_duty.right);
   }
   void drive_motor(std::function<void(T)> left_motor,
                    std::function<void(T)> right_motor, int8_t left_dir,
@@ -95,7 +97,7 @@ class Controller {
 
     if (end_speed == 0) {  // 最終的に停止する場合
       // 減速処理を始めるべき位置まで加速、定速区間を続行
-      while (((len_target - 10) - state.len_mouse) >
+      while (((len_target - 10) - status.len_mouse) >
              1000.0 *
                  ((float)(tar_speed * tar_speed) -
                   (float)(end_speed * end_speed)) /
@@ -103,7 +105,7 @@ class Controller {
         ;
       // 減速処理開始
       accel = -acc;  // 減速するために加速度を負の値にする
-      while (state.len_mouse <
+      while (status.len_mouse <
              len_target - 1) {  // 停止したい距離の少し手前まで継続
         // 一定速度まで減速したら最低駆動トルクで走行
         if (tar_speed <=
@@ -120,7 +122,7 @@ class Controller {
 
     } else {
       // 減速処理を始めるべき位置まで加速、定速区間を続行
-      while (((len_target - 10) - state.len_mouse) >
+      while (((len_target - 10) - status.len_mouse) >
              1000.0 *
                  ((float)(tar_speed * tar_speed) -
                   (float)(end_speed * end_speed)) /
@@ -129,7 +131,7 @@ class Controller {
 
       // 減速処理開始
       accel = -acc;  // 減速するために加速度を負の値にする
-      while (state.len_mouse <
+      while (status.len_mouse <
              len_target) {  // 停止したい距離の少し手前まで継続
         // 一定速度まで減速したら最低駆動トルクで走行
         if (tar_speed <=
@@ -142,7 +144,7 @@ class Controller {
     // 加速度を0にする
     accel = 0;
     // 現在距離を0にリセット
-    state.len_mouse = 0;
+    status.len_mouse = 0;
   }
 
   // positive: left, negative: right
@@ -167,19 +169,19 @@ class Controller {
     run_mode = parts::Run_mode_t::TURN_MODE;
 
     // 車体の現在角度を取得
-    local_degree = state.degree;
+    local_degree = status.degree;
     tar_degree = 0;
     ang_acc = ang_accel;
     max_ang_vel = max_ang_velocity;
     max_degree = deg;
     // 角加速度、加速度、最高角速度設定
-    while (std::abs(deg - (state.degree - local_degree)) * PI / 180.0 >
+    while (std::abs(deg - (status.degree - local_degree)) * PI / 180.0 >
            std::abs(tar_ang_vel * tar_ang_vel / (2.0 * ang_accel)))
       ;
 
     // BEEP();
     // 角減速区間に入るため、角加速度設定
-    while (abs(state.degree - local_degree) < abs(max_degree)) {
+    while (abs(status.degree - local_degree) < abs(max_degree)) {
       if (tar_ang_vel < (PI / 10.0f)) {
         ang_acc = 0;
         tar_ang_vel = (PI / 10.0f);
@@ -196,7 +198,7 @@ class Controller {
     tar_ang_vel = 0;
     ang_acc = 0;
     // 現在距離を0にリセット
-    state.len_mouse = 0;
+    status.len_mouse = 0;
     HAL_Delay(500);
   }
 };

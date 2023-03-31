@@ -9,7 +9,7 @@ class Status {
   T right_speed_old = 0, left_speed_old = 0;
   T right_speed_new = 0, left_speed_new = 0;
   T previous_speed = 0, previous_ang_vel = 0;
-  const float diameter_wheel = 31.7f;
+  const float diameter_wheel = 32.0f;
   const float radius_wheel = diameter_wheel / 2.0f;
   /* data */
  public:
@@ -19,7 +19,7 @@ class Status {
 
   T ang_vel = 0, I_ang_vel = 0, D_ang_vel = 0;
   T degree = 0;
-  Status(/* args */);
+  Status();
   template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(),
             T (RIGHTENC::*RIGHTENCFn)()>
   void update(LEFTENC &left_enc, RIGHTENC &right_enc,

@@ -3,28 +3,28 @@
 #include <parts.hpp>
 
 namespace state {
-template <typename T, class STATUS>
-class PID {
+template <typename T>
+class Pid {
  private:
   T Kp, Ki, Kd;
   T error, error_prev, error_sum;
   T output;
 
  public:
-  explicit PID(float Kp, float Ki, float Kd);
+  explicit Pid(float Kp, float Ki, float Kd);
   T update(T target, T current);
 };
 
-template <typename T, class STATE>
-PID<T, STATE>::PID(float Kp, float Ki, float Kd) : Kp(Kp), Ki(Ki), Kd(Kd) {
+template <typename T>
+Pid<T>::Pid(float Kp, float Ki, float Kd) : Kp(Kp), Ki(Ki), Kd(Kd) {
   error = 0;
   error_prev = 0;
   error_sum = 0;
   output = 0;
 }
 
-template <typename T, class STATE>
-T PID<T, STATE>::update(T target, T current) {
+template <typename T>
+T Pid<T>::update(T target, T current) {
   error = target - current;
   error_sum += error;
   if (error_sum > 30 * 10000000000) {
@@ -39,4 +39,4 @@ T PID<T, STATE>::update(T target, T current) {
 
 }  // namespace state
 
-#endif  // CORE_INC_PID_HPP_
+#endif  // CORE_INC_Pid_HPP_
