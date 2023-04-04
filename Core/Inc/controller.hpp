@@ -9,7 +9,7 @@ class Controller {
  private:
   parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed, ang_vel;
   parts::wheel<T, T> motor_duty;
-  T tar_speed = 1, accel = 0;
+  T tar_speed = 0, accel = 0;
   T tar_ang_vel = 0, ang_acc = 0, tar_degree = 0;
   T max_speed = 0, max_ang_vel = 0, max_degree = 0;
 
@@ -35,8 +35,8 @@ class Controller {
     // motor_duty.left,
     //        motor_duty.right);
   }
-  void drive_motor(std::function<void(T)> left_motor,
-                   std::function<void(T)> right_motor, int8_t left_dir,
+  template <class MOTOR, void (MOTOR::*DRIVEFn)(int16_t)>
+  void drive_motor(MOTOR &left_motor, MOTOR &right_motor, int8_t left_dir,
                    int8_t right_dir) {
     if (motor_duty.left >= 1000) {
       motor_duty.left = 999;
@@ -48,8 +48,8 @@ class Controller {
     } else if (motor_duty.right <= -1000) {
       motor_duty.right = -999;
     }
-    left_motor(left_dir * motor_duty.left);
-    right_motor(right_dir * motor_duty.right);
+    (left_motor.*DRIVEFn)(left_dir * motor_duty.left);
+    (right_motor.*DRIVEFn)(right_dir * motor_duty.right);
   }
   void generate_tar_speed() {
     // 直線の場合の目標速度生成
