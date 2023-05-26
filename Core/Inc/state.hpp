@@ -35,8 +35,8 @@ void Status<T>::update(
     std::function<T(void)> gyro_yaw) {  // unit is control freq(1ms)
   T left_rads = -(left_enc.*LEFTENCFn)();
   T right_rads = (right_enc.*RIGHTENCFn)();
-  left_speed_new = left_rads * (T)radius_wheel;
-  right_speed_new = right_rads * (T)radius_wheel;
+  left_speed_new = left_rads * (T)radius_wheel * (T)100;
+  right_speed_new = right_rads * (T)radius_wheel * (T)100;
   left_speed_old = left_speed;
   right_speed_old = right_speed;
   // lowpass
