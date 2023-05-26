@@ -17,8 +17,8 @@ class Controller {
   STATUS status;
   parts::Run_mode_t run_mode;
   Controller() : status() {
-    speed.left = std::make_unique<PID>(0.0f, 0.0f, 0.0f);
-    speed.right = std::make_unique<PID>(0.0f, 0.0f, 0.0f);
+    speed.left = std::make_unique<PID>(22.47f, 0.0366f, 3348.0f);
+    speed.right = std::make_unique<PID>(22.47f, 0.0366f, 3348.0f);
     ang_vel.right = std::make_unique<PID>(0.0f, 0.0f, 0.0f);
     ang_vel.left = std::make_unique<PID>(0.0f, 0.0f, 0.0f);
     motor_duty.left = 0;
@@ -36,8 +36,7 @@ class Controller {
     //        motor_duty.right);
   }
   template <class MOTOR, void (MOTOR::*DRIVEFn)(int16_t)>
-  void drive_motor(MOTOR &left_motor, MOTOR &right_motor, int8_t left_dir,
-                   int8_t right_dir) {
+  void drive_motor(MOTOR &left_motor, MOTOR &right_motor, int8_t left_dir, int8_t right_dir) {
     if (motor_duty.left >= 1000) {
       motor_duty.left = 999;
     } else if (motor_duty.left <= -1000) {
@@ -97,19 +96,13 @@ class Controller {
 
     if (end_speed == 0) {  // 最終的に停止する場合
       // 減速処理を始めるべき位置まで加速、定速区間を続行
-      while (((len_target - 10) - status.len_mouse) >
-             1000.0 *
-                 ((float)(tar_speed * tar_speed) -
-                  (float)(end_speed * end_speed)) /
-                 (float)(2.0 * accel))
+      while (((len_target - 10) - status.len_mouse) > 1000.0 * ((float)(tar_speed * tar_speed) - (float)(end_speed * end_speed)) / (float)(2.0 * accel))
         ;
       // 減速処理開始
-      accel = -acc;  // 減速するために加速度を負の値にする
-      while (status.len_mouse <
-             len_target - 1) {  // 停止したい距離の少し手前まで継続
+      accel = -acc;                                // 減速するために加速度を負の値にする
+      while (status.len_mouse < len_target - 1) {  // 停止したい距離の少し手前まで継続
         // 一定速度まで減速したら最低駆動トルクで走行
-        if (tar_speed <=
-            0.1) {  // 目標速度が最低速度になったら、加速度を0にする
+        if (tar_speed <= 0.1) {  // 目標速度が最低速度になったら、加速度を0にする
           accel = 0;
           tar_speed = 0.1;
         }
@@ -122,20 +115,14 @@ class Controller {
 
     } else {
       // 減速処理を始めるべき位置まで加速、定速区間を続行
-      while (((len_target - 10) - status.len_mouse) >
-             1000.0 *
-                 ((float)(tar_speed * tar_speed) -
-                  (float)(end_speed * end_speed)) /
-                 (float)(2.0 * accel))
+      while (((len_target - 10) - status.len_mouse) > 1000.0 * ((float)(tar_speed * tar_speed) - (float)(end_speed * end_speed)) / (float)(2.0 * accel))
         ;
 
       // 減速処理開始
-      accel = -acc;  // 減速するために加速度を負の値にする
-      while (status.len_mouse <
-             len_target) {  // 停止したい距離の少し手前まで継続
+      accel = -acc;                            // 減速するために加速度を負の値にする
+      while (status.len_mouse < len_target) {  // 停止したい距離の少し手前まで継続
         // 一定速度まで減速したら最低駆動トルクで走行
-        if (tar_speed <=
-            end_speed) {  // 目標速度が最低速度になったら、加速度を0にする
+        if (tar_speed <= end_speed) {  // 目標速度が最低速度になったら、加速度を0にする
           accel = 0;
           // tar_speed = end_speed;
         }
@@ -152,12 +139,10 @@ class Controller {
     HAL_Delay(500);
     if (deg < 0) {
       ang_accel = ang_accel < 0 ? ang_accel : -ang_accel;
-      max_ang_velocity =
-          max_ang_velocity < 0 ? max_ang_velocity : -max_ang_velocity;
+      max_ang_velocity = max_ang_velocity < 0 ? max_ang_velocity : -max_ang_velocity;
     } else {
       ang_accel = ang_accel >= 0 ? ang_accel : -ang_accel;
-      max_ang_velocity =
-          max_ang_velocity >= 0 ? max_ang_velocity : -max_ang_velocity;
+      max_ang_velocity = max_ang_velocity >= 0 ? max_ang_velocity : -max_ang_velocity;
     }
     tar_degree = 0;
 
@@ -175,8 +160,7 @@ class Controller {
     max_ang_vel = max_ang_velocity;
     max_degree = deg;
     // 角加速度、加速度、最高角速度設定
-    while (std::abs(deg - (status.degree - local_degree)) * PI / 180.0 >
-           std::abs(tar_ang_vel * tar_ang_vel / (2.0 * ang_accel)))
+    while (std::abs(deg - (status.degree - local_degree)) * PI / 180.0 > std::abs(tar_ang_vel * tar_ang_vel / (2.0 * ang_accel)))
       ;
 
     // BEEP();
