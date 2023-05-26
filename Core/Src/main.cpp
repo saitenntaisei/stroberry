@@ -76,7 +76,6 @@ std::unique_ptr<
     ctrl;
 std::vector<float> v(0);
 
-uint16_t pos = 0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
     // status->update<pwm::Encoder<float, int32_t>, pwm::Encoder<float,
@@ -84,10 +83,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     //                &pwm::Encoder<float, int32_t>::read_encoder_value,
     //                &pwm::Encoder<float, int16_t>::read_encoder_value>(
     //     *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
-    // ctrl->update();
+    ctrl->update();
 
-    // ctrl->drive_motor<pwm::Motor, &pwm::Motor::drive>(*(motor.left),
-    //                                                   *(motor.right), 1, -1);
+    ctrl->drive_motor<pwm::Motor, &pwm::Motor::drive>(*(motor.left),
+                                                      *(motor.right), 1, -1);
   }
   if (htim == &htim1) {
     ctrl->status
@@ -95,8 +94,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
                 &pwm::Encoder<float, int32_t>::read_encoder_value,
                 &pwm::Encoder<float, int16_t>::read_encoder_value>(
             *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
-
-    v.push_back(ctrl->status.speed);
   }
 }
 
@@ -171,31 +168,43 @@ int main(void) {
   /* USER CODE END 2 */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
+  uint16_t cntt = 0;
   while (1) {
-    HAL_Delay(500);
-    motor.right->drive(-300);
-    motor.left->drive(300);
-    HAL_Delay(3000);
-    motor.right->drive(0);
-    motor.left->drive(0);
-    HAL_Delay(1);
-    HAL_TIM_Base_Stop_IT(&htim10);
-    HAL_TIM_Base_Stop_IT(&htim1);
-    printf("%d\r\n", v.size());
-    while (HAL_GPIO_ReadPin(Button1_GPIO_Port, Button1_Pin) == GPIO_PIN_RESET) {
-    }
-    printf("%d\r\n", v.size());
-    HAL_Delay(1);
-    uint16_t cnt = 0;
-    for (auto x : v) {
-      printf("%f, %d\r\n", x, cnt++);
+    // HAL_Delay(500);
+    // motor.right->drive(-400);
+    // motor.left->drive(400);
+    // HAL_Delay(3000);
+    // motor.right->drive(0);
+    // motor.left->drive(0);
+    // HAL_Delay(1);
+    // HAL_TIM_Base_Stop_IT(&htim10);
+    // HAL_TIM_Base_Stop_IT(&htim1);
+    // printf("%d\r\n",
+    // v.size());
+    // while(HAL_GPIO_ReadPin(Button1_GPIO_Port, Button1_Pin) == GPIO_PIN_RESET)
+    // {}
+    if (cntt >= 50) {
+      HAL_TIM_Base_Stop_IT(&htim10);
+      HAL_TIM_Base_Stop_IT(&htim1);
       HAL_Delay(1);
+      motor.right->drive(0);
+      motor.left->drive(0);
+      while (HAL_GPIO_ReadPin(Button1_GPIO_Port, Button1_Pin) ==
+             GPIO_PIN_RESET) {
+      }
+      printf("%d\r\n", v.size());
+      HAL_Delay(1);
+      uint16_t cnt = 0;
+      for (auto x : v) {
+        printf("%f, %d\r\n", x, cnt++);
+        HAL_Delay(1);
+      }
+      printf("finish\r\n");
+      Error_Handler();
     }
-    printf("finish\r\n");
-    Error_Handler();
-    // motor.right->drive(999);
-    // printf("deg:%f\r\n", ctrl->status.degree);
+    cntt++;
+    // printf("cntt: %d\r\n", cntt);
+
     batt.read_batt();
     HAL_Delay(1);
     /* USER CODE END WHILE */
