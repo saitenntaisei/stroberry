@@ -230,6 +230,14 @@ void Error_Handler(void) {
   /* User can add his own implementation to report the HAL error return state
    */
   __disable_irq();
+  HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_4);
+  HAL_TIM_Base_Stop_IT(&htim10);
+  HAL_TIM_Base_Stop_IT(&htim1);
+  HAL_TIM_Encoder_Stop(&htim2, TIM_CHANNEL_ALL);
+  HAL_TIM_Encoder_Stop(&htim8, TIM_CHANNEL_ALL);
   while (1) {
   }
   /* USER CODE END Error_Handler_Debug */
