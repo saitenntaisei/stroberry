@@ -17,26 +17,20 @@ class Controller {
   STATUS status;
   parts::Run_mode_t run_mode;
   Controller() : status() {
-    speed.left = std::make_unique<PID>(22.47f, 0.0366f, 3348.0f);
-    speed.right = std::make_unique<PID>(22.47f, 0.0366f, 3348.0f);
-    ang_vel.right = std::make_unique<PID>(0.0f, 0.0f, 0.0f);
-    ang_vel.left = std::make_unique<PID>(0.0f, 0.0f, 0.0f);
+    speed.left = std::make_unique<PID>(22.47f, 0.0366f, 0.0f);
+    speed.right = std::make_unique<PID>(22.47f, 0.0366f, 0.0f);
+    ang_vel.right = std::make_unique<PID>(1.52f, 2.25f, 0.000f);
+    ang_vel.left = std::make_unique<PID>(1.52f, 2.25f, 0.000f);
     motor_duty.left = 0;
     motor_duty.right = 0;
   }
   void update() {
     motor_duty.left = 0;
     motor_duty.right = 0;
-    motor_duty.left += speed.left->update(tar_speed, status.speed);
-    motor_duty.right += speed.right->update(tar_speed, status.speed);
-    motor_duty.left += ang_vel.left->update(tar_ang_vel, status.ang_vel);
-    motor_duty.right += ang_vel.right->update(tar_ang_vel, status.ang_vel);
-    // printf("motor_duty.left = %f, motor_duty.right = %f\r\n",
-    // motor_duty.left,
-    //        motor_duty.right);
-  }
-  template <class MOTOR, void (MOTOR::*DRIVEFn)(int16_t)>
-  void drive_motor(MOTOR &left_motor, MOTOR &right_motor, int8_t left_dir, int8_t right_dir) {
+    // motor_duty.left += speed.left->update(tar_speed, status.speed);
+    // motor_duty.right += speed.right->update(tar_speed, status.speed);
+    motor_duty.left += ang_vel.left->update(tar_ang_vel, status.I_ang_vel);
+    motor_duty.right -= ang_vel.right->update(tar_ang_vel, status.I_ang_vel);
     if (motor_duty.left >= 1000) {
       motor_duty.left = 999;
     } else if (motor_duty.left <= -1000) {
@@ -47,6 +41,12 @@ class Controller {
     } else if (motor_duty.right <= -1000) {
       motor_duty.right = -999;
     }
+    // printf("motor_duty.left = %f, motor_duty.right = %f\r\n", ang_vel.left->update(tar_ang_vel, status.ang_vel), ang_vel.right->update(tar_ang_vel, status.ang_vel));
+    //    printf("angvel:%f\r\n", status.ang_vel);
+  }
+
+  template <class MOTOR, void (MOTOR::*DRIVEFn)(int16_t)>
+  void drive_motor(MOTOR &left_motor, MOTOR &right_motor, int8_t left_dir, int8_t right_dir) {
     (left_motor.*DRIVEFn)(left_dir * motor_duty.left);
     (right_motor.*DRIVEFn)(right_dir * motor_duty.right);
   }

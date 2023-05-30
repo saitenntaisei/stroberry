@@ -20,19 +20,15 @@ class Status {
   T ang_vel = 0, I_ang_vel = 0, D_ang_vel = 0;
   T degree = 0;
   Status();
-  template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(),
-            T (RIGHTENC::*RIGHTENCFn)()>
-  void update(LEFTENC &left_enc, RIGHTENC &right_enc,
-              std::function<T(void)> gyro_yaw);
+  template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
+  void update(LEFTENC &left_enc, RIGHTENC &right_enc, std::function<T(void)> gyro_yaw);
 };
 template <typename T>
 Status<T>::Status() {}
 template <typename T>
-template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(),
-          T (RIGHTENC::*RIGHTENCFn)()>
-void Status<T>::update(
-    LEFTENC &left_enc, RIGHTENC &right_enc,
-    std::function<T(void)> gyro_yaw) {  // unit is control freq(1ms)
+template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
+void Status<T>::update(LEFTENC &left_enc, RIGHTENC &right_enc,
+                       std::function<T(void)> gyro_yaw) {  // unit is control freq(1ms)
   T left_rads = -(left_enc.*LEFTENCFn)();
   T right_rads = (right_enc.*RIGHTENCFn)();
   left_speed_new = left_rads * (T)radius_wheel * (T)100;

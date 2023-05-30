@@ -143,6 +143,11 @@ int main(void) {
   HAL_Delay(1000);
   gyro = std::make_unique<spi::Gyro>();
   HAL_Delay(100);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+
   adc::Battery<float, uint16_t> batt(&hadc1);
   enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
   enc.left = std::make_unique<pwm::Encoder<float, int32_t>>(TIM2);
