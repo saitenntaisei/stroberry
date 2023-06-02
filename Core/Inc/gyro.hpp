@@ -4,18 +4,18 @@
 #include "./mine.hpp"
 
 namespace spi {
-typedef struct geometry {
+using geometry = struct geometry {
   float x;
   float y;
   float z;
   geometry(float x, float y, float z) : x(x), y(y), z(z) {}
-} geometry;
+};
 
 class Gyro {
  private:
   /* data */
   geometry gyro_offset;
-  const float gyro_sensitivty = 0.070f;
+  const float gyro_sensitivty = 0.070F;
   float spi_gyro_OUT_Z(void);
   float spi_gyro_OUT_X(void);
   float spi_gyro_OUT_Y(void);
