@@ -1,4 +1,5 @@
 # Base style is Google
+
 BasedOnStyle: Google
 PointerAlignment: Left
 ColumnLimit: 180

@@ -17,7 +17,7 @@
  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+#include "./main.h"
 
 #include "adc.h"
 #include "gpio.h"
@@ -65,7 +65,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-std::unique_ptr<spi::Gyro> gyro;
+std::unique_ptr<spi::Gyro> gyro;  // NOLINT
 parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>, std::unique_ptr<pwm::Encoder<float, int16_t>>> enc;
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
 // std::unique_ptr<state::Status<float>> status;
@@ -100,7 +100,7 @@ void HAL_SYSTICK_Callback(void)  // 1kHz
  * @brief  The application entry point.
  * @retval int
  */
-int main(void) {
+auto main(void) -> int {
   /* USER CODE BEGIN 1 */
   // initialise_monitor_handles();
 
@@ -162,7 +162,7 @@ int main(void) {
   /* USER CODE END 2 */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1) {
+  while (true) {
     batt.read_batt();
     HAL_Delay(1);
     /* USER CODE END WHILE */
@@ -176,8 +176,8 @@ int main(void) {
  * @retval None
  */
 void SystemClock_Config(void) {
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};  // NOLINT
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};  // NOLINT
 
   /** Configure the main internal regulator output voltage
    */
@@ -243,7 +243,7 @@ void Error_Handler(void) {
   HAL_TIM_Base_Stop_IT(&htim1);
   HAL_TIM_Encoder_Stop(&htim2, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Stop(&htim8, TIM_CHANNEL_ALL);
-  while (1) {
+  while (true) {
   }
   /* USER CODE END Error_Handler_Debug */
 }
