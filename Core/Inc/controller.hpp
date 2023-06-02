@@ -29,8 +29,8 @@ class Controller {
     motor_duty.right = 0;
     // motor_duty.left += speed.left->update(tar_speed, status.speed);
     // motor_duty.right += speed.right->update(tar_speed, status.speed);
-    motor_duty.left += ang_vel.left->update(tar_ang_vel, status.I_ang_vel);
-    motor_duty.right -= ang_vel.right->update(tar_ang_vel, status.I_ang_vel);
+    // motor_duty.left += ang_vel.left->update(tar_ang_vel, status.I_ang_vel);
+    // motor_duty.right -= ang_vel.right->update(tar_ang_vel, status.I_ang_vel);
     if (motor_duty.left >= 1000) {
       motor_duty.left = 999;
     } else if (motor_duty.left <= -1000) {
