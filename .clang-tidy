@@ -1,4 +1,4 @@
-Checks:          'clang-diagnostic-*,clang-analyzer-*, readability-*,performance-*, modernize-*, bugprone-*, cppcoreguidelines-*,-modernize-redundant-void-arg,-modernize-use-bool-literals,-modernize-use-trailing-return-type,-readability-identifier-length,-bugprone-easily-swappable-parameters'
+Checks:          'clang-diagnostic-*,clang-analyzer-*, readability-*,performance-*, modernize-*, bugprone-*, cppcoreguidelines-*,-modernize-redundant-void-arg,-modernize-use-bool-literals,-modernize-use-trailing-return-type,-readability-identifier-length,-bugprone-easily-swappable-parameters,-cppcoreguidelines-avoid-magic-numbers'
 WarningsAsErrors: false
 AnalyzeTemporaryDtors: false
 HeaderFilterRegex: './Core/Inc/*.(hpp|h)'
@@ -19,3 +19,5 @@ CheckOptions:
     value:           CamelCase
   - key:             readability-identifier-naming.VariableCase
     value:           lower_case
+  - key:             readability-magic-numbers.IgnoredIntegerValues
+    value:           360,10,50,100,500,1000
