@@ -2,7 +2,7 @@
 #define CORE_INC_ENCODER_HPP_
 #include "./mine.hpp"
 namespace pwm {
-constexpr float deg2rad = PI / 180;
+constexpr float deg2rad = std::numbers::pi / 180;
 
 template <typename T, typename CNT>
 class Encoder {

@@ -49,9 +49,7 @@ extern "C" bool Flash_store() {
   const size_t write_cnt = BACKUP_FLASH_SECTOR_SIZE / sizeof(uint32_t);
 
   for (size_t i = 0; i < write_cnt; i++) {
-    result = HAL_FLASH_Program(
-        FLASH_TYPEPROGRAM_WORD,
-        (uint32_t)(&_backup_flash_start) + sizeof(uint32_t) * i, p_work_ram[i]);
+    result = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, (uint32_t)(&_backup_flash_start) + sizeof(uint32_t) * i, p_work_ram[i]);
     if (result != HAL_OK) break;
   }
 

@@ -8,8 +8,6 @@
 #include <string>
 #include <vector>
 
-#define PI 3.14159
-
 #ifdef __cplusplus
 
 extern "C" {
