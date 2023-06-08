@@ -5,18 +5,17 @@
 #include "./tim.h"
 
 namespace pwm {
-typedef struct timer_pin {
-  TIM_HandleTypeDef* tim;
-  unsigned int channel;
-} timer_pin;
+using timer_pin = struct timerPin {
+  TIM_HandleTypeDef* tim{};
+  unsigned int channel{};
+};
 class Motor {
  private:
-  timer_pin OUT_1;
-  timer_pin OUT_2;
+  timerPin out_1;
+  timerPin out_2;
   /* data */
  public:
-  Motor(TIM_HandleTypeDef* tim_1, TIM_HandleTypeDef* tim_2,
-        unsigned int channel_1, unsigned int channel_2);
+  Motor(TIM_HandleTypeDef* tim_1, TIM_HandleTypeDef* tim_2, unsigned int channel_1, unsigned int channel_2);
   void drive(int16_t duty);
   void brake();
 };
