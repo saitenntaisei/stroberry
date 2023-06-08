@@ -41,4 +41,4 @@ T Pid<T>::update(T target, T current) {
 
 }  // namespace state
 
-#endif  // CORE_INC_Pid_HPP_
+#endif  // CORE_INC_PID_HPP_

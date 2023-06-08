@@ -89,8 +89,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   }
 }
 
-void HAL_SYSTICK_Callback(void)  // 1kHz
-{
+void HAL_SYSTICK_Callback(void) {  // 1kHz
   // This is system clock timer
 }
 

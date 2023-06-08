@@ -1,9 +1,8 @@
-#ifndef Core_Inc_controller_hpp_
-#define Core_Inc_controller_hpp_
+#ifndef CORE_INC_CONTROLLER_HPP_
+#define CORE_INC_CONTROLLER_HPP_
 #include <cmath>
 #include <functional>
 #include <memory>
-#include <numbers>
 
 #include "parts.hpp"
 namespace state {
@@ -34,7 +33,7 @@ class Controller {
   }
 
   template <class MOTOR, void (MOTOR::*DRIVEFn)(int16_t)>
-  void drive_motor(MOTOR &left_motor, MOTOR &right_motor, int8_t left_dir, int8_t right_dir) {
+  void drive_motor(MOTOR &left_motor, MOTOR &right_motor, const int8_t left_dir, const int8_t right_dir) {
     (left_motor.*DRIVEFn)(left_dir * static_cast<int16_t>(motor_duty.left));
     (right_motor.*DRIVEFn)(right_dir * static_cast<int16_t>(motor_duty.right));
   }
@@ -86,7 +85,6 @@ class Controller {
       // 減速処理を始めるべき位置まで加速、定速区間を続行
       while (((len_target - 10) - status.len_mouse) >
              1000 * (static_cast<float>(tar_speed * tar_speed) - static_cast<float>(end_speed * end_speed)) / static_cast<float>(2 * accel)) {
-        ;
       }
       // 減速処理開始
       accel = -acc;                                // 減速するために加速度を負の値にする
@@ -101,14 +99,12 @@ class Controller {
       tar_speed = 0;
       // 速度が0以下になるまで逆転する
       while (speed >= 0.0) {
-        ;
       }
 
     } else {
       // 減速処理を始めるべき位置まで加速、定速区間を続行
       while (((len_target - 10) - status.len_mouse) >
              1000 * (static_cast<float>(tar_speed * tar_speed) - static_cast<float>(end_speed * end_speed)) / static_cast<float>(2 * accel)) {
-        ;
       }
 
       // 減速処理開始
@@ -154,7 +150,6 @@ class Controller {
     max_degree = deg;
     // 角加速度、加速度、最高角速度設定
     while (std::abs(deg - (status.degree - local_degree)) * std::numbers::pi / 180.0 > std::abs(tar_ang_vel * tar_ang_vel / (2 * ang_accel))) {
-      ;
     }
 
     // BEEP();
@@ -171,7 +166,6 @@ class Controller {
     tar_degree = max_degree;
 
     while (ang_vel >= 0.05 || ang_vel <= -0.05) {  // NOLINT
-      ;
     }
 
     tar_ang_vel = 0;
@@ -183,4 +177,4 @@ class Controller {
 };
 }  // namespace state
 
-#endif
+#endif  // CORE_INC_CONTROLLER_HPP_
