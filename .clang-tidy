@@ -8,9 +8,7 @@ CheckOptions:
   - key:             readability-identifier-naming.StructCase
     value:           camelBack
   - key:             readability-identifier-naming.EnumCase
-    value:           CamelCase
-  # - key:             readability-identifier-naming.FunctionCase
-  #   value:           camelBack
+    value:           CamelCase          
   - key:             readability-identifier-naming.MemberCase
     value:           lower_case
   - key:             readability-identifier-naming.ParameterCase
@@ -19,6 +17,8 @@ CheckOptions:
     value:           CamelCase
   - key:             readability-identifier-naming.VariableCase
     value:           lower_case
+    - key:           readability-identifier-naming.MacroCase
+    value:           UPPER_CASE
   - key:             readability-magic-numbers.IgnoredIntegerValues
     value:           '1;2;10;50;100;360;500;1000'
   - key:             readability-magic-numbers.IgnoredFloatingPointValues
