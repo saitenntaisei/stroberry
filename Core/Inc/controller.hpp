@@ -10,8 +10,9 @@ namespace state {
 template <typename T, class STATUS, class PID>
 class Controller {
  private:
-  parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed, ang_vel;
-  parts::wheel<T, T> motor_duty;
+  parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed = {std::make_unique<PID>(22.47f, 0.0366f, 0.0f), std::make_unique<PID>(22.47f, 0.0366f, 0.0f)},
+                                                           ang_vel = {std::make_unique<PID>(1.52f, 2.25f, 0.000f), std::make_unique<PID>(1.52f, 2.25f, 0.000f)};
+  parts::wheel<T, T> motor_duty = {0, 0};
   T tar_speed = 0, accel = 0;
   T tar_ang_vel = 0, ang_acc = 0, tar_degree = 0;
   T max_speed = 0, max_ang_vel = 0, max_degree = 0;
@@ -20,14 +21,7 @@ class Controller {
 
  public:
   STATUS status;  // NOLINT
-  Controller() : status() {
-    speed.left = std::make_unique<PID>(22.47f, 0.0366f, 0.0f);    // NOLINT
-    speed.right = std::make_unique<PID>(22.47f, 0.0366f, 0.0f);   // NOLINT
-    ang_vel.right = std::make_unique<PID>(1.52f, 2.25f, 0.000f);  // NOLINT
-    ang_vel.left = std::make_unique<PID>(1.52f, 2.25f, 0.000f);   // NOLINT
-    motor_duty.left = 0;
-    motor_duty.right = 0;
-  }
+  Controller() : status() {}
   void update() {
     // motor_duty.left = 0;
     // motor_duty.right = 0;
@@ -41,8 +35,8 @@ class Controller {
 
   template <class MOTOR, void (MOTOR::*DRIVEFn)(int16_t)>
   void drive_motor(MOTOR &left_motor, MOTOR &right_motor, int8_t left_dir, int8_t right_dir) {
-    (left_motor.*DRIVEFn)(left_dir * motor_duty.left);
-    (right_motor.*DRIVEFn)(right_dir * motor_duty.right);
+    (left_motor.*DRIVEFn)(left_dir * static_cast<int16_t>(motor_duty.left));
+    (right_motor.*DRIVEFn)(right_dir * static_cast<int16_t>(motor_duty.right));
   }
   void generate_tar_speed() {
     // 直線の場合の目標速度生成

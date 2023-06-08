@@ -20,7 +20,7 @@ class Status {
   T degree = 0;
   /* data */
  public:
-  Status(T ts = 0.001);  // NOLINT
+  Status(T ts = 0.001F);  // NOLINT
   template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
   void update(LEFTENC &left_enc, RIGHTENC &right_enc, std::function<T(void)> gyro_yaw);
 };
@@ -37,8 +37,8 @@ void Status<T>::update(LEFTENC &left_enc, RIGHTENC &right_enc,
   left_speed_old = left_speed;
   right_speed_old = right_speed;
   // lowpass
-  left_speed = left_speed_new * 0.1 + left_speed_old * 0.9;     // NOLINT
-  right_speed = right_speed_new * 0.1 + right_speed_old * 0.9;  // NOLINT
+  left_speed = left_speed_new * 0.1F + left_speed_old * 0.9F;     // NOLINT
+  right_speed = right_speed_new * 0.1F + right_speed_old * 0.9F;  // NOLINT
   previous_speed = speed;
   speed = (left_speed + right_speed) / 2;
   i_speed += speed;

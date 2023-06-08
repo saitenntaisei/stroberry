@@ -2,7 +2,7 @@
 #define CORE_INC_ENCODER_HPP_
 #include "./mine.hpp"
 namespace pwm {
-constexpr float deg2rad = std::numbers::pi / 180;
+constexpr float deg2rad = std::numbers::pi_v<float> / 180.0f;
 
 template <typename T, typename CNT>
 class Encoder {
@@ -10,9 +10,9 @@ class Encoder {
   const float gear_duty = 10;
   const uint8_t encoder_resolution = 12;
   CNT read_encoder_cnt(void);  // LSB
-  TIM_TypeDef* tim{};
   T speed_rads;
   T cnt_total;
+  TIM_TypeDef* tim{};
 
  public:
   explicit Encoder(TIM_TypeDef* tim);

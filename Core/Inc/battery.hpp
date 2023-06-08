@@ -11,7 +11,7 @@ class Battery {
   static constexpr float r0 = 10;
   static constexpr float r1 = 20;
   // R1<->R0<->GND
-  static constexpr float v_ref = 3.3;
+  static constexpr float v_ref = 3.3F;
   static constexpr uint8_t resolution_bit = 12;
   static constexpr float threshold = 7.5;
   ADC_HandleTypeDef* hadc{};
@@ -32,7 +32,7 @@ T Battery<T, RESO>::read_batt(void) {
   HAL_ADC_Start(hadc);
   HAL_ADC_PollForConversion(&hadc1, 1000);
   adc_value = HAL_ADC_GetValue(&hadc1);
-  adc_volt = static_cast<float>(adc_value) * v_ref / resolution;
+  adc_volt = static_cast<float>(adc_value) * v_ref / static_cast<float>(resolution);
   // Voltage divider resistor Vbatt -> 20kΩ -> 10kΩ -> GND
   batt_volt = adc_volt * (r1 + r0) / r0;
   // printf("adc_Value = %d, adc_volt = %.3f, batt_volt = %.3f\n\r", adc_Value,

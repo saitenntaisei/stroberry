@@ -145,7 +145,7 @@ CPP_INCLUDES += \
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
 CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
-CPPFLAGS = $(MCU) $(CPP_DEFS) $(CPP_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -std=c++20
+CPPFLAGS = $(MCU) $(CPP_DEFS) $(CPP_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -std=c++20 -Wbad-function-cast  -Wconversion -Weffc++ -Wfloat-equal -Wextra  -Wpedantic
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
 CPPFLAGS += -g -gdwarf-2

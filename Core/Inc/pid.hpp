@@ -9,13 +9,14 @@ template <typename T>
 class Pid {
  private:
   T kp, ki, kd;
+  T ts;
   T error, error_prev, error_sum;
   T output;
-  T ts;
+
   // std::queue<T> que;
 
  public:
-  explicit Pid(T kp, T ki, T kd, T ts = 0.001);  // NOLINT
+  explicit Pid(T kp, T ki, T kd, T ts = 0.001F);  // NOLINT
   T update(T target, T current);
 };
 

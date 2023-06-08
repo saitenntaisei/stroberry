@@ -4,8 +4,8 @@
 namespace parts {
 template <class LEFT, class RIGHT>
 struct wheel {
-  LEFT left;
-  RIGHT right;
+  LEFT left = NULL;
+  RIGHT right = NULL;
 };
 
 enum class RunModeT : uint8_t { STRAIGHT_MODE, TURN_MODE, STOP_MODE };
