@@ -15,7 +15,7 @@ class Controller {
 
  public:
   STATUS status;
-  parts::Run_mode_t run_mode;
+  parts::RunModeT run_mode;
   Controller() : status() {
     speed.left = std::make_unique<PID>(22.47f, 0.0366f, 0.0f);
     speed.right = std::make_unique<PID>(22.47f, 0.0366f, 0.0f);
@@ -52,13 +52,13 @@ class Controller {
   }
   void generate_tar_speed() {
     // 直線の場合の目標速度生成
-    if (run_mode == parts::Run_mode_t::STRAIGHT_MODE) {
+    if (run_mode == parts::RunModeT::STRAIGHT_MODE) {
       tar_speed += accel * 0.001f;  // 目標速度を設定加速度で更新
       // 最高速度制限
       if (tar_speed > max_speed) {
         tar_speed = max_speed;  // 目標速度を設定最高速度に設定
       }
-    } else if (run_mode == parts::Run_mode_t::TURN_MODE) {
+    } else if (run_mode == parts::RunModeT::TURN_MODE) {
       // 車体中心速度更新
       tar_speed += accel * 0.001f;
       // 最高速度制限
@@ -82,7 +82,7 @@ class Controller {
 
   void straight(T len, T acc, T max_sp, T end_sp) {
     // 走行モードを直線にする
-    run_mode = parts::Run_mode_t::STRAIGHT_MODE;
+    run_mode = parts::RunModeT::STRAIGHT_MODE;
     // 壁制御を有効にする
     // con_wall.enable = true;
     // 目標距離をグローバル変数に代入する
@@ -151,7 +151,7 @@ class Controller {
     tar_speed = 0;
     tar_ang_vel = 0;
     // 走行モードをスラロームモードにする
-    run_mode = parts::Run_mode_t::TURN_MODE;
+    run_mode = parts::RunModeT::TURN_MODE;
 
     // 車体の現在角度を取得
     local_degree = status.degree;
