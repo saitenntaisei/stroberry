@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: arm-none-eabi-gcc GNU Arm Embedded Toolchain
-      - uses: carlosperate/arm-none-eabi-gcc-action@v1.6.1
+        uses: carlosperate/arm-none-eabi-gcc-action@v1.6.1
         with:
           release: 'latest'
       - run: arm-none-eabi-gcc --version
