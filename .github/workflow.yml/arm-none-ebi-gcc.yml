@@ -1,0 +1,12 @@
+name: arm-none-ebi-gcc
+run-name: compile project
+on: [push]
+jobs:
+  check-bats-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: arlosperate/arm-none-eabi-gcc-action@v1
+        with:
+          release: 'latest'
+      - run: arm-none-eabi-gcc --version
