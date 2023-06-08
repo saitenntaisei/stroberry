@@ -20,4 +20,4 @@ CheckOptions:
   - key:             readability-identifier-naming.VariableCase
     value:           lower_case
   - key:             readability-magic-numbers.IgnoredIntegerValues
-    value:           '2;10;50;100;360;500;1000'
+    value:           '1;2;10;50;100;360;500;1000'
