@@ -1,5 +1,4 @@
 name: arm-none-ebi-gcc
-run-name: compile project
 on: [push]
 jobs:
   build:
