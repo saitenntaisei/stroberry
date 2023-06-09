@@ -1,9 +1,6 @@
 #include "./motor.hpp"
 namespace pwm {
-Motor::Motor(TIM_HandleTypeDef* tim_1, TIM_HandleTypeDef* tim_2, unsigned int channel_1, unsigned int channel_2) {
-  out_1 = {tim_1, channel_1};
-  out_2 = {tim_2, channel_2};
-}
+Motor::Motor(TIM_HandleTypeDef* tim_1, TIM_HandleTypeDef* tim_2, unsigned int channel_1, unsigned int channel_2) : out_1(tim_1, channel_1), out_2(tim_2, channel_2) {}
 void Motor::drive(int16_t duty) {
   // printf("duty: %d\r\n", duty);
   if (duty >= 0) {

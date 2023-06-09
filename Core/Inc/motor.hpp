@@ -8,6 +8,7 @@ namespace pwm {
 using timer_pin = struct timerPin {
   TIM_HandleTypeDef* tim{};
   unsigned int channel{};
+  timerPin(TIM_HandleTypeDef* tim, unsigned int channel) : tim(tim), channel(channel) {}
 };
 class Motor {
  private:
