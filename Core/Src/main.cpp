@@ -127,7 +127,6 @@ auto main(void) -> int {
   MX_ADC1_Init();
   MX_TIM4_Init();
   MX_TIM9_Init();
-  MX_TIM12_Init();
   MX_UART4_Init();
   MX_SPI1_Init();
   MX_TIM6_Init();
