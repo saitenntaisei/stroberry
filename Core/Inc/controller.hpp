@@ -9,8 +9,8 @@ namespace state {
 template <typename T, class STATUS, class PID>
 class Controller {
  private:
-  parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed = {std::make_unique<PID>(22.47f, 0.0366f, 0.0f), std::make_unique<PID>(22.47f, 0.0366f, 0.0f)},
-                                                           ang_vel = {std::make_unique<PID>(1.52f, 2.25f, 0.000f), std::make_unique<PID>(1.52f, 2.25f, 0.000f)};
+  parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed = {std::make_unique<PID>(22.47f, 0.0366f, 0.0f, 0.0f), std::make_unique<PID>(22.47f, 0.0366f, 0.0f, 0.0f)},
+                                                           ang_vel = {std::make_unique<PID>(0.23f, 0.12f, 0.0f, 0.0f), std::make_unique<PID>(0.23f, 0.12f, 0.0f, 0.0f)};
   parts::wheel<T, T> motor_duty = {0, 0};
   T tar_speed = 0, accel = 0;
   T tar_ang_vel = 0, ang_acc = 0, tar_degree = 0;
@@ -26,8 +26,8 @@ class Controller {
     // motor_duty.right = 0;
     // motor_duty.left += speed.left->update(tar_speed, status.speed);
     // motor_duty.right += speed.right->update(tar_speed, status.speed);
-    // motor_duty.left += ang_vel.left->update(tar_ang_vel, status.I_ang_vel);
-    // motor_duty.right -= ang_vel.right->update(tar_ang_vel, status.I_ang_vel);
+    motor_duty.left += ang_vel.left->update(tar_ang_vel, status.get_ang_vel());
+    motor_duty.right -= ang_vel.right->update(tar_ang_vel, status.get_ang_vel());
     // printf("motor_duty.left = %f, motor_duty.right = %f\r\n", ang_vel.left->update(tar_ang_vel, status.ang_vel), ang_vel.right->update(tar_ang_vel, status.ang_vel));
     // printf("angvel:%f\r\n", status.ang_vel);
   }
