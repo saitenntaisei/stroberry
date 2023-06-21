@@ -10,7 +10,10 @@ template <typename T, class STATUS, class PID>
 class Controller {
  private:
   parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed = {std::make_unique<PID>(22.47f, 0.0366f, 0.0f, 0.0f), std::make_unique<PID>(22.47f, 0.0366f, 0.0f, 0.0f)},
-                                                           ang_vel = {std::make_unique<PID>(0.23f, 0.12f, 0.0f, 0.0f), std::make_unique<PID>(0.23f, 0.12f, 0.0f, 0.0f)};
+                                                           ang_vel = {std::make_unique<PID>(0.0031484f, 0.011501f, 2.113f / 1e5f, 0.12267f),
+                                                                      std::make_unique<PID>(0.0031484f, 0.011501f, 2.113f / 1e5f, 0.12267f)},
+                                                           ang = {std::make_unique<PID>(20, 2.0f, 0.2f, 0.0f), std::make_unique<PID>(20, 2.0f, 0.2f, 0.0f)};
+
   parts::wheel<T, T> motor_duty = {0, 0};
   T tar_speed = 0, accel = 0;
   T tar_ang_vel = 0, ang_acc = 0, tar_degree = 0;
@@ -27,15 +30,18 @@ class Controller {
     // motor_duty.left += speed.left->update(tar_speed, status.speed);
     // motor_duty.right += speed.right->update(tar_speed, status.speed);
     motor_duty.left += ang_vel.left->update(tar_ang_vel, status.get_ang_vel());
-    motor_duty.right -= ang_vel.right->update(tar_ang_vel, status.get_ang_vel());
-    // printf("motor_duty.left = %f, motor_duty.right = %f\r\n", ang_vel.left->update(tar_ang_vel, status.ang_vel), ang_vel.right->update(tar_ang_vel, status.ang_vel));
-    // printf("angvel:%f\r\n", status.ang_vel);
+    motor_duty.left += ang_vel.left->update(tar_ang_vel, status.get_ang());
+    motor_duty.right -= ang_vel.right->update(0.0F, status.get_ang_vel());
+    motor_duty.right -= ang_vel.left->update(0.0F, status.get_ang());
+
+    // printf("motor_duty.left = %f, motor_duty.right = %f\r\n", motor_duty.left, motor_duty.right);
+    // printf("ang:%f\r\n", status.get_ang());
   }
 
-  template <class MOTOR, void (MOTOR::*DRIVEFn)(int16_t)>
+  template <class MOTOR, void (MOTOR::*DRIVEFn)(float)>
   void drive_motor(MOTOR &left_motor, MOTOR &right_motor, const int8_t left_dir, const int8_t right_dir) {
-    (left_motor.*DRIVEFn)(left_dir * static_cast<int16_t>(motor_duty.left));
-    (right_motor.*DRIVEFn)(right_dir * static_cast<int16_t>(motor_duty.right));
+    (left_motor.*DRIVEFn)(left_dir * static_cast<float>(motor_duty.left));
+    (right_motor.*DRIVEFn)(right_dir * static_cast<float>(motor_duty.right));
   }
   void generate_tar_speed() {
     // 直線の場合の目標速度生成

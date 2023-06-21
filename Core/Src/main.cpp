@@ -31,9 +31,7 @@
 #include "./controller.hpp"
 #include "./encoder.hpp"
 #include "./gyro.hpp"
-#include "./mine.hpp"
 #include "./motor.hpp"
-#include "./parts.hpp"
 #include "./pid.hpp"
 #include "./state.hpp"
 /* USER CODE END Includes */
@@ -58,19 +56,19 @@
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
-void SystemClock_Config(void);
+void SystemClock_Config(void);  // NOLINT
 /* USER CODE BEGIN PFP */
 // extern "C" void initialise_monitor_handles(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-std::unique_ptr<spi::Gyro> gyro;  // NOLINT
+std::unique_ptr<spi::Gyro> gyro;
 parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>, std::unique_ptr<pwm::Encoder<float, int16_t>>> enc;
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
 // std::unique_ptr<state::Status<float>> status;
 std::unique_ptr<state::Controller<float, state::Status<float>, state::Pid<float>>> ctrl;
-
+// std::vector<float> v(0);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
     // status->update<pwm::Encoder<float, int32_t>, pwm::Encoder<float,
@@ -80,12 +78,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     //     *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
     ctrl->update();
 
-    ctrl->drive_motor<pwm::Motor, &pwm::Motor::drive>(*(motor.left), *(motor.right), 1, -1);
+    ctrl->drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(*(motor.left), *(motor.right), 1, -1);
   }
   if (htim == &htim1) {
     ctrl->status
         .update<pwm::Encoder<float, int32_t>, pwm::Encoder<float, int16_t>, &pwm::Encoder<float, int32_t>::read_encoder_value, &pwm::Encoder<float, int16_t>::read_encoder_value>(
             *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
+    // v.push_back(ctrl->status.get_ang_vel());
   }
 }
 
@@ -99,7 +98,7 @@ void HAL_SYSTICK_Callback(void) {  // 1kHz
  * @brief  The application entry point.
  * @retval int
  */
-auto main(void) -> int {
+int main() {
   /* USER CODE BEGIN 1 */
   // initialise_monitor_handles();
 
@@ -135,7 +134,7 @@ auto main(void) -> int {
   MX_TIM2_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-  setbuf(stdout, NULL);
+  setbuf(stdout, nullptr);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
   HAL_Delay(1000);
@@ -161,10 +160,30 @@ auto main(void) -> int {
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (true) {
-    batt.read_batt();
-    HAL_Delay(1);
+    // motor.right->drive_vcc(2.0f);
+    // motor.left->drive_vcc(2.0f);
+    // HAL_Delay(5000);
+    // motor.right->drive_vcc(0);
+    // motor.left->drive_vcc(0);
+    // HAL_Delay(2000);
+    // HAL_TIM_Base_Stop_IT(&htim10);
+    // HAL_TIM_Base_Stop_IT(&htim1);
+    // // printf("%d\r\n", v.size());
+    // while (HAL_GPIO_ReadPin(Button1_GPIO_Port, Button1_Pin) == GPIO_PIN_RESET) {
+    // }
+    // printf("%d\r\n", v.size());
+    // HAL_Delay(1);
+    // uint16_t cnt = 0;
+    // for (auto x : v) {
+    //   printf("%f, %d\r\n", x, cnt++);
+    //   HAL_Delay(1);
+    //}
+    // printf("finish\r\n");
+    // Error_Handler();
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
+    batt.read_batt();
+    HAL_Delay(1);
   }
   /* USER CODE END 3 */
 }
@@ -173,9 +192,11 @@ auto main(void) -> int {
  * @brief System Clock Configuration
  * @retval None
  */
+
+// NOLINTBEGIN
 void SystemClock_Config(void) {
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};  // NOLINT
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};  // NOLINT
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Configure the main internal regulator output voltage
    */
@@ -245,7 +266,7 @@ void Error_Handler(void) {
   }
   /* USER CODE END Error_Handler_Debug */
 }
-
+// NOLINTEND
 #ifdef USE_FULL_ASSERT
 /**
  * @brief  Reports the name of the source file and the source line number
