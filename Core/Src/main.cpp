@@ -145,7 +145,7 @@ int main() {
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4);
   ctrl = std::make_unique<state::Controller<float, state::Status<float>, state::Pid<float>>>();
   printf("stroberry\r\n");
-  HAL_Delay(1);
+  HAL_Delay(1000);
   HAL_TIM_Base_Start_IT(&htim10);
   HAL_TIM_Base_Start_IT(&htim1);
   /* USER CODE END 2 */
