@@ -9,7 +9,8 @@ namespace state {
 template <typename T, class STATUS, class PID>
 class Controller {
  private:
-  parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed = {std::make_unique<PID>(0.0f, 0.0f, 0.0f, 0.0f), std::make_unique<PID>(0.0f, 0.0f, 0.0f, 0.0f)},
+  parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed = {std::make_unique<PID>(0.0031484f, 0.011501f, 2.113f / 1e5f, 0.12267f),
+                                                                    std::make_unique<PID>(0.0031484f, 0.011501f, 2.113f / 1e5f, 0.12267f)},
                                                            ang_vel = {std::make_unique<PID>(0.0031484f, 0.011501f, 2.113f / 1e5f, 0.12267f),
                                                                       std::make_unique<PID>(0.0031484f, 0.011501f, 2.113f / 1e5f, 0.12267f)},
                                                            ang = {std::make_unique<PID>(20, 2.0f, 0.2f, 0.0f), std::make_unique<PID>(20, 2.0f, 0.2f, 0.0f)};
