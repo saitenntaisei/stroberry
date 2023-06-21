@@ -9,7 +9,7 @@ namespace state {
 template <typename T, class STATUS, class PID>
 class Controller {
  private:
-  parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed = {std::make_unique<PID>(22.47f, 0.0366f, 0.0f, 0.0f), std::make_unique<PID>(22.47f, 0.0366f, 0.0f, 0.0f)},
+  parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed = {std::make_unique<PID>(0.0f, 0.0f, 0.0f, 0.0f), std::make_unique<PID>(0.0f, 0.0f, 0.0f, 0.0f)},
                                                            ang_vel = {std::make_unique<PID>(0.0031484f, 0.011501f, 2.113f / 1e5f, 0.12267f),
                                                                       std::make_unique<PID>(0.0031484f, 0.011501f, 2.113f / 1e5f, 0.12267f)},
                                                            ang = {std::make_unique<PID>(20, 2.0f, 0.2f, 0.0f), std::make_unique<PID>(20, 2.0f, 0.2f, 0.0f)};
@@ -25,17 +25,14 @@ class Controller {
   STATUS status;  // NOLINT
   Controller() : status() {}
   void update() {
-    // motor_duty.left = 0;
-    // motor_duty.right = 0;
-    // motor_duty.left += speed.left->update(tar_speed, status.speed);
-    // motor_duty.right += speed.right->update(tar_speed, status.speed);
+    motor_duty.left = 0;
+    motor_duty.right = 0;
+    motor_duty.left += speed.left->update(tar_speed, status.get_speed());
+    motor_duty.right += speed.right->update(tar_speed, status.get_speed());
     motor_duty.left += ang_vel.left->update(tar_ang_vel, status.get_ang_vel());
     motor_duty.left += ang_vel.left->update(tar_ang_vel, status.get_ang());
     motor_duty.right -= ang_vel.right->update(0.0F, status.get_ang_vel());
     motor_duty.right -= ang_vel.left->update(0.0F, status.get_ang());
-
-    // printf("motor_duty.left = %f, motor_duty.right = %f\r\n", motor_duty.left, motor_duty.right);
-    // printf("ang:%f\r\n", status.get_ang());
   }
 
   template <class MOTOR, void (MOTOR::*DRIVEFn)(float)>

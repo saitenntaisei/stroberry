@@ -66,16 +66,10 @@ void SystemClock_Config(void);  // NOLINT
 std::unique_ptr<spi::Gyro> gyro;
 parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>, std::unique_ptr<pwm::Encoder<float, int16_t>>> enc;
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
-// std::unique_ptr<state::Status<float>> status;
 std::unique_ptr<state::Controller<float, state::Status<float>, state::Pid<float>>> ctrl;
-// std::vector<float> v(0);
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
-    // status->update<pwm::Encoder<float, int32_t>, pwm::Encoder<float,
-    // int16_t>,
-    //                &pwm::Encoder<float, int32_t>::read_encoder_value,
-    //                &pwm::Encoder<float, int16_t>::read_encoder_value>(
-    //     *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
     ctrl->update();
 
     ctrl->drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(*(motor.left), *(motor.right), 1, -1);
@@ -84,7 +78,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     ctrl->status
         .update<pwm::Encoder<float, int32_t>, pwm::Encoder<float, int16_t>, &pwm::Encoder<float, int32_t>::read_encoder_value, &pwm::Encoder<float, int16_t>::read_encoder_value>(
             *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
-    // v.push_back(ctrl->status.get_ang_vel());
   }
 }
 
@@ -150,7 +143,6 @@ int main() {
   enc.left = std::make_unique<pwm::Encoder<float, int32_t>>(TIM2);
   motor.left = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2);
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4);
-  // status = std::make_unique<state::Status<float>>();
   ctrl = std::make_unique<state::Controller<float, state::Status<float>, state::Pid<float>>>();
   printf("stroberry\r\n");
   HAL_Delay(1);
@@ -160,26 +152,6 @@ int main() {
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (true) {
-    // motor.right->drive_vcc(2.0f);
-    // motor.left->drive_vcc(2.0f);
-    // HAL_Delay(5000);
-    // motor.right->drive_vcc(0);
-    // motor.left->drive_vcc(0);
-    // HAL_Delay(2000);
-    // HAL_TIM_Base_Stop_IT(&htim10);
-    // HAL_TIM_Base_Stop_IT(&htim1);
-    // // printf("%d\r\n", v.size());
-    // while (HAL_GPIO_ReadPin(Button1_GPIO_Port, Button1_Pin) == GPIO_PIN_RESET) {
-    // }
-    // printf("%d\r\n", v.size());
-    // HAL_Delay(1);
-    // uint16_t cnt = 0;
-    // for (auto x : v) {
-    //   printf("%f, %d\r\n", x, cnt++);
-    //   HAL_Delay(1);
-    //}
-    // printf("finish\r\n");
-    // Error_Handler();
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
     batt.read_batt();

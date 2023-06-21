@@ -2,7 +2,6 @@
 namespace pwm {
 Motor::Motor(TIM_HandleTypeDef* tim_1, TIM_HandleTypeDef* tim_2, unsigned int channel_1, unsigned int channel_2) : out_1(tim_1, channel_1), out_2(tim_2, channel_2), batt(&hadc1) {}
 void Motor::drive(int16_t duty) {
-  // printf("duty: %d\r\n", duty);
   if (duty >= 1000) {
     duty = 999;
   } else if (duty <= -1000) {
@@ -23,10 +22,8 @@ void Motor::drive_vcc(float volt) {
   }
   if (volt >= 0) {
     __HAL_TIM_SET_COMPARE(out_1.tim, out_1.channel, static_cast<uint16_t>(std::abs(volt / max_volt * 1000)));
-    // printf("volt_plus: %f\r\n", volt / max_volt * 1000);
   } else if (volt < 0) {
     __HAL_TIM_SET_COMPARE(out_2.tim, out_2.channel, static_cast<uint16_t>(std::abs(volt / max_volt * 1000)));
-    // printf("volt_minus: %f\r\n", volt / max_volt * 1000);
   }
 }
 void Motor::brake() {

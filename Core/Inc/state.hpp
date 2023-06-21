@@ -25,6 +25,7 @@ class Status {
   void update(LEFTENC &left_enc, RIGHTENC &right_enc, std::function<T(void)> gyro_yaw);
   T get_ang_vel() { return ang_vel; }
   T get_ang() { return degree; }
+  T get_speed() { return speed; }
 };
 template <typename T>
 Status<T>::Status(T ts) : ts(ts) {}
