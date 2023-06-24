@@ -126,6 +126,7 @@ int main() {
   MX_TIM10_Init();
   MX_TIM2_Init();
   MX_TIM1_Init();
+  MX_TIM12_Init();
   /* USER CODE BEGIN 2 */
   setbuf(stdout, nullptr);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
@@ -137,6 +138,7 @@ int main() {
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+  HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_2);
 
   adc::Battery<float, uint32_t> batt(&hadc1);
   enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
@@ -154,6 +156,7 @@ int main() {
   while (true) {
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
+    __HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_2, 500);
     batt.read_batt();
     HAL_Delay(1);
   }
