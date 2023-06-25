@@ -39,10 +39,10 @@ T Battery<T, RESO>::read_batt(void) {
   //        adc_volt, batt_volt);
 
   HAL_ADC_Stop(&hadc1);
-  // if (batt_volt < threshold) {
-  //   printf("no batt!\r\n");  // NOLINT
-  //   Error_Handler();         // no batt
-  // }
+  if (batt_volt < threshold) {
+    printf("no batt!\r\n");  // NOLINT
+    Error_Handler();         // no batt
+  }
   return static_cast<T>(batt_volt);
 }
 

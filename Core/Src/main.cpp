@@ -28,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "./battery.hpp"
+#include "./buzzer.hpp"
 #include "./controller.hpp"
 #include "./encoder.hpp"
 #include "./gyro.hpp"
@@ -146,19 +147,22 @@ int main() {
   motor.left = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2);
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4);
   ctrl = std::make_unique<state::Controller<float, state::Status<float>, state::Pid<float>>>();
+  pwm::Buzzer buzzer(&htim12, TIM_CHANNEL_2);
   printf("stroberry\r\n");
   HAL_Delay(1000);
+  buzzer.beep("ok");
   HAL_TIM_Base_Start_IT(&htim10);
   HAL_TIM_Base_Start_IT(&htim1);
+
   /* USER CODE END 2 */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
   while (true) {
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
-    __HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_2, 500);
+
     batt.read_batt();
-    HAL_Delay(1);
   }
   /* USER CODE END 3 */
 }
@@ -228,7 +232,7 @@ void Error_Handler(void) {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state
    */
-  __disable_irq();
+
   HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_1);
   HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_2);
   HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_3);
@@ -237,6 +241,9 @@ void Error_Handler(void) {
   HAL_TIM_Base_Stop_IT(&htim1);
   HAL_TIM_Encoder_Stop(&htim2, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Stop(&htim8, TIM_CHANNEL_ALL);
+  __HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_2, 500);
+
+  __disable_irq();
   while (true) {
   }
   /* USER CODE END Error_Handler_Debug */
