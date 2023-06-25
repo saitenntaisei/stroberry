@@ -163,6 +163,7 @@ int main() {
     /* USER CODE BEGIN 3 */
 
     batt.read_batt();
+    HAL_Delay(1);
   }
   /* USER CODE END 3 */
 }
