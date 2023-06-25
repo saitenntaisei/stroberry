@@ -13,7 +13,7 @@ class Battery {
   // R1<->R0<->GND
   static constexpr float v_ref = 3.3F;
   static constexpr uint8_t resolution_bit = 12;
-  static constexpr float threshold = 7.5;
+  static constexpr float threshold = 7.0;
   ADC_HandleTypeDef* hadc{};
 
  public:
