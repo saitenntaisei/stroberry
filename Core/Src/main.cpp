@@ -20,6 +20,7 @@
 #include "./main.h"
 
 #include "adc.h"
+#include "dma.h"
 #include "gpio.h"
 #include "spi.h"
 #include "tim.h"
@@ -98,25 +99,25 @@ int main() {
 
   /* USER CODE END 1 */
 
-  /* MCU
-   * Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the
-   * Systick.
-   */
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
+
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
+
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
   MX_TIM4_Init();
   MX_TIM9_Init();
@@ -128,6 +129,8 @@ int main() {
   MX_TIM2_Init();
   MX_TIM1_Init();
   MX_TIM12_Init();
+  MX_ADC2_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   setbuf(stdout, nullptr);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
@@ -155,11 +158,13 @@ int main() {
   HAL_TIM_Base_Start_IT(&htim1);
 
   /* USER CODE END 2 */
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
   while (true) {
     /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
 
     batt.read_batt();
@@ -260,9 +265,8 @@ void Error_Handler(void) {
  */
 void assert_failed(uint8_t *file, uint32_t line) {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line
-     number, ex: printf("Wrong parameters value: file %s on line %d\r\n",
-     file, line) */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
