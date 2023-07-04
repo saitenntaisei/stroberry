@@ -95,10 +95,10 @@ void MX_ADC2_Init(void)
   hadc2.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc2.Init.Resolution = ADC_RESOLUTION_12B;
   hadc2.Init.ScanConvMode = ENABLE;
-  hadc2.Init.ContinuousConvMode = DISABLE;
+  hadc2.Init.ContinuousConvMode = ENABLE;
   hadc2.Init.DiscontinuousConvMode = DISABLE;
-  hadc2.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
-  hadc2.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T3_TRGO;
+  hadc2.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc2.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc2.Init.NbrOfConversion = 4;
   hadc2.Init.DMAContinuousRequests = ENABLE;
@@ -201,8 +201,8 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     hdma_adc2.Init.MemInc = DMA_MINC_ENABLE;
     hdma_adc2.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
     hdma_adc2.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-    hdma_adc2.Init.Mode = DMA_NORMAL;
-    hdma_adc2.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_adc2.Init.Mode = DMA_CIRCULAR;
+    hdma_adc2.Init.Priority = DMA_PRIORITY_HIGH;
     hdma_adc2.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     if (HAL_DMA_Init(&hdma_adc2) != HAL_OK)
     {
