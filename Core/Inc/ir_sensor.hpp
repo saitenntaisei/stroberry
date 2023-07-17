@@ -1,7 +1,10 @@
 #ifndef CORE_INC_IR_SENSOR_HPP_
 #define CORE_INC_IR_SENSOR_HPP_
 
+#include <cmath>
 #include <memory>
+#include <numbers>
+#include <vector>
 
 #include "./main.h"
 #include "./mine.hpp"
@@ -13,43 +16,77 @@ class IrSensor {
  private:
   ADC_HandleTypeDef* hadc{};
   uint8_t ir_sensor_num = 0;
-  std::unique_ptr<uint16_t[]> g_adc_data, temp_ir_sensor_value, ir_sensor_value;
+  std::unique_ptr<uint16_t[]> g_adc_data;
+  std::unique_ptr<float[]> ir_sensor_value;
+  std::unique_ptr<std::pair<float, float>[]> temp_ir_sensor_value;
+  uint16_t counter_k = 0;
+  static constexpr uint16_t n = 64;
+  std::vector<float> pre_cos, pre_sin;
 
  public:
   explicit IrSensor(ADC_HandleTypeDef* hadc, uint8_t num);
   void ir_sampling(void);
   void ir_update(void);
   void ir_value_reset(void);
-  T get_ir_value(uint8_t num) {
-    if (num >= ir_sensor_num || num < 0) {
+  std::vector<uint16_t> check[4];
+  float get_ir_value(uint8_t num) {
+    if (num >= ir_sensor_num) {
       return -1;
     }
-    return static_cast<T>(ir_sensor_value[num]);
+
+    return ir_sensor_value[num];
   }
 };
 template <typename T>
 IrSensor<T>::IrSensor(ADC_HandleTypeDef* hadc, uint8_t num)
-    : hadc(hadc), ir_sensor_num(num), g_adc_data(new uint16_t[num]), temp_ir_sensor_value(new uint16_t[num]), ir_sensor_value(new uint16_t[num]) {
+    : hadc(hadc), ir_sensor_num(num), g_adc_data(new uint16_t[num]), ir_sensor_value(new float[num]), temp_ir_sensor_value(new std::pair<float, float>[num]) {
   static bool start_adc = [&]() {
-    HAL_ADC_Start(hadc);
-    return HAL_ADC_Start_DMA(&hadc2, (uint32_t*)(g_adc_data.get()), ir_sensor_num) == HAL_OK;
+    // HAL_ADC_Init(&hadc2);
+    // HAL_ADC_Start(hadc);
+    return HAL_ADC_Start_DMA(hadc, (uint32_t*)(g_adc_data.get()), ir_sensor_num) == HAL_OK;
   }();
   if (!start_adc) {
     Error_Handler();
+  }
+  for (uint8_t i = 0; i < 100; i++) {
+    pre_cos.push_back(std::cos(-2 * std::numbers::pi_v<float> * 4 * i / n));
+    pre_sin.push_back(std::sin(-2 * std::numbers::pi_v<float> * 4 * i / n));
+  }
+  for (uint8_t i = 0; i < ir_sensor_num; i++) {
+    ir_sensor_value[i] = 0;
+    temp_ir_sensor_value[i] = std::make_pair(0, 0);
   }
 }
 template <typename T>
 void IrSensor<T>::ir_sampling(void) {
   for (uint8_t i = 0; i < ir_sensor_num; i++) {
+    // temp_ir_sensor_value[i].first += (g_adc_data[i] - 2000) * pre_cos[counter_k];   // * std::cos(-2 * std::numbers::pi_v<float> * n * counter_k / 64);
+    // temp_ir_sensor_value[i].second += (g_adc_data[i] - 2000) * pre_sin[counter_k];  // * std::sin(-2 * std::numbers::pi_v<float> * n * counter_k / 64);
+    check[i].push_back(g_adc_data[i]);
     if (g_adc_data[i] > ir_sensor_value[i]) ir_sensor_value[i] = g_adc_data[i];
   }
+  counter_k++;
 }
 template <typename T>
 void IrSensor<T>::ir_update(void) {
   for (uint8_t i = 0; i < ir_sensor_num; i++) {
-    ir_sensor_value[i] = temp_ir_sensor_value[i];
-    temp_ir_sensor_value[i] = 0;
+    // ir_sensor_value[i] = std::pow(temp_ir_sensor_value[i].first, 2) + std::pow(temp_ir_sensor_value[i].second, 2);
+    temp_ir_sensor_value[i] = std::make_pair(0, 0);
+    ir_sensor_value[i] = 0;
+    // temp_ir_sensor_value[i] = 0;
   }
+  for (int i = 0; i < counter_k; i++) {
+    for (uint8_t j = 0; j < ir_sensor_num; j++) {
+      printf("%d ", check[j][i]);
+    }
+    printf("\r\n");
+  }
+  check[0].clear();
+  check[1].clear();
+  check[2].clear();
+  check[3].clear();
+
+  counter_k = 0;
 }
 template <typename T>
 void IrSensor<T>::ir_value_reset(void) {
