@@ -111,7 +111,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle) {
     if (callback_counter % 64 == 0)  // 2kHz
     {
       ir_sensor->ir_update();
-      printf("ok\r\n");
     }
   }
 }
@@ -194,7 +193,7 @@ int main() {
   HAL_TIM_Base_Start_IT(&htim1);
   HAL_TIM_Base_Start_IT(&htim6);
   pwm::IrLight ir_light_1(&htim9, TIM_CHANNEL_1), ir_light_2(&htim9, TIM_CHANNEL_2);
-  // ir_light_1.ir_flash_start();
+  ir_light_1.ir_flash_start();
   ir_light_2.ir_flash_start();
   HAL_TIM_GenerateEvent(&htim3, TIM_EVENTSOURCE_UPDATE);
   HAL_TIM_Base_Start_IT(&htim3);
@@ -209,17 +208,17 @@ int main() {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    // printf("ADC %.0f %.0f %.0f %.0f\r\n", ir_sensor->get_ir_value(0), ir_sensor->get_ir_value(1), ir_sensor->get_ir_value(2), ir_sensor->get_ir_value(3));
+    printf("ADC %.0f %.0f %.0f %.0f\r\n", ir_sensor->get_ir_value(0), ir_sensor->get_ir_value(1), ir_sensor->get_ir_value(2), ir_sensor->get_ir_value(3));
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2,
-                      ir_sensor->get_ir_value(0) >= 2200 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left front
+                      ir_sensor->get_ir_value(0) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left front
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3,
-                      ir_sensor->get_ir_value(1) >= 2200 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Right front
+                      ir_sensor->get_ir_value(1) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Right front
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0,
-                      ir_sensor->get_ir_value(2) >= 2200 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left
+                      ir_sensor->get_ir_value(2) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5,
-                      ir_sensor->get_ir_value(3) >= 2200 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Right
+                      ir_sensor->get_ir_value(3) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Right
     // batt.read_batt();
-    HAL_Delay(1);
+    HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }
