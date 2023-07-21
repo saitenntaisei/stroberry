@@ -66,12 +66,13 @@ void SystemClock_Config(void);  // NOLINT
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+namespace {
 std::unique_ptr<spi::Gyro> gyro;
 parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>, std::unique_ptr<pwm::Encoder<float, int16_t>>> enc;
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
 std::unique_ptr<state::Controller<float, state::Status<float>, state::Pid<float>>> ctrl;
 std::unique_ptr<adc::IrSensor<uint32_t>> ir_sensor;
-
+}  // namespace
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
     ctrl->update();
@@ -84,8 +85,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
             *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
   }
 
-  static uint32_t callback_counter = 0;
-  const uint32_t frequency = 160 * 10000;
+  
   if (htim == &htim6)  // 100kHz
   {
     // callback_counter = (callback_counter + 1) % frequency;
@@ -177,7 +177,6 @@ int main() {
   HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_2);
-
   adc::Battery<float, uint32_t> batt(&hadc1);
   enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
   enc.left = std::make_unique<pwm::Encoder<float, int32_t>>(TIM2);
@@ -208,7 +207,6 @@ int main() {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    printf("ADC %ld %ld %ld %ld\r\n", ir_sensor->get_ir_value(0), ir_sensor->get_ir_value(1), ir_sensor->get_ir_value(2), ir_sensor->get_ir_value(3));
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2,
                       ir_sensor->get_ir_value(0) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left front
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3,
@@ -218,7 +216,7 @@ int main() {
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5,
                       ir_sensor->get_ir_value(3) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Right
     batt.read_batt();
-    HAL_Delay(100);
+    HAL_Delay(1);
   }
   /* USER CODE END 3 */
 }

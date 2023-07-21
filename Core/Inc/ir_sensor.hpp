@@ -47,8 +47,11 @@ IrSensor<T>::IrSensor(ADC_HandleTypeDef* hadc, uint8_t num, uint16_t sampling_fr
       ir_sensor_value(new T[num]),
       temp_ir_sensor_value(new std::pair<float, float>[num]),
       sampling_freq_kHz(sampling_freq_kHz),
-      ir_flashing_freq_kHz(ir_flashing_freq_kHz) {
-  sampling_times = sampling_freq_kHz * 4 / ir_flashing_freq_kHz;
+      ir_flashing_freq_kHz(ir_flashing_freq_kHz),
+      pre_cos(),
+      pre_sin() {
+  if (sampling_freq_kHz * 4 % ir_flashing_freq_kHz != 0) Error_Handler();
+  sampling_times = static_cast<uint16_t>(sampling_freq_kHz * 4 / ir_flashing_freq_kHz);
   if (!HAL_ADC_Start_DMA(hadc, (uint32_t*)(g_adc_data.get()), ir_sensor_num) == HAL_OK) {
     Error_Handler();
   }
@@ -76,7 +79,7 @@ void IrSensor<T>::ir_sampling(void) {
 template <typename T>
 void IrSensor<T>::ir_update(void) {
   for (uint8_t i = 0; i < ir_sensor_num; i++) {
-    ir_sensor_value[i] = std::pow(temp_ir_sensor_value[i].first, 2) + std::pow(temp_ir_sensor_value[i].second, 2);
+    ir_sensor_value[i] = static_cast<T>(std::pow(temp_ir_sensor_value[i].first, 2) + std::pow(temp_ir_sensor_value[i].second, 2));
     temp_ir_sensor_value[i] = std::make_pair(0, 0);
   }
 
@@ -100,7 +103,7 @@ class IrLight {
   void ir_flash_start();
   void ir_flash_stop();
 };
-IrLight::IrLight(TIM_HandleTypeDef* tim, unsigned int channel) : ir_light(tim, channel), freq(tim->Init.Period / 2) {}
+IrLight::IrLight(TIM_HandleTypeDef* tim, unsigned int channel) : ir_light(tim, channel), freq(static_cast<uint16_t>(tim->Init.Period / 2)) {}
 void IrLight::ir_flash_start() {
   HAL_TIM_PWM_Start(ir_light.tim, ir_light.channel);
   __HAL_TIM_SET_COMPARE(ir_light.tim, ir_light.channel, freq);  // Max 100
