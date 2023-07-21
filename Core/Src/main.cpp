@@ -85,7 +85,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
             *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
   }
 
-  
   if (htim == &htim6)  // 100kHz
   {
     // callback_counter = (callback_counter + 1) % frequency;
