@@ -184,7 +184,7 @@ int main() {
   motor.left = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2);
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4);
   ctrl = std::make_unique<state::Controller<float, state::Status<float>, state::Pid<float>>>();
-  ir_sensor = std::make_unique<adc::IrSensor<uint32_t>>(&hadc2, 4);
+  ir_sensor = std::make_unique<adc::IrSensor<uint32_t>>(&hadc2, 4, 160, 10);
   pwm::Buzzer buzzer(&htim12, TIM_CHANNEL_2);
   printf("stroberry\r\n");
   HAL_Delay(1000);
@@ -208,7 +208,7 @@ int main() {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    printf("ADC %.0f %.0f %.0f %.0f\r\n", ir_sensor->get_ir_value(0), ir_sensor->get_ir_value(1), ir_sensor->get_ir_value(2), ir_sensor->get_ir_value(3));
+    printf("ADC %ld %ld %ld %ld\r\n", ir_sensor->get_ir_value(0), ir_sensor->get_ir_value(1), ir_sensor->get_ir_value(2), ir_sensor->get_ir_value(3));
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2,
                       ir_sensor->get_ir_value(0) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left front
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3,
