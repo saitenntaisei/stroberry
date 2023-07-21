@@ -70,7 +70,7 @@ std::unique_ptr<spi::Gyro> gyro;
 parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>, std::unique_ptr<pwm::Encoder<float, int16_t>>> enc;
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
 std::unique_ptr<state::Controller<float, state::Status<float>, state::Pid<float>>> ctrl;
-std::unique_ptr<adc::IrSensor<uint16_t>> ir_sensor;
+std::unique_ptr<adc::IrSensor<uint32_t>> ir_sensor;
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
@@ -108,10 +108,10 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle) {
   if (AdcHandle == &hadc2) {
     callback_counter = (callback_counter + 1) % frequency;
     ir_sensor->ir_sampling();
-    if (callback_counter % 64 == 0)  // 2kHz
-    {
-      ir_sensor->ir_update();
-    }
+    // if (callback_counter % 64 == 0)  // 2kHz
+    // {
+    //   ir_sensor->ir_update();
+    // }
   }
 }
 
@@ -184,7 +184,7 @@ int main() {
   motor.left = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2);
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4);
   ctrl = std::make_unique<state::Controller<float, state::Status<float>, state::Pid<float>>>();
-  ir_sensor = std::make_unique<adc::IrSensor<uint16_t>>(&hadc2, 4);
+  ir_sensor = std::make_unique<adc::IrSensor<uint32_t>>(&hadc2, 4);
   pwm::Buzzer buzzer(&htim12, TIM_CHANNEL_2);
   printf("stroberry\r\n");
   HAL_Delay(1000);
@@ -217,7 +217,7 @@ int main() {
                       ir_sensor->get_ir_value(2) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5,
                       ir_sensor->get_ir_value(3) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Right
-    // batt.read_batt();
+    batt.read_batt();
     HAL_Delay(100);
   }
   /* USER CODE END 3 */

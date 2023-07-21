@@ -29,8 +29,9 @@ T Battery<T, RESO>::read_batt(void) {
   float adc_volt = 0;
   float batt_volt = 0;
   RESO resolution = (1 << resolution_bit) - 1;
+  __disable_irq();
   HAL_ADC_Start(hadc);
-  HAL_ADC_PollForConversion(&hadc1, 1000);
+  HAL_ADC_PollForConversion(&hadc1, 1);
   adc_value = HAL_ADC_GetValue(&hadc1);
   adc_volt = static_cast<float>(adc_value) * v_ref / static_cast<float>(resolution);
   // Voltage divider resistor Vbatt -> 20kΩ -> 10kΩ -> GND
@@ -39,6 +40,7 @@ T Battery<T, RESO>::read_batt(void) {
   //        adc_volt, batt_volt);
 
   HAL_ADC_Stop(&hadc1);
+  __enable_irq();
   if (batt_volt < threshold) {
     printf("no batt!\r\n");  // NOLINT
     Error_Handler();         // no batt
