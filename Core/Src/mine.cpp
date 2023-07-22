@@ -64,6 +64,30 @@ extern "C" bool Flash_store() {
 
   return result == HAL_OK;
 }
+
+/*
+ * @brief write flash(sector11)
+ * @param uint32_t address sector11 start address
+ * @param uint8_t * data write data
+ * @param uint32_t size write data size
+ */
+bool Flash_store_struct(uint8_t *data, uint32_t size) {
+  if (!Flash_clear()) return false;  // erease sector1
+  HAL_FLASH_Unlock();                // unlock flash
+  uint32_t address = (uint32_t)(&_backup_flash_start);
+  HAL_StatusTypeDef result = HAL_OK;
+  for (uint32_t add = address; add < (address + size); add++, data++) {  // add data pointer
+    HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, add, *data);               // write byte
+    if (result != HAL_OK) break;
+  }
+
+  HAL_FLASH_Lock();  // lock flash
+  return result == HAL_OK;
+}
+void Flash_load_struct(uint8_t *data, uint32_t size) {
+  uint32_t address = (uint32_t)(&_backup_flash_start);
+  memcpy(data, (uint8_t *)address, size);  // copy data
+}
 // ENDNOLINT
 namespace text {
 uint16_t Flash_string(std::string *str, uint16_t pos) {

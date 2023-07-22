@@ -30,6 +30,8 @@ uint8_t* Flash_load();
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+bool Flash_store_struct(uint8_t* data, uint32_t size);
+void Flash_load_struct(uint8_t* data, uint32_t size);
 namespace text {
 uint16_t Flash_string(std::string* str, uint16_t pos = 0);
 template <typename... Args>

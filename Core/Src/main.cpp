@@ -124,6 +124,10 @@ void HAL_SYSTICK_Callback(void) {  // 1kHz
  * @brief  The application entry point.
  * @retval int
  */
+
+struct test {
+  std::vector<int> a;
+};
 int main() {
   /* USER CODE BEGIN 1 */
   // initialise_monitor_handles();
@@ -202,15 +206,15 @@ int main() {
   /* USER CODE BEGIN WHILE */
   setbuf(stdout, NULL);
   setbuf(stdin, NULL);
-  char *flash_data = (char *)Flash_load();
-  printf("%s\r\n", flash_data);
-  std::string s = text::format("USSR %d\r\n", (uint16_t)1992);
-  uint16_t pos = text::Flash_string(&s);
-
-  s = text::format("Soviet %d\r\n", (uint16_t)1905);
-  text::Flash_string(&s, pos);
-  flash_data = (char *)Flash_load();
-  printf("%s\r\n", flash_data);
+  test ts;
+  ts.a.push_back(1);
+  ts.a.push_back(2);
+  printf("%d\r\n", ts.a.size());
+  Flash_clear();
+  Flash_store_struct((uint8_t *)&ts, sizeof(ts));
+  test tt;
+  Flash_load_struct((uint8_t *)&tt, sizeof(tt));
+  printf("%d\r\n", tt.a.size());
   while (true) {
     /* USER CODE END WHILE */
 
