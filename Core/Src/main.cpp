@@ -206,15 +206,15 @@ int main() {
   /* USER CODE BEGIN WHILE */
   setbuf(stdout, NULL);
   setbuf(stdin, NULL);
-  test ts;
-  ts.a.push_back(1);
-  ts.a.push_back(2);
-  printf("%d\r\n", ts.a.size());
-  flash::Flash_clear();
-  flash::Flash_store_struct((uint8_t *)&ts, sizeof(ts));
-  test tt;
-  flash::Flash_load_struct((uint8_t *)&tt, sizeof(tt));
-  printf("%d\r\n", tt.a.size());
+
+  std::string s = text::format("USSR %d\r\n", (uint16_t)1992);
+  uint16_t pos = flash::Flash_string(&s);
+  char *flash_data = (char *)flash::Flash_load();
+  printf("%s\r\n", flash_data);
+  s = text::format("Soviet %d\r\n", (uint16_t)1905);
+  flash::Flash_string(&s, pos);
+  flash_data = (char *)flash::Flash_load();
+  printf("%s\r\n", flash_data);
   while (true) {
     /* USER CODE END WHILE */
 
