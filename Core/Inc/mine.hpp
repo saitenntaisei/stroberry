@@ -2,38 +2,34 @@
 #define CORE_INC_MINE_HPP_
 #define BACKUP_FLASH_SECTOR_NUM FLASH_SECTOR_1
 #define BACKUP_FLASH_SECTOR_SIZE 1024 * 16
-
 #include <cstdio>
+#include <cstring>
 #include <memory>
 #include <string>
 #include <vector>
-
-#ifdef __cplusplus
-
-extern "C" {
-#endif /* __cplusplus */
-#include <stdint.h>
-#include <string.h>
-
 #include "./spi.h"
 #include "./usart.h"
+
+extern char _backup_flash_start;
+extern "C" int _write(int file, char* ptr, int len);
+namespace flash {
 // Flashから読みだしたデータを退避するRAM上の領域
 // 4byteごとにアクセスをするので、アドレスが4の倍数になるように配置する
 static uint8_t work_ram[BACKUP_FLASH_SECTOR_SIZE] __attribute__((aligned(4)));
 
 // Flashのsector1の先頭に配置される変数(ラベル)
 // 配置と定義はリンカスクリプトで行う
-extern char _backup_flash_start;
+
 bool Flash_clear();
 bool Flash_store();
 uint8_t* Flash_load();
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
+
 bool Flash_store_struct(uint8_t* data, uint32_t size);
 void Flash_load_struct(uint8_t* data, uint32_t size);
-namespace text {
 uint16_t Flash_string(std::string* str, uint16_t pos = 0);
+}  // namespace flash
+namespace text {
+
 template <typename... Args>
 std::string format(const std::string& fmt, Args... args) {
   size_t len = std::snprintf(nullptr, 0, fmt.c_str(), args...);

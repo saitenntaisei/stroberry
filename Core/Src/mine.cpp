@@ -9,9 +9,10 @@ extern "C" int _write(int file, char *ptr, int len) {
 }
 // ENDNOLINT
 
-// BEGINNOLINT
+namespace flash {
+
 // Flashのsectoe1を消去
-extern "C" bool Flash_clear() {
+bool Flash_clear() {
   FLASH_WaitForLastOperation((uint32_t)50000U);
   HAL_FLASH_Unlock();
 
@@ -30,24 +31,20 @@ extern "C" bool Flash_clear() {
 
   return result == HAL_OK && error_sector == 0xFFFFFFFF;
 }
-// ENDNOLINT
 
-// BEGINNOLINT
 // Flashのsector1の内容を全てwork_ramに読み出す
 // work_ramの先頭アドレスを返す
-extern "C" uint8_t *Flash_load() {
-  memcpy(work_ram, &_backup_flash_start, BACKUP_FLASH_SECTOR_SIZE);
+uint8_t *Flash_load() {
+  std::memcpy(work_ram, &_backup_flash_start, BACKUP_FLASH_SECTOR_SIZE);
   return work_ram;
 }
-// ENDNOLINT
 
-// BEGINNOLINT
 // Flashのsector1を消去後、work_ramにあるデータを書き込む
-extern "C" bool Flash_store() {
+bool Flash_store() {
   // Flashをclear
   if (!Flash_clear()) return false;
 
-  uint32_t *p_work_ram = (uint32_t *)work_ram;  // NOLINT
+  uint32_t *p_work_ram = reinterpret_cast<uint32_t *>(work_ram);  // NOLINT
 
   HAL_FLASH_Unlock();
 
@@ -56,7 +53,7 @@ extern "C" bool Flash_store() {
   const size_t write_cnt = BACKUP_FLASH_SECTOR_SIZE / sizeof(uint32_t);
 
   for (size_t i = 0; i < write_cnt; i++) {
-    result = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, (uint32_t)(&_backup_flash_start) + sizeof(uint32_t) * i, p_work_ram[i]);
+    result = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, reinterpret_cast<uint32_t>(&_backup_flash_start) + sizeof(uint32_t) * i, p_work_ram[i]);
     if (result != HAL_OK) break;
   }
 
@@ -74,7 +71,7 @@ extern "C" bool Flash_store() {
 bool Flash_store_struct(uint8_t *data, uint32_t size) {
   if (!Flash_clear()) return false;  // erease sector1
   HAL_FLASH_Unlock();                // unlock flash
-  uint32_t address = (uint32_t)(&_backup_flash_start);
+  uint32_t address = reinterpret_cast<uint32_t>(&_backup_flash_start);
   HAL_StatusTypeDef result = HAL_OK;
   for (uint32_t add = address; add < (address + size); add++, data++) {  // add data pointer
     HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, add, *data);               // write byte
@@ -85,11 +82,10 @@ bool Flash_store_struct(uint8_t *data, uint32_t size) {
   return result == HAL_OK;
 }
 void Flash_load_struct(uint8_t *data, uint32_t size) {
-  uint32_t address = (uint32_t)(&_backup_flash_start);
-  memcpy(data, (uint8_t *)address, size);  // copy data
+  uint32_t address = reinterpret_cast<uint32_t>(&_backup_flash_start);
+  std::memcpy(data, reinterpret_cast<uint8_t *>(address), size);  // copy data
 }
-// ENDNOLINT
-namespace text {
+
 uint16_t Flash_string(std::string *str, uint16_t pos) {
   const char *cstr = str->c_str();
   if (strlen(cstr) + 1 > static_cast<size_t>(BACKUP_FLASH_SECTOR_SIZE - pos)) {
@@ -99,4 +95,4 @@ uint16_t Flash_string(std::string *str, uint16_t pos) {
   Flash_store();
   return pos + strlen(cstr);
 }
-}  // namespace text
+}  // namespace flash

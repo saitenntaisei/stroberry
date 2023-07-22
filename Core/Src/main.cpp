@@ -210,10 +210,10 @@ int main() {
   ts.a.push_back(1);
   ts.a.push_back(2);
   printf("%d\r\n", ts.a.size());
-  Flash_clear();
-  Flash_store_struct((uint8_t *)&ts, sizeof(ts));
+  flash::Flash_clear();
+  flash::Flash_store_struct((uint8_t *)&ts, sizeof(ts));
   test tt;
-  Flash_load_struct((uint8_t *)&tt, sizeof(tt));
+  flash::Flash_load_struct((uint8_t *)&tt, sizeof(tt));
   printf("%d\r\n", tt.a.size());
   while (true) {
     /* USER CODE END WHILE */
