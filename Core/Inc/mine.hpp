@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+
 #include "./spi.h"
 #include "./usart.h"
 
