@@ -12,7 +12,7 @@ extern "C" int _write(int file, char *ptr, int len) {
 namespace flash {
 
 // Flashのsectoe1を消去
-bool Flash_clear() {
+bool Clear() {
   FLASH_WaitForLastOperation((uint32_t)50000U);
   HAL_FLASH_Unlock();
 
@@ -34,15 +34,15 @@ bool Flash_clear() {
 
 // Flashのsector1の内容を全てwork_ramに読み出す
 // work_ramの先頭アドレスを返す
-uint8_t *Flash_load() {
+uint8_t *Load() {
   std::memcpy(work_ram, &_backup_flash_start, BACKUP_FLASH_SECTOR_SIZE);
   return work_ram;
 }
 
 // Flashのsector1を消去後、work_ramにあるデータを書き込む
-bool Flash_store() {
+bool Store() {
   // Flashをclear
-  if (!Flash_clear()) return false;
+  if (!Clear()) return false;
 
   uint32_t *p_work_ram = reinterpret_cast<uint32_t *>(work_ram);  // NOLINT
 
@@ -68,9 +68,9 @@ bool Flash_store() {
  * @param uint8_t * data write data
  * @param uint32_t size write data size
  */
-bool Flash_store_struct(uint8_t *data, uint32_t size) {
-  if (!Flash_clear()) return false;  // erease sector1
-  HAL_FLASH_Unlock();                // unlock flash
+bool Store_struct(uint8_t *data, uint32_t size) {
+  if (!Clear()) return false;  // erease sector1
+  HAL_FLASH_Unlock();          // unlock flash
   uint32_t address = reinterpret_cast<uint32_t>(&_backup_flash_start);
   HAL_StatusTypeDef result = HAL_OK;
   for (uint32_t add = address; add < (address + size); add++, data++) {  // add data pointer
@@ -81,7 +81,7 @@ bool Flash_store_struct(uint8_t *data, uint32_t size) {
   HAL_FLASH_Lock();  // lock flash
   return result == HAL_OK;
 }
-void Flash_load_struct(uint8_t *data, uint32_t size) {
+void Load_struct(uint8_t *data, uint32_t size) {
   uint32_t address = reinterpret_cast<uint32_t>(&_backup_flash_start);
   std::memcpy(data, reinterpret_cast<uint8_t *>(address), size);  // copy data
 }
@@ -92,7 +92,7 @@ uint16_t Flash_string(std::string *str, uint16_t pos) {
     return -1;
   }
   memcpy(work_ram + pos, cstr, strlen(cstr) + 1);  // sizeof(char) := 1
-  Flash_store();
+  Store();
   return pos + strlen(cstr);
 }
 }  // namespace flash

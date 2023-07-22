@@ -125,9 +125,6 @@ void HAL_SYSTICK_Callback(void) {  // 1kHz
  * @retval int
  */
 
-struct test {
-  std::vector<int> a;
-};
 int main() {
   /* USER CODE BEGIN 1 */
   // initialise_monitor_handles();
@@ -207,14 +204,6 @@ int main() {
   setbuf(stdout, NULL);
   setbuf(stdin, NULL);
 
-  std::string s = text::format("USSR %d\r\n", (uint16_t)1992);
-  uint16_t pos = flash::Flash_string(&s);
-  char *flash_data = (char *)flash::Flash_load();
-  printf("%s\r\n", flash_data);
-  s = text::format("Soviet %d\r\n", (uint16_t)1905);
-  flash::Flash_string(&s, pos);
-  flash_data = (char *)flash::Flash_load();
-  printf("%s\r\n", flash_data);
   while (true) {
     /* USER CODE END WHILE */
 

@@ -21,12 +21,12 @@ static uint8_t work_ram[BACKUP_FLASH_SECTOR_SIZE] __attribute__((aligned(4)));
 // Flashのsector1の先頭に配置される変数(ラベル)
 // 配置と定義はリンカスクリプトで行う
 
-bool Flash_clear();
-bool Flash_store();
-uint8_t* Flash_load();
+bool Clear();
+bool Store();
+uint8_t* Load();
 
-bool Flash_store_struct(uint8_t* data, uint32_t size);
-void Flash_load_struct(uint8_t* data, uint32_t size);
+bool Store_struct(uint8_t* data, uint32_t size);
+void Load_struct(uint8_t* data, uint32_t size);
 uint16_t Flash_string(std::string* str, uint16_t pos = 0);
 }  // namespace flash
 namespace text {
@@ -41,13 +41,13 @@ std::string format(const std::string& fmt, Args... args) {
 }  // namespace text
 
 // std::string s = text::format("USSR %d\r\n", (uint16_t)1991);
-// char *flash_data = (char *)Flash_load();
+// char *flash_data = (char *)Load();
 // printf("%s\r\n", flash_data);
 // uint16_t pos = text::Flash_string(&s);
 // s = text::format("Soviet %d\r\n", (uint16_t)1905);
 // text::Flash_string(&s, pos);
 // printf("%s\r\n", flash_data);
-// if (!Flash_store()) {
+// if (!Store()) {
 //   printf("Failed to write flash\n");
 // }
 #endif  // CORE_INC_MINE_HPP_
