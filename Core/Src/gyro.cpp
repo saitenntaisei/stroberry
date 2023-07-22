@@ -26,9 +26,12 @@ Gyro::Gyro() : gyro_offset(0, 0, 0) {
 }
 void Gyro::spi_gyro_who_am_i(void) {
   HAL_Delay(100);
-  uint8_t report = spi_gyro_read(0x0F);
-  printf("WHO_AM_I = %d\r\n", report);
-  HAL_Delay(100);
+  while (true) {
+    uint8_t report = spi_gyro_read(0x0F);
+    printf("WHO_AM_I = %d\r\n", report);
+    if (report == 215) break;
+    HAL_Delay(100);
+  }
 }
 float Gyro::spi_gyro_OUT_Z(void) {
   uint16_t Z_H = spi_gyro_read(0x2D);
