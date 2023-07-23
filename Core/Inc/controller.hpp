@@ -19,7 +19,7 @@ class Controller {
   T tar_speed = 0, accel = 0;
   float tar_ang_vel = 0, ang_acc = 0, tar_degree = 0;
   float max_speed = 0, max_ang_vel = 0, max_degree = 0;
-  static constexpr float turn_min_vel = 18.0F;
+  static constexpr float turn_min_vel = 36.0F;
   static constexpr float turn_vel_error = 3.0F;
 
   parts::RunModeT run_mode = parts::RunModeT::STOP_MODE;
@@ -34,12 +34,12 @@ class Controller {
 
     motor_duty.left += speed.left->update(tar_speed, status.get_speed());
     motor_duty.right += speed.right->update(tar_speed, status.get_speed());
-    motor_duty.left += ang_vel.left->update(tar_ang_vel, status.get_ang_vel());
 
+    motor_duty.left += ang_vel.left->update(tar_ang_vel, status.get_ang_vel());
     motor_duty.right -= ang_vel.right->update(tar_ang_vel, status.get_ang_vel());
     if (run_mode == parts::RunModeT::STOP_MODE) {
-      motor_duty.right -= ang_vel.right->update(0.0F, status.get_ang());
       motor_duty.left += ang.left->update(0.0F, status.get_ang());
+      motor_duty.right -= ang.right->update(0.0F, status.get_ang());
     }
   }
 
