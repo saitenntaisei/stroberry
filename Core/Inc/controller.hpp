@@ -1,5 +1,6 @@
 #ifndef CORE_INC_CONTROLLER_HPP_
 #define CORE_INC_CONTROLLER_HPP_
+#include <cfloat>
 #include <cmath>
 #include <functional>
 #include <memory>
@@ -21,6 +22,8 @@ class Controller {
   float max_speed = 0, max_ang_vel = 0, max_degree = 0;
   static constexpr float turn_min_vel = 36.0F;
   static constexpr float turn_vel_error = 3.0F;
+  static constexpr float len_start_dec_vel = 10.0F;  // mm
+  static constexpr float min_speed = 100.0F;         // mm/s
 
   parts::RunModeT run_mode = parts::RunModeT::STOP_MODE;
 
@@ -51,11 +54,12 @@ class Controller {
   void generate_tar_speed() {
     // 直線の場合の目標速度生成
     if (run_mode == parts::RunModeT::STRAIGHT_MODE) {
-      // tar_speed += accel * 0.001;  // 目標速度を設定加速度で更新
-      // // 最高速度制限
-      // if (tar_speed > max_speed) {
-      //   tar_speed = max_speed;  // 目標速度を設定最高速度に設定
-      // }
+      tar_speed += accel * 0.001F;  // 目標速度を設定加速度で更新
+      // 最高速度制限
+      if (std::abs(tar_speed) > std::abs(max_speed)) {
+        tar_speed = max_speed;  // 目標速度を設定最高速度に設定
+      }
+
     } else if (run_mode == parts::RunModeT::TURN_MODE) {
       // // 車体中心速度更新
       // tar_speed += accel * 0.001;
@@ -78,60 +82,53 @@ class Controller {
     }
   }
 
-  void straight(T len, T acc, T max_sp, T end_sp) {
+  void straight(T len, T acc, T max_sp, T end_sp) {  // mm
     // 走行モードを直線にする
     run_mode = parts::RunModeT::STRAIGHT_MODE;
     // 壁制御を有効にする
-    // con_wall.enable = true;
-    // 目標距離をグローバル変数に代入する
-    T len_target = len;
+
+    const T len_target = len;
     // 目標速度を設定
-    T end_speed = end_sp;
+    const T end_speed = end_sp;
     // 加速度を設定
     accel = acc;
     // 最高速度を設定
     max_speed = max_sp;
+    // 減速処理を始めるべき位置まで加速、定速区間を続行
+    while (((len_target - len_start_dec_vel) - status.get_len_mouse()) /*mm*/ >
+           (static_cast<float>(tar_speed * tar_speed) - static_cast<float>(end_speed * end_speed)) / static_cast<float>(2 * accel) /*mm*/) {
+      HAL_Delay(1);
+    }
+    // 減速処理開始
 
-    if (end_speed == 0) {  // 最終的に停止する場合
-      // 減速処理を始めるべき位置まで加速、定速区間を続行
-      while (((len_target - 10) - status.get_len_mouse()) >
-             1000 * (static_cast<float>(tar_speed * tar_speed) - static_cast<float>(end_speed * end_speed)) / static_cast<float>(2 * accel)) {
-      }
-      // 減速処理開始
-      accel = -acc;                                      // 減速するために加速度を負の値にする
-      while (status.get_len_mouse() < len_target - 1) {  // 停止したい距離の少し手前まで継続
-        // 一定速度まで減速したら最低駆動トルクで走行
-        if (tar_speed <= 0.1) {  // 目標速度が最低速度になったら、加速度を0にする
-          accel = 0;
-          tar_speed = 0.1;
-        }
-      }
-      accel = 0;
-      tar_speed = 0;
-      // 速度が0以下になるまで逆転する
-      while (speed >= 0.0) {
+    float end_tar_speed = (std::fabs(end_speed) < FLT_EPSILON ? min_speed : end_speed);
+    accel = -acc;
+    while (std::abs(status.get_len_mouse()) < std::abs(len_target - 1)) {  // 停止したい距離の少し手前まで継続
+      // 一定速度まで減速したら最低駆動トルクで走行
+
+      if (tar_speed <= end_tar_speed) {  // 目標速度が最低速度になったら、加速度を0にする
+        accel = 0;
+        tar_speed = end_tar_speed;
       }
 
-    } else {
-      // 減速処理を始めるべき位置まで加速、定速区間を続行
-      while (((len_target - 10) - status.get_len_mouse()) >
-             1000 * (static_cast<float>(tar_speed * tar_speed) - static_cast<float>(end_speed * end_speed)) / static_cast<float>(2 * accel)) {
-      }
-
-      // 減速処理開始
-      accel = -acc;                                  // 減速するために加速度を負の値にする
-      while (status.get_len_mouse() < len_target) {  // 停止したい距離の少し手前まで継続
-        // 一定速度まで減速したら最低駆動トルクで走行
-        if (tar_speed <= end_speed) {  // 目標速度が最低速度になったら、加速度を0にする
-          accel = 0;
-          // tar_speed = end_speed;
-        }
-      }
+      HAL_Delay(1);
     }
     // 加速度を0にする
     accel = 0;
+    tar_speed = (std::abs(end_speed) < FLT_EPSILON ? 0 : end_speed);
+
+    if (std::abs(end_speed) < FLT_EPSILON) {
+      while (status.get_speed() > FLT_EPSILON) {
+        HAL_Delay(1);
+      }
+    }
+
     // 現在距離を0にリセット
-    status.set_len_mouse(0);
+    status.reset();
+    if (std::abs(end_speed) < FLT_EPSILON) run_mode = parts::RunModeT::STOP_MODE;
+    speed.left->reset();
+    speed.right->reset();
+    HAL_Delay(1);
   }
 
   // positive: left, negative: right

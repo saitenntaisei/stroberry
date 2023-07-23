@@ -203,7 +203,7 @@ int main() {
   /* USER CODE BEGIN WHILE */
   setbuf(stdout, NULL);
   setbuf(stdin, NULL);
-
+  ctrl->straight(90, 1000, 300, 0);
   while (true) {
     /* USER CODE END WHILE */
 
