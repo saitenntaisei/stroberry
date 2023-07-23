@@ -203,6 +203,7 @@ int main() {
   /* USER CODE BEGIN WHILE */
   setbuf(stdout, NULL);
   setbuf(stdin, NULL);
+  ctrl->turn(90, 100, 50);
 
   while (true) {
     /* USER CODE END WHILE */
@@ -287,6 +288,7 @@ void Error_Handler(void) {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state
    */
+  printf("error\r\n");
 
   HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_1);
   HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_2);

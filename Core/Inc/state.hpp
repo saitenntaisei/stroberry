@@ -26,6 +26,12 @@ class Status {
   T get_ang_vel() { return ang_vel; }
   T get_ang() { return degree; }
   T get_speed() { return speed; }
+  T get_len_mouse() { return len_mouse; }
+  void reset() {
+    len_mouse = 0;
+    degree = 0;
+    i_ang_vel = 0;
+  }
 };
 template <typename T>
 Status<T>::Status(T ts) : ts(ts) {}
@@ -52,7 +58,7 @@ void Status<T>::update(LEFTENC &left_enc, RIGHTENC &right_enc,
   //   i_speed = -1 * 10000000000;
   // }
   d_speed = (speed - previous_speed);
-  len_mouse += (left_speed_new + right_speed) / 2;
+  len_mouse += (left_speed_new + right_speed_new) / 2;
 
   ang_vel = gyro_yaw();
   d_ang_vel = (ang_vel - previous_ang_vel);
