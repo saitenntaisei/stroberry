@@ -19,6 +19,8 @@ class Controller {
   T tar_speed = 0, accel = 0;
   float tar_ang_vel = 0, ang_acc = 0, tar_degree = 0;
   float max_speed = 0, max_ang_vel = 0, max_degree = 0;
+  static constexpr float turn_min_vel = 18.0F;
+  static constexpr float turn_vel_error = 3.0F;
 
   parts::RunModeT run_mode = parts::RunModeT::STOP_MODE;
 
@@ -136,7 +138,6 @@ class Controller {
   void turn(const float deg, float ang_accel, float max_ang_velocity) {
     ang_accel = std::abs(ang_accel);
     max_ang_velocity = std::abs(max_ang_velocity);
-    // HAL_Delay(500);
     if (deg < 0) {
       ang_accel = -ang_accel;
       max_ang_velocity = -max_ang_velocity;
@@ -167,9 +168,9 @@ class Controller {
     ang_acc = -ang_accel;
 
     while (std::abs(status.get_ang() - local_degree) < std::abs(max_degree)) {
-      if (std::abs(tar_ang_vel) < 18.0f) {
+      if (std::abs(tar_ang_vel) < turn_min_vel) {
         ang_acc = 0;
-        tar_ang_vel = 18.0f;
+        tar_ang_vel = (tar_ang_vel >= 0 ? turn_min_vel : -turn_min_vel);
       }
       HAL_Delay(1);
     }
@@ -179,19 +180,19 @@ class Controller {
 
     // tar_degree = max_degree;
 
-    while (status.get_ang_vel() >= 3 || status.get_ang_vel() <= -3) {  // NOLINT
+    while (std::abs(status.get_ang_vel()) >= std::abs(turn_vel_error)) {  // NOLINT
       HAL_Delay(1);
     }
-    printf("turn_finish\r\n");
 
     tar_ang_vel = 0;
     ang_acc = 0;
     // 現在距離を0にリセット
     status.reset();
-    printf("turn_finish\r\n");
+
     run_mode = parts::RunModeT::STOP_MODE;
     ang_vel.left->reset();
     ang_vel.right->reset();
+    HAL_Delay(1);
   }
 };
 }  // namespace state
