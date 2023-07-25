@@ -38,11 +38,11 @@ class Controller {
     motor_duty.left += speed.left->update(tar_speed, status.get_speed());
     motor_duty.right += speed.right->update(tar_speed, status.get_speed());
 
-    motor_duty.left += ang_vel.left->update(tar_ang_vel, status.get_ang_vel());
-    motor_duty.right -= ang_vel.right->update(tar_ang_vel, status.get_ang_vel());
+    motor_duty.left -= ang_vel.left->update(tar_ang_vel, status.get_ang_vel());
+    motor_duty.right += ang_vel.right->update(tar_ang_vel, status.get_ang_vel());
     if (run_mode == parts::RunModeT::STOP_MODE) {
-      motor_duty.left += ang.left->update(0.0F, status.get_ang());
-      motor_duty.right -= ang.right->update(0.0F, status.get_ang());
+      motor_duty.left -= ang.left->update(0.0F, status.get_ang());
+      motor_duty.right += ang.right->update(0.0F, status.get_ang());
     }
   }
 

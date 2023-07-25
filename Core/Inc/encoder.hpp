@@ -38,7 +38,7 @@ T Encoder<T, CNT>::read_encoder_value() {  // return speed in rads
   T encoder_temp = static_cast<T>(read_encoder_cnt());
   encoder_temp *= 360;
   encoder_temp /= (gear_duty * encoder_resolution);
-  cnt_total += encoder_temp;
+  // cnt_total += encoder_temp;
   speed_rads = encoder_temp * deg2rad;  // * control_cycle_Hz;
   return speed_rads;
 }

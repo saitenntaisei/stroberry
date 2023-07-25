@@ -80,7 +80,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   }
   if (htim == &htim11) {
     ctrl->update();
-    ctrl->drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(*(motor.left), *(motor.right), 1, -1);
+    ctrl->drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(*(motor.left), *(motor.right), -1, 1);
     ctrl->status.update_gyro([]() { return gyro->read_gyro().z; });
   }
 }
@@ -156,8 +156,8 @@ int main() {
   adc::Battery<float, uint32_t> batt(&hadc1);
   enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
   enc.left = std::make_unique<pwm::Encoder<float, int16_t>>(TIM2);
-  motor.left = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2);
-  motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4);
+  motor.left = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4);
+  motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2);
   ctrl = std::make_unique<state::Controller<float, state::Status<float>, state::Pid<float>>>();
   ir_sensor = std::make_unique<adc::IrSensor<uint32_t>>(&hadc2, 4, 160, 10);
   pwm::Buzzer buzzer(&htim12, TIM_CHANNEL_2);
@@ -194,7 +194,7 @@ int main() {
                       ir_sensor->get_ir_value(2) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5,
                       ir_sensor->get_ir_value(3) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Right
-    // batt.read_batt();
+    batt.read_batt();
     HAL_Delay(1);
   }
   /* USER CODE END 3 */
