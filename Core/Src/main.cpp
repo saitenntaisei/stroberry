@@ -68,49 +68,26 @@ void SystemClock_Config(void);  // NOLINT
 /* USER CODE BEGIN 0 */
 namespace {
 std::unique_ptr<spi::Gyro> gyro;
-parts::wheel<std::unique_ptr<pwm::Encoder<float, int32_t>>, std::unique_ptr<pwm::Encoder<float, int16_t>>> enc;
+parts::wheel<std::unique_ptr<pwm::Encoder<float, int16_t>>, std::unique_ptr<pwm::Encoder<float, int16_t>>> enc;
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
 std::unique_ptr<state::Controller<float, state::Status<float>, state::Pid<float>>> ctrl;
 std::unique_ptr<adc::IrSensor<uint32_t>> ir_sensor;
 }  // namespace
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
+    ctrl->status.update_encoder<pwm::Encoder<float, int16_t>, pwm::Encoder<float, int16_t>, &pwm::Encoder<float, int16_t>::read_encoder_value,
+                                &pwm::Encoder<float, int16_t>::read_encoder_value>(*(enc.left), *(enc.right));
+  }
+  if (htim == &htim11) {
     ctrl->update();
-
     ctrl->drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(*(motor.left), *(motor.right), 1, -1);
-  }
-  if (htim == &htim1) {
-    ctrl->status
-        .update<pwm::Encoder<float, int32_t>, pwm::Encoder<float, int16_t>, &pwm::Encoder<float, int32_t>::read_encoder_value, &pwm::Encoder<float, int16_t>::read_encoder_value>(
-            *(enc.left), *(enc.right), []() { return gyro->read_gyro().z; });
-  }
-
-  if (htim == &htim6)  // 100kHz
-  {
-    // callback_counter = (callback_counter + 1) % frequency;
-    // if (callback_counter == 0) {
-    //   // HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 |
-    //   // GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5);
-    // }
-    // ir_sensor->ir_sampling();
-    // if (callback_counter % 64 == 0)  // 2kHz
-    // {
-    //   ir_sensor->ir_update();
-    //   printf("ok\r\n");
-    // }
+    ctrl->status.update_gyro([]() { return gyro->read_gyro().z; });
   }
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle) {
-  static uint32_t callback_counter = 0;
-  const uint32_t frequency = 160 * 1000;
   if (AdcHandle == &hadc2) {
-    callback_counter = (callback_counter + 1) % frequency;
     ir_sensor->ir_sampling();
-    // if (callback_counter % 64 == 0)  // 2kHz
-    // {
-    //   ir_sensor->ir_update();
-    // }
   }
 }
 
@@ -155,14 +132,13 @@ int main() {
   MX_TIM9_Init();
   MX_UART4_Init();
   MX_SPI1_Init();
-  MX_TIM6_Init();
   MX_TIM8_Init();
-  MX_TIM10_Init();
   MX_TIM2_Init();
-  MX_TIM1_Init();
   MX_TIM12_Init();
   MX_ADC2_Init();
   MX_TIM3_Init();
+  MX_TIM10_Init();
+  MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
   setbuf(stdout, nullptr);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
@@ -179,7 +155,7 @@ int main() {
   HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_2);
   adc::Battery<float, uint32_t> batt(&hadc1);
   enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
-  enc.left = std::make_unique<pwm::Encoder<float, int32_t>>(TIM2);
+  enc.left = std::make_unique<pwm::Encoder<float, int16_t>>(TIM2);
   motor.left = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2);
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4);
   ctrl = std::make_unique<state::Controller<float, state::Status<float>, state::Pid<float>>>();
@@ -189,8 +165,8 @@ int main() {
   HAL_Delay(1000);
   buzzer.beep("ok");
   HAL_TIM_Base_Start_IT(&htim10);
-  HAL_TIM_Base_Start_IT(&htim1);
-  HAL_TIM_Base_Start_IT(&htim6);
+  HAL_TIM_Base_Start_IT(&htim11);
+
   pwm::IrLight ir_light_1(&htim9, TIM_CHANNEL_1), ir_light_2(&htim9, TIM_CHANNEL_2);
   ir_light_1.ir_flash_start();
   ir_light_2.ir_flash_start();
@@ -203,10 +179,12 @@ int main() {
   /* USER CODE BEGIN WHILE */
   setbuf(stdout, NULL);
   setbuf(stdin, NULL);
-  ctrl->straight(90, 1000, 300, 0);
+  ctrl->turn(90, 360, 180);
+
   while (true) {
     /* USER CODE END WHILE */
 
+    // ctrl->status.get_speed();
     /* USER CODE BEGIN 3 */
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2,
                       ir_sensor->get_ir_value(0) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left front
@@ -216,7 +194,7 @@ int main() {
                       ir_sensor->get_ir_value(2) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5,
                       ir_sensor->get_ir_value(3) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Right
-    batt.read_batt();
+    // batt.read_batt();
     HAL_Delay(1);
   }
   /* USER CODE END 3 */
@@ -294,7 +272,7 @@ void Error_Handler(void) {
   HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_3);
   HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_4);
   HAL_TIM_Base_Stop_IT(&htim10);
-  HAL_TIM_Base_Stop_IT(&htim1);
+  HAL_TIM_Base_Stop_IT(&htim11);
   HAL_TIM_Encoder_Stop(&htim2, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Stop(&htim8, TIM_CHANNEL_ALL);
   __HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_2, 500);

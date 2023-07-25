@@ -22,7 +22,8 @@ class Status {
  public:
   Status(T ts = 0.001F);  // NOLINT
   template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
-  void update(LEFTENC &left_enc, RIGHTENC &right_enc, std::function<T(void)> gyro_yaw);
+  void update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc);
+  void update_gyro(std::function<T(void)> gyro_yaw);
   T get_ang_vel() { return ang_vel; }
   T get_ang() { return degree; }
   T get_speed() { return speed; }
@@ -36,12 +37,11 @@ template <typename T>
 Status<T>::Status(T ts) : ts(ts) {}
 template <typename T>
 template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
-void Status<T>::update(LEFTENC &left_enc, RIGHTENC &right_enc,
-                       std::function<T(void)> gyro_yaw) {  // unit is control freq(1ms)
+void Status<T>::update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc) {  // unit is control freq(1ms)
   T left_rads = -(left_enc.*LEFTENCFn)();
   T right_rads = (right_enc.*RIGHTENCFn)();
-  left_speed_new = left_rads * static_cast<T>(radius_wheel) * 1000;    // mm/s
-  right_speed_new = right_rads * static_cast<T>(radius_wheel) * 1000;  // mm/s
+  left_speed_new = left_rads * static_cast<T>(radius_wheel) * 100;    // mm/s
+  right_speed_new = right_rads * static_cast<T>(radius_wheel) * 100;  // mm/s
   left_speed_old = left_speed;
   right_speed_old = right_speed;
   // lowpass
@@ -50,6 +50,9 @@ void Status<T>::update(LEFTENC &left_enc, RIGHTENC &right_enc,
   previous_speed = speed;
   speed = (left_speed + right_speed) / 2;
   len_mouse += (left_speed_new + right_speed_new) / 2 * ts;  // mm
+}
+template <typename T>
+void Status<T>::update_gyro(std::function<T(void)> gyro_yaw) {  // unit is control freq(1ms)
 
   ang_vel = gyro_yaw();
   degree += ang_vel * ts;

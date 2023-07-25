@@ -9,11 +9,11 @@ class Encoder {
  private:
   const float gear_duty = 10;
   const uint8_t encoder_resolution = 12;
-  CNT read_encoder_cnt(void);  // LSB
+
   T speed_rads;
   T cnt_total;
   TIM_TypeDef* tim{};
-
+  CNT read_encoder_cnt(void);  // LSB
  public:
   explicit Encoder(TIM_TypeDef* tim);
   T read_encoder_value();  // dps and considered gear duty
@@ -26,8 +26,11 @@ Encoder<T, CNT>::Encoder(TIM_TypeDef* tim) : speed_rads(0), cnt_total(0), tim(ti
 
 template <typename T, typename CNT>
 CNT Encoder<T, CNT>::read_encoder_cnt(void) {
+  __disable_irq();
   CNT enc_buff = (CNT)tim->CNT;
   tim->CNT = 0;
+  __enable_irq();
+
   return static_cast<CNT>(enc_buff);
 }
 template <typename T, typename CNT>
