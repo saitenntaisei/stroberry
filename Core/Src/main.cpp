@@ -177,8 +177,7 @@ int main() {
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  setbuf(stdout, NULL);
-  setbuf(stdin, NULL);
+
   ctrl->turn(90, 360, 180);
 
   while (true) {
