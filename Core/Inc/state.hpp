@@ -45,8 +45,10 @@ void Status<T>::update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc) {  // uni
   left_speed_old = left_speed;
   right_speed_old = right_speed;
   // lowpass
-  left_speed = left_speed_new * 0.1F + left_speed_old * 0.9F;     // NOLINT
-  right_speed = right_speed_new * 0.1F + right_speed_old * 0.9F;  // NOLINT
+  // left_speed = left_speed_new * 0.1F + left_speed_old * 0.9F;     // NOLINT
+  // right_speed = right_speed_new * 0.1F + right_speed_old * 0.9F;  // NOLINT
+  left_speed = left_speed_new;
+  right_speed = right_speed_new;
   previous_speed = speed;
   speed = (left_speed + right_speed) / 2;
   len_mouse += (left_speed_new + right_speed_new) / 2 * ts;  // mm
