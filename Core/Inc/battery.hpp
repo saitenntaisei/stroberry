@@ -42,6 +42,7 @@ T Battery<T, RESO>::read_batt(void) {
   HAL_ADC_Stop(&hadc1);
   __enable_irq();
   if (batt_volt < threshold) {
+    HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GPIO_PIN_SET);
     printf("no batt!\r\n");  // NOLINT
     Error_Handler();         // no batt
   }

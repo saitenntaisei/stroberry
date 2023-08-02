@@ -72,6 +72,7 @@ parts::wheel<std::unique_ptr<pwm::Encoder<float, int16_t>>, std::unique_ptr<pwm:
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
 std::unique_ptr<state::Controller<float, state::Status<float>, state::Pid<float>>> ctrl;
 std::unique_ptr<adc::IrSensor<uint32_t>> ir_sensor;
+std::uint16_t mode = 0;
 }  // namespace
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
@@ -88,6 +89,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle) {
   if (AdcHandle == &hadc2) {
     ir_sensor->ir_sampling();
+  }
+}
+void HAL_GPIO_EXTI_Callback(std::uint16_t GPIO_Pin) {
+  if (GPIO_Pin == Buuton1_Pin) {
+    mode++;
+    mode %= 8;
   }
 }
 
@@ -178,21 +185,28 @@ int main() {
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  ctrl->turn(90, 360, 180);
+  // ctrl->turn(90, 360, 180);
 
   while (true) {
     /* USER CODE END WHILE */
 
     // ctrl->status.get_speed();
     /* USER CODE BEGIN 3 */
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2,
-                      ir_sensor->get_ir_value(0) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left front
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3,
-                      ir_sensor->get_ir_value(1) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Right front
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0,
-                      ir_sensor->get_ir_value(2) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5,
-                      ir_sensor->get_ir_value(3) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Right
+    // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2,
+    //                   ir_sensor->get_ir_value(0) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left front
+    // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3,
+    //                   ir_sensor->get_ir_value(1) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Right front
+    // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0,
+    //                   ir_sensor->get_ir_value(2) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left
+    // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5,
+    //                   ir_sensor->get_ir_value(3) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Right
+    if (HAL_GPIO_ReadPin(Button2_GPIO_Port, Button2_Pin)) {
+      printf("%d\r\n", mode);
+      buzzer.beep("mode");
+    }
+    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, (mode & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, ((mode >> 1) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, ((mode >> 2) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
     batt.read_batt();
     HAL_Delay(1);
   }
