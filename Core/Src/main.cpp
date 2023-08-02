@@ -28,6 +28,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "../lib/Mseq/Mseq.h"
 #include "./battery.hpp"
 #include "./buzzer.hpp"
 #include "./controller.hpp"

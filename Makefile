@@ -69,6 +69,7 @@ Core/Src/dma.c
 # CPP sources
 CPP_SOURCES = \
 $(wildcard Core/Src/*.cpp) \
+$(wildcard Core/lib/Mseq/*.cpp)
 
 # ASM sources
 ASM_SOURCES =  \
