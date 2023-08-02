@@ -1,0 +1,3 @@
+[submodule "Core/lib/Mseq"]
+	path = Core/lib/Mseq
+	url = git@github.com:idt12312/Mseq.git
