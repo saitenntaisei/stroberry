@@ -179,8 +179,8 @@ int main() {
   pwm::Buzzer buzzer(&htim12, TIM_CHANNEL_2);
   printf("stroberry\r\n");
   buzzer.beep("ok");
-  HAL_TIM_Base_Start_IT(&htim10);
-  HAL_TIM_Base_Start_IT(&htim11);
+  // HAL_TIM_Base_Start_IT(&htim10);
+  // HAL_TIM_Base_Start_IT(&htim11);
   HAL_TIM_Base_Start_IT(&htim7);
   ir_light_1.ir_flash_start();
   ir_light_2.ir_flash_start();
@@ -192,29 +192,20 @@ int main() {
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  // ctrl->turn(90, 360, 180);
-
   while (true) {
     /* USER CODE END WHILE */
 
-    // ctrl->status.get_speed();
     /* USER CODE BEGIN 3 */
-    // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2,
-    //                   ir_sensor->get_ir_value(0) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left front
-    // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3,
-    //                   ir_sensor->get_ir_value(1) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Right front
-    // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0,
-    //                   ir_sensor->get_ir_value(2) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left
-    // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5,
-    //                   ir_sensor->get_ir_value(3) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Righ
 
     if (safe_mode) {
       while (true) {
         if (ir_sensor->get_ir_value(0) >= 1e8 && ir_sensor->get_ir_value(1) >= 1e8 && ir_sensor->get_ir_value(2) >= 1e8 && ir_sensor->get_ir_value(3) >= 1e8) {
           switch (mode) {
-            case 1:
+            case 1: {
+              HAL_TIM_Base_Start_IT(&htim10);
+              HAL_TIM_Base_Start_IT(&htim11);
               ctrl->turn(90, 360, 180);
-              break;
+            } break;
             case 2: {
               Mseq mseq(7);
               for (int i = 0; i < (1 << 7) - 1; ++i) {
