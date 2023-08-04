@@ -1,6 +1,9 @@
 #include "./motor.hpp"
 namespace pwm {
-Motor::Motor(TIM_HandleTypeDef* tim_1, TIM_HandleTypeDef* tim_2, unsigned int channel_1, unsigned int channel_2) : out_1(tim_1, channel_1), out_2(tim_2, channel_2), batt(&hadc1) {}
+Motor::Motor(TIM_HandleTypeDef* tim_1, TIM_HandleTypeDef* tim_2, unsigned int channel_1, unsigned int channel_2) : out_1(tim_1, channel_1), out_2(tim_2, channel_2), batt(&hadc1) {
+  HAL_TIM_PWM_Start(out_1.tim, out_1.channel);
+  HAL_TIM_PWM_Start(out_2.tim, out_2.channel);
+}
 void Motor::drive(int16_t duty) {
   if (duty >= 1000) {
     duty = 999;

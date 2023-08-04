@@ -60,6 +60,7 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define Button2_Pin GPIO_PIN_13
 #define Button2_GPIO_Port GPIOC
+#define Button2_EXTI_IRQn EXTI15_10_IRQn
 #define IR_Sensor_OUT1_Pin GPIO_PIN_2
 #define IR_Sensor_OUT1_GPIO_Port GPIOA
 #define IR_Sensor_OUT2_Pin GPIO_PIN_3
@@ -72,9 +73,9 @@ void Error_Handler(void);
 #define LED5_GPIO_Port GPIOB
 #define LED4_Pin GPIO_PIN_2
 #define LED4_GPIO_Port GPIOB
-#define Buuton1_Pin GPIO_PIN_12
-#define Buuton1_GPIO_Port GPIOC
-#define Buuton1_EXTI_IRQn EXTI15_10_IRQn
+#define Button1_Pin GPIO_PIN_12
+#define Button1_GPIO_Port GPIOC
+#define Button1_EXTI_IRQn EXTI15_10_IRQn
 #define LED3_Pin GPIO_PIN_3
 #define LED3_GPIO_Port GPIOB
 #define LED2_Pin GPIO_PIN_4

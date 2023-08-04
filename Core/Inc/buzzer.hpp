@@ -14,7 +14,12 @@ class Buzzer {
   Buzzer(TIM_HandleTypeDef* tim, unsigned int channel);
   void beep(std::string msg);
 };
-Buzzer::Buzzer(TIM_HandleTypeDef* tim, unsigned int channel) : buzzer(tim, channel) {}
+Buzzer::Buzzer(TIM_HandleTypeDef* tim, unsigned int channel) : buzzer(tim, channel) {
+  static bool init = [&]() {
+    HAL_TIM_PWM_Start(buzzer.tim, buzzer.channel);
+    return true;
+  }();
+}
 
 void Buzzer::beep(std::string msg) {
   std::string morse[] = {

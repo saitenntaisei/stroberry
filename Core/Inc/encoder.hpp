@@ -21,7 +21,7 @@ class Encoder {
 };
 template <typename T, typename CNT>
 Encoder<T, CNT>::Encoder(TIM_TypeDef* tim) : speed_rads(0), cnt_total(0), tim(tim) {
-  // HAL_TIM_Encoder_Start(htim, tim_channel);
+    // HAL_TIM_Encoder_Start(htim, tim_channel);
 }
 
 template <typename T, typename CNT>

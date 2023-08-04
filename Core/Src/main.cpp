@@ -10,7 +10,7 @@
  * All rights reserved.
  *
  * This software is licensed under terms that can be found in the LICENSE file
- * in the root directory of this software component.
+ * in the root directory of this software component.　
  * If no LICENSE file comes with this software, it is provided AS-IS.
  *
  ******************************************************************************
@@ -73,7 +73,9 @@ parts::wheel<std::unique_ptr<pwm::Encoder<float, int16_t>>, std::unique_ptr<pwm:
 parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
 std::unique_ptr<state::Controller<float, state::Status<float>, state::Pid<float>>> ctrl;
 std::unique_ptr<adc::IrSensor<uint32_t>> ir_sensor;
+std::unique_ptr<adc::Battery<float, uint32_t>> batt;
 std::uint16_t mode = 0;
+bool safe_mode = false;
 }  // namespace
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
@@ -85,6 +87,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     ctrl->drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(*(motor.left), *(motor.right), -1, 1);
     ctrl->status.update_gyro([]() { return gyro->read_gyro().z; });
   }
+  if (htim == &htim7) {
+    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, (mode & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, ((mode >> 1) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, ((mode >> 2) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, (safe_mode ? GPIO_PIN_SET : GPIO_PIN_RESET));
+    batt->read_batt();
+  }
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle) {
@@ -93,9 +102,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle) {
   }
 }
 void HAL_GPIO_EXTI_Callback(std::uint16_t GPIO_Pin) {
-  if (GPIO_Pin == Buuton1_Pin) {
+  if (GPIO_Pin == Button1_Pin) {
     mode++;
     mode %= 8;
+  }
+  if (GPIO_Pin == Button2_Pin) {
+    safe_mode = !safe_mode;
   }
 }
 
@@ -147,6 +159,7 @@ int main() {
   MX_TIM3_Init();
   MX_TIM10_Init();
   MX_TIM11_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
   setbuf(stdout, nullptr);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
@@ -154,28 +167,21 @@ int main() {
   HAL_Delay(1000);
   gyro = std::make_unique<spi::Gyro>();
   HAL_Delay(100);
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
-  HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_2);
-  adc::Battery<float, uint32_t> batt(&hadc1);
+  batt = std::make_unique<adc::Battery<float, uint32_t>>(&hadc1);
+
   enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
   enc.left = std::make_unique<pwm::Encoder<float, int16_t>>(TIM2);
   motor.left = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4);
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2);
   ctrl = std::make_unique<state::Controller<float, state::Status<float>, state::Pid<float>>>();
   ir_sensor = std::make_unique<adc::IrSensor<uint32_t>>(&hadc2, 4, 160, 10);
+  pwm::IrLight ir_light_1(&htim9, TIM_CHANNEL_1), ir_light_2(&htim9, TIM_CHANNEL_2);
   pwm::Buzzer buzzer(&htim12, TIM_CHANNEL_2);
   printf("stroberry\r\n");
-  HAL_Delay(1000);
   buzzer.beep("ok");
   HAL_TIM_Base_Start_IT(&htim10);
   HAL_TIM_Base_Start_IT(&htim11);
-
-  pwm::IrLight ir_light_1(&htim9, TIM_CHANNEL_1), ir_light_2(&htim9, TIM_CHANNEL_2);
+  HAL_TIM_Base_Start_IT(&htim7);
   ir_light_1.ir_flash_start();
   ir_light_2.ir_flash_start();
   HAL_TIM_GenerateEvent(&htim3, TIM_EVENTSOURCE_UPDATE);
@@ -200,15 +206,31 @@ int main() {
     // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0,
     //                   ir_sensor->get_ir_value(2) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Left
     // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5,
-    //                   ir_sensor->get_ir_value(3) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Right
-    if (HAL_GPIO_ReadPin(Button2_GPIO_Port, Button2_Pin)) {
-      printf("%d\r\n", mode);
-      buzzer.beep("mode");
+    //                   ir_sensor->get_ir_value(3) >= 1e8 ? GPIO_PIN_SET : GPIO_PIN_RESET);  // Righ
+
+    if (safe_mode) {
+      while (true) {
+        if (ir_sensor->get_ir_value(0) >= 1e8 && ir_sensor->get_ir_value(1) >= 1e8 && ir_sensor->get_ir_value(2) >= 1e8 && ir_sensor->get_ir_value(3) >= 1e8) {
+          switch (mode) {
+            case 1:
+              ctrl->turn(90, 360, 180);
+              break;
+            case 2: {
+              Mseq mseq(7);
+              for (int i = 0; i < (1 << 7) - 1; ++i) {
+                mseq.update();
+              }
+            } break;
+
+            default:
+              break;
+          }
+          safe_mode = false;
+        }
+
+        HAL_Delay(1);
+      }
     }
-    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, (mode & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, ((mode >> 1) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, ((mode >> 2) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-    batt.read_batt();
     HAL_Delay(1);
   }
   /* USER CODE END 3 */
