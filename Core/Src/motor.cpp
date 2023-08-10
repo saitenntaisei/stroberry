@@ -25,8 +25,10 @@ void Motor::drive_vcc(float volt) {
   }
   if (volt >= 0) {
     __HAL_TIM_SET_COMPARE(out_1.tim, out_1.channel, static_cast<uint16_t>(std::abs(volt / max_volt * 1000)));
+    __HAL_TIM_SET_COMPARE(out_2.tim, out_2.channel, 0);
   } else if (volt < 0) {
     __HAL_TIM_SET_COMPARE(out_2.tim, out_2.channel, static_cast<uint16_t>(std::abs(volt / max_volt * 1000)));
+    __HAL_TIM_SET_COMPARE(out_1.tim, out_1.channel, 0);
   }
 }
 void Motor::brake() {

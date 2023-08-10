@@ -38,14 +38,14 @@ T Encoder<T, CNT>::read_encoder_value() {  // return speed in rads
   T encoder_temp = static_cast<T>(read_encoder_cnt());
   encoder_temp *= 360;
   encoder_temp /= (gear_duty * encoder_resolution);
-  // cnt_total += encoder_temp;
+  cnt_total += encoder_temp;
   speed_rads = encoder_temp * deg2rad;  // * control_cycle_Hz;
   return speed_rads;
 }
 
 template <typename T, typename CNT>
 T Encoder<T, CNT>::get_incremental_degrees() {
-  return get_incremental_degrees;
+  return cnt_total;
 }
 }  // namespace pwm
 #endif  // CORE_INC_ENCODER_HPP_

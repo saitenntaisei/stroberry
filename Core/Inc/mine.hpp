@@ -13,10 +13,14 @@
 
 extern char _backup_flash_start;
 extern "C" int _write(int file, char* ptr, int len);
+
+namespace param {
+enum class TestMode : uint8_t { STRAIGHT_MODE, TURN_MODE, NONE };
+}
 namespace flash {
 // Flashから読みだしたデータを退避するRAM上の領域
 // 4byteごとにアクセスをするので、アドレスが4の倍数になるように配置する
-static uint8_t work_ram[BACKUP_FLASH_SECTOR_SIZE] __attribute__((aligned(4)));
+inline uint8_t work_ram[BACKUP_FLASH_SECTOR_SIZE] __attribute__((aligned(4)));
 
 // Flashのsector1の先頭に配置される変数(ラベル)
 // 配置と定義はリンカスクリプトで行う

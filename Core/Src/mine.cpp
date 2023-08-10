@@ -41,7 +41,7 @@ uint8_t *Load() {
 
 // Flashのsector1を消去後、work_ramにあるデータを書き込む
 bool Store() {
-  // Flashをclear
+    // Flashをclear
   if (!Clear()) return false;
 
   uint32_t *p_work_ram = reinterpret_cast<uint32_t *>(work_ram);  // NOLINT
@@ -82,8 +82,7 @@ bool Store_struct(uint8_t *data, uint32_t size) {
   return result == HAL_OK;
 }
 void Load_struct(uint8_t *data, uint32_t size) {
-  uint32_t address = reinterpret_cast<uint32_t>(&_backup_flash_start);
-  std::memcpy(data, reinterpret_cast<uint8_t *>(address), size);  // copy data
+  memcpy(data, &_backup_flash_start, size);  // copy data
 }
 
 uint16_t Flash_string(std::string *str, uint16_t pos) {

@@ -38,6 +38,7 @@
 #include "./motor.hpp"
 #include "./pid.hpp"
 #include "./state.hpp"
+#include "data.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -76,15 +77,34 @@ std::unique_ptr<adc::IrSensor<uint32_t>> ir_sensor;
 std::unique_ptr<adc::Battery<float, uint32_t>> batt;
 std::uint16_t mode = 0;
 bool safe_mode = false;
+data::drive_records drive_rec;
+float motor_signal = 0.0f;
+param::TestMode test_mode = param::TestMode::NONE;
+bool drive_motor = false;
+
 }  // namespace
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
     ctrl->status.update_encoder<pwm::Encoder<float, int16_t>, pwm::Encoder<float, int16_t>, &pwm::Encoder<float, int16_t>::read_encoder_value,
                                 &pwm::Encoder<float, int16_t>::read_encoder_value>(*(enc.left), *(enc.right));
   }
+  if (htim == &htim6) {
+    switch (test_mode) {
+      case param::TestMode::TURN_MODE:
+        drive_rec.push_back(data::drive_record(ctrl->status.get_ang_vel(), motor_signal));
+        break;
+      case param::TestMode::STRAIGHT_MODE:
+        drive_rec.push_back(data::drive_record(ctrl->status.get_speed(), motor_signal));
+        break;
+      default:
+        break;
+    }
+  }
   if (htim == &htim11) {
-    ctrl->update();
-    ctrl->drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(*(motor.left), *(motor.right), -1, 1);
+    if (drive_motor) {
+      ctrl->update();
+      ctrl->drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(*(motor.left), *(motor.right), -1, 1);
+    }
     ctrl->status.update_gyro([]() { return gyro->read_gyro().z; });
   }
   if (htim == &htim7) {
@@ -103,11 +123,11 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle) {
 }
 void HAL_GPIO_EXTI_Callback(std::uint16_t GPIO_Pin) {
   if (GPIO_Pin == Button1_Pin) {
-    mode++;
-    mode %= 8;
+    safe_mode = !safe_mode;
   }
   if (GPIO_Pin == Button2_Pin) {
-    safe_mode = !safe_mode;
+    mode++;
+    mode %= 8;
   }
 }
 
@@ -160,6 +180,7 @@ int main() {
   MX_TIM10_Init();
   MX_TIM11_Init();
   MX_TIM7_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   setbuf(stdout, nullptr);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
@@ -182,6 +203,7 @@ int main() {
   // HAL_TIM_Base_Start_IT(&htim10);
   // HAL_TIM_Base_Start_IT(&htim11);
   HAL_TIM_Base_Start_IT(&htim7);
+  // HAL_TIM_Base_Start_IT(&htim6);
   ir_light_1.ir_flash_start();
   ir_light_2.ir_flash_start();
   HAL_TIM_GenerateEvent(&htim3, TIM_EVENTSOURCE_UPDATE);
@@ -191,37 +213,106 @@ int main() {
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
   while (true) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
-    if (safe_mode) {
-      while (true) {
-        if (ir_sensor->get_ir_value(0) >= 1e8 && ir_sensor->get_ir_value(1) >= 1e8 && ir_sensor->get_ir_value(2) >= 1e8 && ir_sensor->get_ir_value(3) >= 1e8) {
-          switch (mode) {
-            case 1: {
-              HAL_TIM_Base_Start_IT(&htim10);
-              HAL_TIM_Base_Start_IT(&htim11);
-              ctrl->turn(90, 360, 180);
-            } break;
-            case 2: {
-              Mseq mseq(7);
-              for (int i = 0; i < (1 << 7) - 1; ++i) {
-                mseq.update();
-              }
-            } break;
+    while (safe_mode) {
+      if (ir_sensor->get_ir_value(0) >= 1e8 && ir_sensor->get_ir_value(1) >= 1e8 && ir_sensor->get_ir_value(2) >= 1e8 && ir_sensor->get_ir_value(3) >= 1e8) {
+        safe_mode = false;
+        switch (mode) {
+          case 1: {
+            HAL_TIM_Base_Start_IT(&htim10);
+            HAL_TIM_Base_Start_IT(&htim11);
+            ctrl->turn(90, 360, 180);
+          } break;
+          case 2: {
+            Mseq mseq(7);
+            HAL_TIM_Base_Start_IT(&htim10);
+            HAL_TIM_Base_Start_IT(&htim6);
+            HAL_TIM_Base_Start_IT(&htim11);
+            HAL_Delay(1);
+            test_mode = param::TestMode::TURN_MODE;
+            for (int i = 0; i < (1 << 7) - 1; ++i) {
+              uint8_t signal = mseq.update();
+              motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 2.5f;
+              motor.left->drive_vcc(motor_signal);
+              motor.right->drive_vcc(motor_signal);
+              HAL_Delay(200);
+            }
+            test_mode = param::TestMode::NONE;
+            HAL_TIM_Base_Stop_IT(&htim10);
+            HAL_TIM_Base_Stop_IT(&htim11);
+            HAL_TIM_Base_Stop_IT(&htim6);
+            motor.left->drive_vcc(0);
+            motor.right->drive_vcc(0);
 
-            default:
-              break;
-          }
-          safe_mode = false;
+            printf("%d\r\n", drive_rec.size() * sizeof(data::twist));
+            if (drive_rec.size() * sizeof(data::twist) > BACKUP_FLASH_SECTOR_SIZE) {
+              HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_SET);
+              Error_Handler();
+            }
+
+            std::copy(drive_rec.begin(), drive_rec.end(), reinterpret_cast<data::drive_record *>(flash::work_ram));
+
+            flash::Store();
+            buzzer.beep("save");
+
+          } break;
+
+          case 3: {
+            Mseq mseq(6);
+            HAL_TIM_Base_Start_IT(&htim10);
+            HAL_TIM_Base_Start_IT(&htim6);
+            HAL_TIM_Base_Start_IT(&htim11);
+            HAL_Delay(1);
+            test_mode = param::TestMode::STRAIGHT_MODE;
+            for (int i = 0; i < (1 << 6) - 1; ++i) {
+              uint8_t signal = mseq.update();
+              motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 2.5f;
+              // motor.left->drive_vcc(-motor_signal);
+              // motor.right->drive_vcc(motor_signal);
+              HAL_Delay(400);
+              printf("%f, %f\r\n", enc.left->get_incremental_degrees(), enc.right->get_incremental_degrees());
+            }
+            test_mode = param::TestMode::NONE;
+            HAL_TIM_Base_Stop_IT(&htim10);
+            HAL_TIM_Base_Stop_IT(&htim11);
+            HAL_TIM_Base_Stop_IT(&htim6);
+            motor.left->drive_vcc(0);
+            motor.right->drive_vcc(0);
+            printf("%d\r\n", drive_rec.size() * sizeof(data::twist));
+            if (drive_rec.size() * sizeof(data::twist) > BACKUP_FLASH_SECTOR_SIZE) {
+              HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_SET);
+              Error_Handler();
+            }
+
+            std::copy(drive_rec.begin(), drive_rec.end(), reinterpret_cast<data::drive_record *>(flash::work_ram));
+
+            flash::Store();
+            buzzer.beep("save");
+
+          } break;
+          case 4: {
+            flash::Load();
+            std::copy((data::drive_record *)flash::work_ram, (data::drive_record *)flash::work_ram + 1000, std::back_inserter(drive_rec));
+            printf("speed, signal\r\n");
+            for (auto rec : drive_rec) {
+              printf("%f, %f\r\n", rec.speed, rec.signal);
+
+              HAL_Delay(1);
+            }
+            buzzer.beep("done");
+          } break;
+          default:
+            break;
         }
-
-        HAL_Delay(1);
       }
+
+      HAL_Delay(1);
     }
+
     HAL_Delay(1);
   }
   /* USER CODE END 3 */
