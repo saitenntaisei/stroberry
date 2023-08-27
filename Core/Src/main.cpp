@@ -37,6 +37,7 @@
 #include "./encoder.hpp"
 #include "./gyro.hpp"
 #include "./ir_sensor.hpp"
+#include "./maze_run.hpp"
 #include "./motor.hpp"
 #include "./pid.hpp"
 #include "./state.hpp"
