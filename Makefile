@@ -69,7 +69,11 @@ Core/Src/dma.c
 # CPP sources
 CPP_SOURCES = \
 $(wildcard Core/Src/*.cpp) \
-$(wildcard Core/lib/Mseq/*.cpp)
+$(wildcard Core/lib/Mseq/*.cpp)\
+$(wildcard Core/lib/micromouse-maze-library/src/*.cpp)\
+
+
+
 
 # ASM sources
 ASM_SOURCES =  \

@@ -29,6 +29,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../lib/Mseq/Mseq.h"
+#include "../lib/micromouse-maze-library/include/MazeLib/Maze.h"
+#include "../lib/micromouse-maze-library/include/MazeLib/StepMap.h"
 #include "./battery.hpp"
 #include "./buzzer.hpp"
 #include "./controller.hpp"
@@ -304,6 +306,13 @@ int main() {
               HAL_Delay(1);
             }
             buzzer.beep("done");
+          } break;
+          case 5: {
+            MazeLib::Maze maze;
+            MazeLib::Positions goals;
+            goals.push_back(MazeLib::Position(0, 0));
+            maze.setGoals(goals);
+
           } break;
           default:
             break;
