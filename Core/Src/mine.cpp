@@ -41,7 +41,7 @@ uint8_t *Load() {
 
 // Flashのsector1を消去後、work_ramにあるデータを書き込む
 bool Store() {
-    // Flashをclear
+  // Flashをclear
   if (!Clear()) return false;
 
   uint32_t *p_work_ram = reinterpret_cast<uint32_t *>(work_ram);  // NOLINT
