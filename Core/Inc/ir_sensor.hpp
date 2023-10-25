@@ -38,6 +38,7 @@ class IrSensor {
 
     return ir_sensor_value[num];
   }
+  T* get_ir_values(void) const { return ir_sensor_value.get(); }
 };
 template <typename T>
 IrSensor<T>::IrSensor(ADC_HandleTypeDef* hadc, uint8_t num, uint16_t sampling_freq_kHz, uint16_t ir_flashing_freq_kHz)
@@ -79,7 +80,7 @@ void IrSensor<T>::ir_sampling(void) {
 template <typename T>
 void IrSensor<T>::ir_update(void) {
   for (uint8_t i = 0; i < ir_sensor_num; i++) {
-    ir_sensor_value[i] = static_cast<T>(std::pow(temp_ir_sensor_value[i].first, 2) + std::pow(temp_ir_sensor_value[i].second, 2));
+    ir_sensor_value[i] = static_cast<T>(std::sqrt(std::pow(temp_ir_sensor_value[i].first, 2) + std::pow(temp_ir_sensor_value[i].second, 2)));
     temp_ir_sensor_value[i] = std::make_pair(0, 0);
   }
 

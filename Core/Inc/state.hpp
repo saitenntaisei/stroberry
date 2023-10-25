@@ -18,12 +18,20 @@ class Status {
 
   T ang_vel = 0;
   T degree = 0;
+  bool front_wall = false;
+  bool left_wall = false;
+  bool right_wall = false;
+  uint8_t wall_sensor_cnt = 0;
+
+  static constexpr uint32_t left_threshold = 3500, right_threshold = 3500, front_threshold = 11000;
   /* data */
  public:
+  enum WallSensor { FRONT_RIGHT, FRONT_LEFT, RIGHT, LEFT };
   Status(T ts = 0.001F);  // NOLINT
   template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
   void update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc);
   void update_gyro(std::function<T(void)> gyro_yaw);
+  void update_wall_sensor(std::function<uint32_t *(void)> wall_sensor, std::function<void(void)> front_light, std::function<void(void)> side_light);
   T get_ang_vel() { return ang_vel; }
   T get_ang() { return degree; }
   T get_speed() { return speed; }
@@ -32,6 +40,9 @@ class Status {
     len_mouse = 0;
     degree = 0;
   }
+  bool get_front_wall() { return front_wall; }
+  bool get_left_wall() { return left_wall; }
+  bool get_right_wall() { return right_wall; }
 };
 template <typename T>
 Status<T>::Status(T ts) : ts(ts) {}
@@ -52,6 +63,37 @@ void Status<T>::update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc) {  // uni
   previous_speed = speed;
   speed = (left_speed + right_speed) / 2;
   len_mouse += (left_speed_new + right_speed_new) / 2 * ts;  // mm
+}
+template <typename T>
+void Status<T>::update_wall_sensor(std::function<uint32_t *(void)> wall_sensor, std::function<void(void)> front_light, std::function<void(void)> side_light) {
+  uint32_t *wall_sensor_value = wall_sensor();
+  switch (wall_sensor_cnt) {
+    case 0:
+      if (wall_sensor_value[FRONT_LEFT] + wall_sensor_value[FRONT_RIGHT] > front_threshold) {
+        front_wall = true;
+      } else {
+        front_wall = false;
+      }
+      side_light();
+      break;
+    case 1:
+      if (wall_sensor_value[LEFT] > left_threshold) {
+        left_wall = true;
+      } else {
+        left_wall = false;
+      }
+      if (wall_sensor_value[RIGHT] > right_threshold) {
+        right_wall = true;
+      } else {
+        right_wall = false;
+      }
+      front_light();
+      break;
+    default:
+      break;
+  }
+  wall_sensor_cnt++;
+  wall_sensor_cnt %= 2;
 }
 template <typename T>
 void Status<T>::update_gyro(std::function<T(void)> gyro_yaw) {  // unit is control freq(1ms)

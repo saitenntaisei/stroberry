@@ -78,6 +78,7 @@ parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
 std::unique_ptr<state::Controller<float, state::Status<float>, state::Pid<float>>> ctrl;
 std::unique_ptr<adc::IrSensor<uint32_t>> ir_sensor;
 std::unique_ptr<adc::Battery<float, uint32_t>> batt;
+std::unique_ptr<pwm::IrLight> ir_light_1, ir_light_2;
 std::uint16_t mode = 0;
 bool safe_mode = false;
 data::drive_records drive_rec;
@@ -90,6 +91,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
     ctrl->status.update_encoder<pwm::Encoder<float, int16_t>, pwm::Encoder<float, int16_t>, &pwm::Encoder<float, int16_t>::read_encoder_value,
                                 &pwm::Encoder<float, int16_t>::read_encoder_value>(*(enc.left), *(enc.right));
+    ctrl->status.update_wall_sensor([]() { return ir_sensor->get_ir_values(); },
+                                    []() {
+                                      ir_light_2->ir_flash_stop();
+                                      ir_light_1->ir_flash_start();
+                                    },
+                                    []() {
+                                      ir_light_1->ir_flash_stop();
+                                      ir_light_2->ir_flash_start();
+                                    });
   }
   if (htim == &htim6) {
     switch (test_mode) {
@@ -199,7 +209,9 @@ int main() {
   motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2);
   ctrl = std::make_unique<state::Controller<float, state::Status<float>, state::Pid<float>>>();
   ir_sensor = std::make_unique<adc::IrSensor<uint32_t>>(&hadc2, 4, 160, 10);
-  pwm::IrLight ir_light_1(&htim9, TIM_CHANNEL_1), ir_light_2(&htim9, TIM_CHANNEL_2);
+  ir_light_1 = std::make_unique<pwm::IrLight>(&htim9, TIM_CHANNEL_1);
+  ir_light_2 = std::make_unique<pwm::IrLight>(&htim9, TIM_CHANNEL_2);
+
   pwm::Buzzer buzzer(&htim12, TIM_CHANNEL_2);
   printf("stroberry\r\n");
   buzzer.beep("ok");
@@ -207,8 +219,8 @@ int main() {
   // HAL_TIM_Base_Start_IT(&htim11);
   HAL_TIM_Base_Start_IT(&htim7);
   // HAL_TIM_Base_Start_IT(&htim6);
-  ir_light_1.ir_flash_start();
-  ir_light_2.ir_flash_start();
+  ir_light_1->ir_flash_start();
+  ir_light_2->ir_flash_start();
   HAL_TIM_GenerateEvent(&htim3, TIM_EVENTSOURCE_UPDATE);
   HAL_TIM_Base_Start_IT(&htim3);
 
@@ -222,7 +234,7 @@ int main() {
     /* USER CODE BEGIN 3 */
 
     while (safe_mode) {
-      if (ir_sensor->get_ir_value(0) >= 1e8 && ir_sensor->get_ir_value(1) >= 1e8 && ir_sensor->get_ir_value(2) >= 1e8 && ir_sensor->get_ir_value(3) >= 1e8) {
+      if (ir_sensor->get_ir_value(0) >= 1e4 && ir_sensor->get_ir_value(1) >= 1e4 && ir_sensor->get_ir_value(2) >= 1e4 && ir_sensor->get_ir_value(3) >= 1e4) {
         safe_mode = false;
         switch (mode) {
           case 1: {
@@ -274,8 +286,8 @@ int main() {
             for (int i = 0; i < (1 << 6) - 1; ++i) {
               uint8_t signal = mseq.update();
               motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 2.5f;
-              // motor.left->drive_vcc(-motor_signal);
-              // motor.right->drive_vcc(motor_signal);
+              motor.left->drive_vcc(-motor_signal);
+              motor.right->drive_vcc(motor_signal);
               HAL_Delay(400);
               printf("%f, %f\r\n", enc.left->get_incremental_degrees(), enc.right->get_incremental_degrees());
             }
@@ -309,6 +321,35 @@ int main() {
             buzzer.beep("done");
           } break;
           case 5: {
+            HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, GPIO_PIN_RESET);
+            HAL_TIM_Base_Start_IT(&htim10);
+            while (1) {
+              // uint32_t ir_value[4];
+              // ir_light_1->ir_flash_start();
+              // ir_light_2->ir_flash_stop();
+              // HAL_Delay(10);
+
+              // for (uint8_t i = 0; i < 2; ++i) {
+              //   ir_value[i] = ir_sensor->get_ir_value(i);
+              // }
+              // ir_light_1->ir_flash_stop();
+              // ir_light_2->ir_flash_start();
+              // HAL_Delay(10);
+              // for (uint8_t i = 2; i < 4; ++i) {
+              //   ir_value[i] = ir_sensor->get_ir_value(i);
+              // }
+
+              // printf("ir: %ld, %ld, %ld, %ld\r\n", ir_value[0], ir_value[1], ir_value[2], ir_value[3]);
+              // HAL_Delay(1);
+              printf("%d,%d,%d\r\n", ctrl->status.get_front_wall(), ctrl->status.get_left_wall(), ctrl->status.get_right_wall());
+              HAL_Delay(1);
+            }
+
+          } break;
+          case 6: {
             MazeLib::Maze maze;
             MazeLib::Positions goals;
             goals.push_back(MazeLib::Position(0, 0));
