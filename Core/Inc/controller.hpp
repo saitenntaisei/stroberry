@@ -10,11 +10,12 @@ namespace state {
 template <typename T, class STATUS, class PID>
 class Controller {
  private:
-  parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed = {std::make_unique<PID>(0.0031484f, 0.011501f, 2.113f / 1e5f, 0.12267f),
-                                                                    std::make_unique<PID>(0.0031484f, 0.011501f, 2.113f / 1e5f, 0.12267f)},
-                                                           ang_vel = {std::make_unique<PID>(0.0031484f, 0.011501f, 2.113f / 1e5f, 0.12267f),
-                                                                      std::make_unique<PID>(0.0031484f, 0.011501f, 2.113f / 1e5f, 0.12267f)},
+  parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed = {std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f),
+                                                                    std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f)},
+                                                           ang_vel = {std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f),
+                                                                      std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f)},
                                                            ang = {std::make_unique<PID>(0.5f, 0.05f, 0.001f, 0.0f), std::make_unique<PID>(0.5f, 0.05f, 0.001f, 0.0f)};
+  std::unique_ptr<PID> wall = std::make_unique<PID>(0.01f, 0.00f, 0.000f, 0.0f);
 
   parts::wheel<T, T> motor_duty = {0, 0};
   T tar_speed = 0, accel = 0;
@@ -35,11 +36,18 @@ class Controller {
     motor_duty.left = 0;
     motor_duty.right = 0;
 
+    if (run_mode == parts::RunModeT::STRAIGHT_MODE) {
+      parts::wheel<T, T> wall_sensor_error = status.get_wall_sensor_error();
+      tar_ang_vel -= wall->update(0, wall_sensor_error.left - wall_sensor_error.right);
+    }
     motor_duty.left += speed.left->update(tar_speed, status.get_speed());
     motor_duty.right += speed.right->update(tar_speed, status.get_speed());
 
     motor_duty.left -= ang_vel.left->update(tar_ang_vel, status.get_ang_vel());
     motor_duty.right += ang_vel.right->update(tar_ang_vel, status.get_ang_vel());
+    if (run_mode == parts::RunModeT::STRAIGHT_MODE) {
+      tar_ang_vel = 0;
+    }
     if (run_mode == parts::RunModeT::STOP_MODE) {
       motor_duty.left -= ang.left->update(0.0F, status.get_ang());
       motor_duty.right += ang.right->update(0.0F, status.get_ang());

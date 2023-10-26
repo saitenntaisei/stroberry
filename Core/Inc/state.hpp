@@ -2,6 +2,8 @@
 #define CORE_INC_STATE_HPP_
 #include <functional>
 
+#include "parts.hpp"
+
 namespace state {
 template <typename T>
 class Status {
@@ -22,7 +24,10 @@ class Status {
   bool left_wall = false;
   bool right_wall = false;
   uint8_t wall_sensor_cnt = 0;
-
+  static constexpr parts::wheel<T, T> control_th = {4000, 4000};
+  parts::wheel<T, T> wall_sensor_error = {0, 0};
+  static constexpr parts::wheel<T, T> wall_sensor_ref = {6500, 8000};
+  parts::wheel<bool, bool> is_control = {false, false};
   static constexpr uint32_t left_threshold = 3500, right_threshold = 3500, front_threshold = 11000;
   /* data */
  public:
@@ -43,13 +48,15 @@ class Status {
   bool get_front_wall() { return front_wall; }
   bool get_left_wall() { return left_wall; }
   bool get_right_wall() { return right_wall; }
+  parts::wheel<bool, bool> get_is_control() { return is_control; }
+  parts::wheel<T, T> get_wall_sensor_error() { return wall_sensor_error; }
 };
 template <typename T>
 Status<T>::Status(T ts) : ts(ts) {}
 template <typename T>
 template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
 void Status<T>::update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc) {  // unit is control freq(1ms)
-  T left_rads = -(left_enc.*LEFTENCFn)();
+  T left_rads = (left_enc.*LEFTENCFn)();
   T right_rads = (right_enc.*RIGHTENCFn)();
   left_speed_new = left_rads * static_cast<T>(radius_wheel) * 100;    // mm/s
   right_speed_new = right_rads * static_cast<T>(radius_wheel) * 100;  // mm/s
@@ -62,7 +69,7 @@ void Status<T>::update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc) {  // uni
   right_speed = right_speed_new;
   previous_speed = speed;
   speed = (left_speed + right_speed) / 2;
-  len_mouse += (left_speed_new + right_speed_new) / 2 * ts;  // mm
+  len_mouse += (left_speed_new + right_speed_new) / 2 / 100;  // mm
 }
 template <typename T>
 void Status<T>::update_wall_sensor(std::function<uint32_t *(void)> wall_sensor, std::function<void(void)> front_light, std::function<void(void)> side_light) {
@@ -86,6 +93,20 @@ void Status<T>::update_wall_sensor(std::function<uint32_t *(void)> wall_sensor, 
         right_wall = true;
       } else {
         right_wall = false;
+      }
+      if (static_cast<float>(wall_sensor_value[LEFT]) > control_th.left) {
+        is_control.left = true;
+        wall_sensor_error.left = static_cast<float>(wall_sensor_value[LEFT]) - wall_sensor_ref.left;
+      } else {
+        is_control.left = false;
+        wall_sensor_error.left = 0;
+      }
+      if (static_cast<float>(wall_sensor_value[RIGHT]) > control_th.right) {
+        is_control.right = true;
+        java wall_sensor_error.right = static_cast<float>(wall_sensor_value[RIGHT]) - wall_sensor_ref.right;
+      } else {
+        is_control.right = false;
+        wall_sensor_error.right = 0;
       }
       front_light();
       break;
