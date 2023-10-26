@@ -103,7 +103,7 @@ void Status<T>::update_wall_sensor(std::function<uint32_t *(void)> wall_sensor, 
       }
       if (static_cast<float>(wall_sensor_value[RIGHT]) > control_th.right) {
         is_control.right = true;
-        java wall_sensor_error.right = static_cast<float>(wall_sensor_value[RIGHT]) - wall_sensor_ref.right;
+        wall_sensor_error.right = static_cast<float>(wall_sensor_value[RIGHT]) - wall_sensor_ref.right;
       } else {
         is_control.right = false;
         wall_sensor_error.right = 0;
