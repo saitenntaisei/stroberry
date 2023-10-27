@@ -1,15 +1,17 @@
 #ifndef CORE_INC_MAZE_RUN_HPP_
 #define CORE_INC_MAZE_RUN_HPP_
+#include <functional>
+
 #include "../lib/micromouse-maze-library/include/MazeLib/Maze.h"
 #include "../lib/micromouse-maze-library/include/MazeLib/StepMap.h"
+#include "mine.hpp"
 namespace maze_run {
 using namespace MazeLib;
 
 int SearchRun(Maze& maze, const Maze& mazeTarget);
 int ShortestRun(const Maze& maze);
 void MoveRobot(Direction dir);
-
-int SearchRun(Maze& maze, const Maze& mazeTarget) {
+int SearchRun(Maze& maze, std::function<bool()> isWallFront, std::function<bool()> isWallLeft, std::function<bool()> isWallRight) {
   /* 探索テスト */
   StepMap stepMap;  //< 経路導出に使用するステップマップ
   /* 現在方向は、現在区画に向かう方向を表す。
@@ -27,9 +29,9 @@ int SearchRun(Maze& maze, const Maze& mazeTarget) {
   /* 1. ゴールへ向かう探索走行 */
   while (1) {
     /* 壁を確認。ここでは mazeTarget を参照しているが、実際には壁を見る */
-    const bool wall_front = mazeTarget.isWall(currentPos, currentDir + Direction::Front);
-    const bool wall_left = mazeTarget.isWall(currentPos, currentDir + Direction::Left);
-    const bool wall_right = mazeTarget.isWall(currentPos, currentDir + Direction::Right);
+    const bool wall_front = isWallFront();
+    const bool wall_left = isWallLeft();
+    const bool wall_right = isWallRight();
     /* 迷路の壁を更新 */
     maze.updateWall(currentPos, currentDir + Direction::Front, wall_front);
     maze.updateWall(currentPos, currentDir + Direction::Left, wall_left);
@@ -59,9 +61,9 @@ int SearchRun(Maze& maze, const Maze& mazeTarget) {
   /* 2. 最短経路上の未知区画をつぶす探索走行 */
   while (1) {
     /* 壁を確認。ここでは mazeTarget を参照しているが、実際には壁を見る */
-    const bool wall_front = mazeTarget.isWall(currentPos, currentDir + Direction::Front);
-    const bool wall_left = mazeTarget.isWall(currentPos, currentDir + Direction::Left);
-    const bool wall_right = mazeTarget.isWall(currentPos, currentDir + Direction::Right);
+    const bool wall_front = isWallFront();
+    const bool wall_left = isWallLeft();
+    const bool wall_right = isWallRight();
     /* 迷路の壁を更新 */
     maze.updateWall(currentPos, currentDir + Direction::Front, wall_front);
     maze.updateWall(currentPos, currentDir + Direction::Left, wall_left);
@@ -80,7 +82,7 @@ int SearchRun(Maze& maze, const Maze& mazeTarget) {
     const auto moveDirs = stepMap.calcShortestDirections(maze, currentPos, shortestCandidates, false, true);
     /* エラー処理 */
     if (moveDirs.empty()) {
-      MAZE_LOGE << "Failed to Find a path to goal!" << std::endl;
+      printf("Failed to Find a path to goal!\r\n");
       return -1;
     }
     /* 未知壁のある区画に当たるまで進む */
@@ -103,7 +105,7 @@ int SearchRun(Maze& maze, const Maze& mazeTarget) {
     const auto moveDirs = stepMap.calcShortestDirections(maze, currentPos, {maze.getStart()}, true, true);
     /* エラー処理 */
     if (moveDirs.empty()) {
-      MAZE_LOGE << "Failed to Find a path to goal!" << std::endl;
+      printf("Failed to Find a path to goal!\r\n");
       return -1;
     }
     /* 経路上を進む */
@@ -147,7 +149,6 @@ int ShortestRun(const Maze& maze) {
   /* 終了 */
   return 0;
 }
-void MoveRobot(Direction dir) { return; }
 
 }  // namespace maze_run
 #endif

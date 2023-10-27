@@ -148,6 +148,29 @@ void HAL_SYSTICK_Callback(void) {  // 1kHz
   // This is system clock timer
 }
 
+void maze_run::MoveRobot(Direction dir) {
+  switch (dir) {
+    case Direction::Front: {
+      ctrl->straight(180.0, 100, 50, 0.0);
+    } break;
+    case Direction::Left: {
+      ctrl->turn(90, 360, 180);
+      ctrl->straight(180.0, 100, 50, 0.0);
+    } break;
+    case Direction::Right: {
+      ctrl->turn(-90, 360, 180);
+      ctrl->straight(180.0, 100, 50, 0.0);
+    } break;
+    case Direction::Back: {
+      ctrl->turn(180, 360, 180);
+      ctrl->straight(180.0, 100, 50, 0.0);
+    }
+
+    default:
+      break;
+  }
+  return;
+}
 /* USER CODE END 0 */
 
 /**
@@ -228,6 +251,7 @@ int main() {
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  std::cout << "cout" << std::endl;
   while (true) {
     /* USER CODE END WHILE */
 
@@ -357,10 +381,20 @@ int main() {
 
           } break;
           case 7: {
+            drive_motor = true;
+            HAL_TIM_Base_Start_IT(&htim10);
+            HAL_TIM_Base_Start_IT(&htim11);
             MazeLib::Maze maze;
             MazeLib::Positions goals;
-            goals.push_back(MazeLib::Position(0, 0));
+            goals.push_back(MazeLib::Position(1, 1));
             maze.setGoals(goals);
+            maze_run::SearchRun(
+                maze, []() { return ctrl->status.get_front_wall(); }, []() { return ctrl->status.get_left_wall(); }, []() { return ctrl->status.get_right_wall(); });
+            const MazeLib::WallRecords &wall_records = maze.getWallRecords();
+            std::copy(wall_records.begin(), wall_records.end(), reinterpret_cast<MazeLib::WallRecord *>(flash::work_ram));
+            flash::Store();
+            buzzer.beep("save");
+            // maze.print();
 
           } break;
           default:
