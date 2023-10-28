@@ -26,12 +26,12 @@ class Status {
   uint8_t wall_sensor_cnt = 0;
   static constexpr parts::wheel<T, T> control_th = {4000, 4000};
   parts::wheel<T, T> wall_sensor_error = {0, 0};
-  static constexpr parts::wheel<T, T> wall_sensor_ref = {6500, 8000};
+  static constexpr parts::wheel<T, T> wall_sensor_ref = {6500, 6500};
   parts::wheel<bool, bool> is_control = {false, false};
   static constexpr uint32_t left_threshold = 3500, right_threshold = 3500, front_threshold = 11000;
   /* data */
  public:
-  enum WallSensor { FRONT_RIGHT, FRONT_LEFT, RIGHT, LEFT };
+  enum WallSensor { FRONT_LEFT, FRONT_RIGHT, LEFT, RIGHT };
   Status(T ts = 0.001F);  // NOLINT
   template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
   void update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc);
