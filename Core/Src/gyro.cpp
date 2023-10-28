@@ -53,6 +53,7 @@ geometry Gyro::read_gyro() {
   dps.z = spi_gyro_OUT_Z() - gyro_offset.z;
   dps.y = spi_gyro_OUT_Y() - gyro_offset.y;
   dps.x = spi_gyro_OUT_X() - gyro_offset.x;
+  dps.z /= 1.033f;
   // if (abs(dps.z) < 0.5)
   //     dps.z = 0;
   // if (abs(dps.x) < 0.5)
