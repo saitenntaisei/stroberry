@@ -11,6 +11,7 @@ using namespace MazeLib;
 int SearchRun(Maze& maze, const Maze& mazeTarget);
 int ShortestRun(const Maze& maze);
 void MoveRobot(Direction dir);
+void TurnRobot(Direction dir);
 int SearchRun(Maze& maze, std::function<bool()> isWallFront, std::function<bool()> isWallLeft, std::function<bool()> isWallRight) {
   /* 探索テスト */
   StepMap stepMap;  //< 経路導出に使用するステップマップ
@@ -29,13 +30,34 @@ int SearchRun(Maze& maze, std::function<bool()> isWallFront, std::function<bool(
   /* 1. ゴールへ向かう探索走行 */
   while (1) {
     /* 壁を確認。ここでは mazeTarget を参照しているが、実際には壁を見る */
-    const bool wall_front = isWallFront();
-    const bool wall_left = isWallLeft();
-    const bool wall_right = isWallRight();
+    uint8_t wall_front = 0;
+    uint8_t wall_left = 0;
+    uint8_t wall_right = 0;
+    for (int i = 0; i < 5; i++) {
+      wall_front += isWallFront();
+      wall_left += isWallLeft();
+      wall_right += isWallRight();
+      HAL_Delay(10);
+    }
+    if (wall_front >= 3) {
+      TurnRobot(Direction::Left);
+      wall_left = 0;
+      for (int i = 0; i < 5; i++) {
+        wall_left += isWallLeft();
+        HAL_Delay(10);
+      }
+      TurnRobot(Direction::Right);
+      wall_right = 0;
+      for (int i = 0; i < 5; i++) {
+        wall_right += isWallRight();
+        HAL_Delay(10);
+      }
+    }
     /* 迷路の壁を更新 */
-    maze.updateWall(currentPos, currentDir + Direction::Front, wall_front);
-    maze.updateWall(currentPos, currentDir + Direction::Left, wall_left);
-    maze.updateWall(currentPos, currentDir + Direction::Right, wall_right);
+    maze.updateWall(currentPos, currentDir + Direction::Front, wall_front >= 3);
+    maze.updateWall(currentPos, currentDir + Direction::Left, wall_left >= 3);
+    maze.updateWall(currentPos, currentDir + Direction::Right, wall_right >= 3);
+    // maze.print();
     /* 現在地のゴール判定 */
     const auto& goals = maze.getGoals();
     if (std::find(goals.cbegin(), goals.cend(), currentPos) != goals.cend()) break;
@@ -61,13 +83,33 @@ int SearchRun(Maze& maze, std::function<bool()> isWallFront, std::function<bool(
   /* 2. 最短経路上の未知区画をつぶす探索走行 */
   while (1) {
     /* 壁を確認。ここでは mazeTarget を参照しているが、実際には壁を見る */
-    const bool wall_front = isWallFront();
-    const bool wall_left = isWallLeft();
-    const bool wall_right = isWallRight();
+    uint8_t wall_front = 0;
+    uint8_t wall_left = 0;
+    uint8_t wall_right = 0;
+    for (int i = 0; i < 5; i++) {
+      wall_front += isWallFront();
+      wall_left += isWallLeft();
+      wall_right += isWallRight();
+      HAL_Delay(10);
+    }
+    if (wall_front >= 3) {
+      TurnRobot(Direction::Left);
+      wall_left = 0;
+      for (int i = 0; i < 5; i++) {
+        wall_left += isWallLeft();
+        HAL_Delay(10);
+      }
+      TurnRobot(Direction::Right);
+      wall_right = 0;
+      for (int i = 0; i < 5; i++) {
+        wall_right += isWallRight();
+        HAL_Delay(10);
+      }
+    }
     /* 迷路の壁を更新 */
-    maze.updateWall(currentPos, currentDir + Direction::Front, wall_front);
-    maze.updateWall(currentPos, currentDir + Direction::Left, wall_left);
-    maze.updateWall(currentPos, currentDir + Direction::Right, wall_right);
+    maze.updateWall(currentPos, currentDir + Direction::Front, wall_front >= 3);
+    maze.updateWall(currentPos, currentDir + Direction::Left, wall_left >= 3);
+    maze.updateWall(currentPos, currentDir + Direction::Right, wall_right >= 3);
     /* 最短経路上の未知区画を洗い出し */
     const auto shortestDirs = stepMap.calcShortestDirections(maze, maze.getStart(), maze.getGoals(), false, false);
     Positions shortestCandidates;

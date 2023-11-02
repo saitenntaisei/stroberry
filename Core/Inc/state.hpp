@@ -11,7 +11,7 @@ class Status {
   T right_speed_old = 0, left_speed_old = 0;
   T right_speed_new = 0, left_speed_new = 0;
   T previous_speed = 0;
-  static constexpr float diameter_wheel = 32.0F;
+  static constexpr float diameter_wheel = 31.2F;
   static constexpr float radius_wheel = diameter_wheel / 2.0F;
   T speed = 0;
   T left_speed = 0, right_speed = 0;
@@ -26,9 +26,9 @@ class Status {
   uint8_t wall_sensor_cnt = 0;
   static constexpr parts::wheel<T, T> control_th = {4000, 4000};
   parts::wheel<T, T> wall_sensor_error = {0, 0};
-  static constexpr parts::wheel<T, T> wall_sensor_ref = {6500, 6500};
+  static constexpr parts::wheel<T, T> wall_sensor_ref = {8000, 8000};
   parts::wheel<bool, bool> is_control = {false, false};
-  static constexpr uint32_t left_threshold = 3500, right_threshold = 3500, front_threshold = 11000;
+  static constexpr uint32_t left_threshold = 3800, right_threshold = 3800, front_threshold = 10000;
   /* data */
  public:
   enum WallSensor { FRONT_LEFT, FRONT_RIGHT, LEFT, RIGHT };
