@@ -17,6 +17,7 @@ class Battery {
   ADC_HandleTypeDef* hadc{};
 
  public:
+  bool monitoring_state = true;
   explicit Battery(ADC_HandleTypeDef* hadc);
   T read_batt(void);
 };
@@ -48,8 +49,10 @@ T Battery<T, RESO>::read_batt(void) {
     HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GPIO_PIN_SET);
-    printf("no batt!\r\n");  // NOLINT
-    Error_Handler();         // no batt
+    // if (monitoring_state) {
+    //   printf("no batt!\r\n");  // NOLINT
+    //   Error_Handler();         // no batt
+    // }
   }
   return static_cast<T>(batt_volt);
 }

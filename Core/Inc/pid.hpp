@@ -19,13 +19,7 @@ class Pid {
  public:
   explicit Pid(T kp, T ki, T kd, T tf, T ts = 0.001F);  // NOLINT
   T update(T target, T current);
-  void reset() {
-    error = 0;
-    error_prev = 0;
-    error_sum = 0;
-    y = 0;
-    y_prev = 0;
-  }
+  void reset();
 };
 
 template <typename T>
@@ -48,6 +42,14 @@ T Pid<T>::update(T target, T current) {
   error_prev = error;
   y_prev = y;
   return output;
+}
+template <typename T>
+void Pid<T>::reset() {
+  error = 0;
+  error_prev = 0;
+  error_sum = 0;
+  y = 0;
+  y_prev = 0;
 }
 
 }  // namespace state

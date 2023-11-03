@@ -29,6 +29,15 @@ class Controller {
   parts::RunModeT run_mode = parts::RunModeT::STOP_MODE;
 
  public:
+  void reset() {
+    speed.left->reset();
+    speed.right->reset();
+    ang_vel.left->reset();
+    ang_vel.right->reset();
+    ang.left->reset();
+    ang.right->reset();
+    wall->reset();
+  }
   STATUS status;  // NOLINT
   bool wall_control = true;
   Controller() : status() {}
@@ -92,6 +101,17 @@ class Controller {
       // }
     }
   }
+  void back_1s() {
+    run_mode = parts::RunModeT::STRAIGHT_MODE;
+    tar_speed = -50;
+    max_speed = -50;
+    HAL_Delay(2000);
+    tar_speed = 0;
+    max_speed = 0;
+    status.reset();
+    speed.left->reset();
+    speed.right->reset();
+  }
 
   void straight(T len, T acc, T max_sp, T end_sp) {  // mm
     // 走行モードを直線にする
@@ -102,12 +122,18 @@ class Controller {
     // 目標速度を設定
     const T end_speed = end_sp;
     // 加速度を設定
+    if (len_target < 0) {
+      acc = -acc;
+    }
+    if (len_target < 0) {
+      max_sp = -max_sp;
+    }
     accel = acc;
     // 最高速度を設定
     max_speed = max_sp;
     // 減速処理を始めるべき位置まで加速、定速区間を続行
-    while (((len_target - len_start_dec_vel) - status.get_len_mouse()) /*mm*/ >
-           (static_cast<float>(tar_speed * tar_speed) - static_cast<float>(end_speed * end_speed)) / static_cast<float>(2 * accel) /*mm*/) {
+    while (std::abs((len_target - len_start_dec_vel) - status.get_len_mouse()) /*mm*/ >
+           std::abs((static_cast<float>(tar_speed * tar_speed) - static_cast<float>(end_speed * end_speed)) / std::abs(static_cast<float>(2 * accel))) /*mm*/) {
       HAL_Delay(1);
     }
     // 減速処理開始
@@ -117,7 +143,7 @@ class Controller {
     while (std::abs(status.get_len_mouse()) < std::abs(len_target - 1)) {  // 停止したい距離の少し手前まで継続
       // 一定速度まで減速したら最低駆動トルクで走行
 
-      if (tar_speed <= end_tar_speed) {  // 目標速度が最低速度になったら、加速度を0にする
+      if ((len_target >= 0 && tar_speed <= end_tar_speed) || (len_target < 0 && tar_speed >= end_tar_speed)) {  // 目標速度が最低速度になったら、加速度を0にする
         accel = 0;
         tar_speed = end_tar_speed;
       }
@@ -129,7 +155,7 @@ class Controller {
     tar_speed = (std::abs(end_speed) < FLT_EPSILON ? 0 : end_speed);
 
     if (std::abs(end_speed) < FLT_EPSILON) {
-      while (status.get_speed() > FLT_EPSILON) {
+      while (std::abs(status.get_speed()) > FLT_EPSILON) {
         HAL_Delay(1);
       }
     }

@@ -168,42 +168,54 @@ void maze_run::robot_move(Direction dir) {
   // 直進
   if (dir_diff == 0) {
     if (is_start_block) {
-      ctrl->straight(90.0, 100, 50, 0.0);
+      batt->monitoring_state = false;
+      ctrl->back_1s();
+
+      ctrl->reset();
+      HAL_Delay(1);
+      ctrl->straight(180.0 - 40.0, 400, 800, 0.0);
+      batt->monitoring_state = true;
       is_start_block = false;
     } else
-      ctrl->straight(180.0, 100, 50, 0.0);
+      ctrl->straight(180.0, 400, 800, 0.0);
 
   }
   // 右
   else if (dir_diff == 1 || dir_diff == -3) {
     ctrl->wall_control = false;
-    ctrl->straight(90.0, 100, 50, 0.0);
+    ctrl->straight(90.0, 400, 800, 0.0);
     HAL_Delay(1);
-    ctrl->turn(-90, 360, 180);
+    ctrl->turn(-90, 540, 720);
     HAL_Delay(1);
-    ctrl->straight(90.0, 100, 50, 0.0);
+    ctrl->straight(90.0, 400, 800, 0.0);
     ctrl->wall_control = true;
   }
   // 左
   else if (dir_diff == -1 || dir_diff == 3) {
     ctrl->wall_control = false;
-    ctrl->straight(90.0, 100, 50, 0.0);
+    ctrl->straight(90.0, 400, 800, 0.0);
     HAL_Delay(1);
-    ctrl->turn(90, 360, 180);
+    ctrl->turn(90, 540, 720);
     HAL_Delay(1);
-    ctrl->straight(90.0, 100, 50, 0.0);
+    ctrl->straight(90.0, 400, 800, 0.0);
     ctrl->wall_control = true;
   }
   // 180度ターン
   else {
     if (prev_wall_cnt == 3) {
-      ctrl->straight(90.0, 100, 50, 0.0);
-      ctrl->turn(180, 360, 180);
-      ctrl->straight(90.0, 100, 50, 0.0);
+      ctrl->straight(90.0, 400, 800, 0.0);
+      ctrl->turn(180, 540, 720);
+      batt->monitoring_state = false;
+      ctrl->back_1s();
+
+      ctrl->reset();
+      HAL_Delay(1);
+      ctrl->straight(180.0 - 40.0, 400, 800, 0.0);
+      batt->monitoring_state = true;
     } else {
-      ctrl->straight(90.0, 100, 50, 0.0);
-      ctrl->turn(180, 360, 180);
-      ctrl->straight(90.0, 100, 50, 0.0);
+      ctrl->straight(90.0, 400, 800, 0.0);
+      ctrl->turn(180, 540, 720);
+      ctrl->straight(90.0, 400, 800, 0.0);
     }
   }
 
@@ -316,9 +328,9 @@ int main() {
   setbuf(stdout, nullptr);
   HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
-  HAL_Delay(1000);
+  HAL_Delay(4000);
   gyro = std::make_unique<spi::Gyro>();
-  HAL_Delay(100);
+  HAL_Delay(400);
   batt = std::make_unique<adc::Battery<float, uint32_t>>(&hadc1);
 
   enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
@@ -362,20 +374,21 @@ int main() {
         HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GPIO_PIN_RESET);
-        HAL_Delay(1000);
+        HAL_Delay(4000);
         switch (mode) {
           case 1: {
             is_drive_motor = true;
             HAL_TIM_Base_Start_IT(&htim10);
             HAL_TIM_Base_Start_IT(&htim11);
-            ctrl->turn(3600, 360, 180);
-            // ctrl->turn(-90, 360, 180);
+            ctrl->turn(5400, 540, 180);
+            // ctrl->turn(-90, 540, 180);
           } break;
           case 2: {
             is_drive_motor = true;
             HAL_TIM_Base_Start_IT(&htim10);
             HAL_TIM_Base_Start_IT(&htim11);
-            ctrl->straight(1000.0, 100, 50, 0.0);
+            ctrl->back_1s();
+            ctrl->straight(180.0 * 3 - 40.0, 400, 400, 0.0);
           } break;
           case 3: {
             Mseq mseq(7);
@@ -389,7 +402,7 @@ int main() {
               motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 2.5f;
               motor.left->drive_vcc(motor_signal);
               motor.right->drive_vcc(motor_signal);
-              HAL_Delay(200);
+              HAL_Delay(400);
             }
             test_mode = param::TestMode::NONE;
             HAL_TIM_Base_Stop_IT(&htim10);
@@ -446,7 +459,7 @@ int main() {
           } break;
           case 5: {
             flash::Load();
-            std::copy((data::drive_record *)flash::work_ram, (data::drive_record *)flash::work_ram + 1000, std::back_inserter(drive_rec));
+            std::copy((data::drive_record *)flash::work_ram, (data::drive_record *)flash::work_ram + 4000, std::back_inserter(drive_rec));
             printf("speed, signal\r\n");
             for (auto rec : drive_rec) {
               printf("%f, %f\r\n", rec.speed, rec.signal);
@@ -492,7 +505,7 @@ int main() {
             // MazeLib::Positions goals;
             // goals.push_back(MazeLib::Position(0, 1));
             // maze.setGoals(goals);
-            // // HAL_Delay(1000);
+            // // HAL_Delay(4000);
             // // maze_run::SearchRun(
             // //     maze, []() { return ctrl->status.get_front_wall(); }, []() { return ctrl->status.get_left_wall(); }, []() { return ctrl->status.get_right_wall(); });
 
@@ -514,7 +527,7 @@ int main() {
           case 0: {
             // MazeLib::WallRecords wall_records;
             // flash::Load();
-            // std::copy((MazeLib::WallRecord *)flash::work_ram, (MazeLib::WallRecord *)flash::work_ram + 1000, std::back_inserter(wall_records));
+            // std::copy((MazeLib::WallRecord *)flash::work_ram, (MazeLib::WallRecord *)flash::work_ram + 4000, std::back_inserter(wall_records));
             // for (auto x : wall_records) {
             //   std::cout << x << std::endl;
             // }
@@ -580,12 +593,12 @@ void SystemClock_Config(void) {
 /* USER CODE BEGIN 4 */
 // extern "C" int _write(int file, char *ptr, int len)
 // {
-//   HAL_UART_Transmit(&huart4, (uint8_t *)ptr, len, 100);
+//   HAL_UART_Transmit(&huart4, (uint8_t *)ptr, len, 400);
 //   return len;
 // }
 // int _io_put_char(int ch)
 // {
-//   HAL_UART_Transmit(&huart4, (uint8_t *)&ch, 1, 100);
+//   HAL_UART_Transmit(&huart4, (uint8_t *)&ch, 1, 400);
 //   return ch;
 // }
 /* USER CODE END 4 */
