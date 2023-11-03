@@ -176,19 +176,23 @@ void maze_run::robot_move(Direction dir) {
   }
   // 右
   else if (dir_diff == 1 || dir_diff == -3) {
+    ctrl->wall_control = false;
     ctrl->straight(90.0, 100, 50, 0.0);
     HAL_Delay(1);
     ctrl->turn(-90, 360, 180);
     HAL_Delay(1);
     ctrl->straight(90.0, 100, 50, 0.0);
+    ctrl->wall_control = true;
   }
   // 左
   else if (dir_diff == -1 || dir_diff == 3) {
+    ctrl->wall_control = false;
     ctrl->straight(90.0, 100, 50, 0.0);
     HAL_Delay(1);
     ctrl->turn(90, 360, 180);
     HAL_Delay(1);
     ctrl->straight(90.0, 100, 50, 0.0);
+    ctrl->wall_control = true;
   }
   // 180度ターン
   else {

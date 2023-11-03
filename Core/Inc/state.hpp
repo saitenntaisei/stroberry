@@ -28,7 +28,7 @@ class Status {
   parts::wheel<T, T> wall_sensor_error = {0, 0};
   static constexpr parts::wheel<T, T> wall_sensor_ref = {8000, 8000};
   parts::wheel<bool, bool> is_control = {false, false};
-  static constexpr uint32_t left_threshold = 3800, right_threshold = 3800, front_threshold = 10000;
+  static constexpr uint32_t left_threshold = 3800, right_threshold = 3800, front_threshold = 4000;
   /* data */
  public:
   enum WallSensor { FRONT_LEFT, FRONT_RIGHT, LEFT, RIGHT };

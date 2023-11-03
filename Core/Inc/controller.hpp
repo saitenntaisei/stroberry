@@ -30,6 +30,7 @@ class Controller {
 
  public:
   STATUS status;  // NOLINT
+  bool wall_control = true;
   Controller() : status() {}
   void update() {
     generate_tar_speed();
@@ -37,8 +38,10 @@ class Controller {
     motor_duty.right = 0;
 
     if (run_mode == parts::RunModeT::STRAIGHT_MODE) {
-      parts::wheel<T, T> wall_sensor_error = status.get_wall_sensor_error();
-      tar_ang_vel += wall->update(0, wall_sensor_error.left - wall_sensor_error.right);
+      if (wall_control) {
+        parts::wheel<T, T> wall_sensor_error = status.get_wall_sensor_error();
+        tar_ang_vel += wall->update(0, wall_sensor_error.left - wall_sensor_error.right);
+      }
     }
     motor_duty.left += speed.left->update(tar_speed, status.get_speed());
     motor_duty.right += speed.right->update(tar_speed, status.get_speed());
