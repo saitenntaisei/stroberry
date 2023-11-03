@@ -151,47 +151,116 @@ void HAL_SYSTICK_Callback(void) {  // 1kHz
   // This is system clock timer
 }
 
-void maze_run::MoveRobot(Direction dir) {
-  switch (dir) {
-    case Direction::Front: {
-      ctrl->straight(180.0, 100, 50, 0.0);
-    } break;
-    case Direction::Left: {
-      ctrl->turn(90, 360, 180);
-      HAL_Delay(1);
-      ctrl->straight(180.0, 100, 50, 0.0);
-    } break;
-    case Direction::Right: {
-      ctrl->turn(-90, 360, 180);
-      HAL_Delay(1);
-      ctrl->straight(180.0, 100, 50, 0.0);
-    } break;
-    case Direction::Back: {
-      ctrl->turn(180, 360, 180);
-      ctrl->straight(180.0, 100, 50, 0.0);
-    }
+void maze_run::robot_move(Direction dir) {
+  int8_t robot_dir_index = 0;
+  while (1) {
+    if (robot_dir.byte == NORTH << robot_dir_index) break;
+    robot_dir_index++;
+  }
 
-    default:
-      break;
+  int8_t next_dir_index = 0;
+  while (1) {
+    if (dir.byte == NORTH << next_dir_index) break;
+    next_dir_index++;
+  }
+
+  int8_t dir_diff = next_dir_index - robot_dir_index;
+  // 直進
+  if (dir_diff == 0) {
+    if (is_start_block) {
+      ctrl->straight(90.0, 100, 50, 0.0);
+      is_start_block = false;
+    } else
+      ctrl->straight(180.0, 100, 50, 0.0);
+
+  }
+  // 右
+  else if (dir_diff == 1 || dir_diff == -3) {
+    ctrl->straight(90.0, 100, 50, 0.0);
+    HAL_Delay(1);
+    ctrl->turn(-90, 360, 180);
+    HAL_Delay(1);
+    ctrl->straight(90.0, 100, 50, 0.0);
+  }
+  // 左
+  else if (dir_diff == -1 || dir_diff == 3) {
+    ctrl->straight(90.0, 100, 50, 0.0);
+    HAL_Delay(1);
+    ctrl->turn(90, 360, 180);
+    HAL_Delay(1);
+    ctrl->straight(90.0, 100, 50, 0.0);
+  }
+  // 180度ターン
+  else {
+    if (prev_wall_cnt == 3) {
+      ctrl->straight(90.0, 100, 50, 0.0);
+      ctrl->turn(180, 360, 180);
+      ctrl->straight(90.0, 100, 50, 0.0);
+    } else {
+      ctrl->straight(90.0, 100, 50, 0.0);
+      ctrl->turn(180, 360, 180);
+      ctrl->straight(90.0, 100, 50, 0.0);
+    }
+  }
+
+  robot_dir = dir;
+  // robot positionをdirの分だけ動かす
+  if (NORTH == dir.byte) {
+    robot_position += IndexVec::vecNorth;
+  } else if (SOUTH == dir.byte) {
+    robot_position += IndexVec::vecSouth;
+  } else if (EAST == dir.byte) {
+    robot_position += IndexVec::vecEast;
+  } else if (WEST == dir.byte) {
+    robot_position += IndexVec::vecWest;
   }
   return;
 }
-void maze_run::TurnRobot(Direction dir) {
-  switch (dir) {
-    case Direction::Left: {
-      ctrl->turn(90, 360, 180);
-    } break;
-    case Direction::Right: {
-      ctrl->turn(-90, 360, 180);
-    } break;
-    case Direction::Back: {
-      ctrl->turn(180, 360, 180);
-    }
 
-    default:
-      break;
+Direction maze_run::get_wall_data() {
+  Direction wall;
+
+  uint8_t wall_front = 0;
+  uint8_t wall_left = 0;
+  uint8_t wall_right = 0;
+  for (int i = 0; i < 5; i++) {
+    wall_front += ctrl->status.get_front_wall();
+    wall_left += ctrl->status.get_left_wall();
+    wall_right += ctrl->status.get_right_wall();
+    HAL_Delay(10);
   }
-  return;
+  bool is_front_wall = wall_front >= 3;
+  bool is_left_wall = wall_left >= 3;
+  bool is_right_wall = wall_right >= 3;
+  HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, is_left_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, is_front_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LED6_GPIO_Port, LED2_Pin, is_front_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LED6_GPIO_Port, LED1_Pin, is_right_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
+
+  int8_t robot_dir_index = 0;
+  while (1) {
+    if (robot_dir.byte == NORTH << robot_dir_index) break;
+    robot_dir_index++;
+  }
+
+  if (is_front_wall) {
+    wall.byte |= robot_dir;
+  }
+
+  if (is_right_wall) {
+    wall.byte |= NORTH << (robot_dir_index + 1) % 4;
+  }
+
+  if (is_left_wall) {
+    if (robot_dir_index == 0)
+      wall.byte |= WEST;
+    else
+      wall.byte |= NORTH << (robot_dir_index - 1) % 4;
+  }
+
+  prev_wall_cnt = wall.nWall();
+
+  return wall;
 }
 /* USER CODE END 0 */
 
@@ -414,36 +483,37 @@ int main() {
             is_drive_motor = true;
             HAL_TIM_Base_Start_IT(&htim10);
             HAL_TIM_Base_Start_IT(&htim11);
-            MazeLib::Maze maze;
-            MazeLib::Positions goals;
-            goals.push_back(MazeLib::Position(0, 1));
-            maze.setGoals(goals);
-            // HAL_Delay(1000);
-            // maze_run::SearchRun(
-            //     maze, []() { return ctrl->status.get_front_wall(); }, []() { return ctrl->status.get_left_wall(); }, []() { return ctrl->status.get_right_wall(); });
+            maze_run::search_run();
+            // MazeLib::Maze maze;
+            // MazeLib::Positions goals;
+            // goals.push_back(MazeLib::Position(0, 1));
+            // maze.setGoals(goals);
+            // // HAL_Delay(1000);
+            // // maze_run::SearchRun(
+            // //     maze, []() { return ctrl->status.get_front_wall(); }, []() { return ctrl->status.get_left_wall(); }, []() { return ctrl->status.get_right_wall(); });
 
-            // HAL_TIM_Base_Stop_IT(&htim10);
-            // HAL_TIM_Base_Stop_IT(&htim11);
-            const MazeLib::WallRecords &wall_records = maze.getWallRecords();
-            for (auto x : wall_records) {
-              std::cout << x << std::endl;
-            }
-            std::copy(wall_records.begin(), wall_records.end(), reinterpret_cast<MazeLib::WallRecord *>(flash::work_ram));
-            flash::Store();
-            buzzer.beep("save");
-            is_drive_motor = false;
-            while (1) {
-              maze.print();
-            }
+            // // HAL_TIM_Base_Stop_IT(&htim10);
+            // // HAL_TIM_Base_Stop_IT(&htim11);
+            // const MazeLib::WallRecords &wall_records = maze.getWallRecords();
+            // for (auto x : wall_records) {
+            //   std::cout << x << std::endl;
+            // }
+            // std::copy(wall_records.begin(), wall_records.end(), reinterpret_cast<MazeLib::WallRecord *>(flash::work_ram));
+            // flash::Store();
+            // buzzer.beep("save");
+            // is_drive_motor = false;
+            // while (1) {
+            //   maze.print();
+            // }
 
           } break;
           case 0: {
-            MazeLib::WallRecords wall_records;
-            flash::Load();
-            std::copy((MazeLib::WallRecord *)flash::work_ram, (MazeLib::WallRecord *)flash::work_ram + 1000, std::back_inserter(wall_records));
-            for (auto x : wall_records) {
-              std::cout << x << std::endl;
-            }
+            // MazeLib::WallRecords wall_records;
+            // flash::Load();
+            // std::copy((MazeLib::WallRecord *)flash::work_ram, (MazeLib::WallRecord *)flash::work_ram + 1000, std::back_inserter(wall_records));
+            // for (auto x : wall_records) {
+            //   std::cout << x << std::endl;
+            // }
           } break;
           default:
             break;

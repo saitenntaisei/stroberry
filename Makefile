@@ -70,7 +70,7 @@ Core/Src/dma.c
 CPP_SOURCES = \
 $(wildcard Core/Src/*.cpp) \
 $(wildcard Core/lib/Mseq/*.cpp)\
-$(wildcard Core/lib/micromouse-maze-library/src/*.cpp)\
+$(wildcard Core/lib/MazeSolver2015/*.cpp)\
 
 
 

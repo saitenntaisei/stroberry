@@ -2,193 +2,65 @@
 #define CORE_INC_MAZE_RUN_HPP_
 #include <functional>
 
-#include "../lib/micromouse-maze-library/include/MazeLib/Maze.h"
-#include "../lib/micromouse-maze-library/include/MazeLib/StepMap.h"
-#include "mine.hpp"
-namespace maze_run {
-using namespace MazeLib;
+#include "../lib/MazeSolver2015/Agent.h"
+#include "../lib/MazeSolver2015/Maze.h"
+#include "../lib/MazeSolver2015/mazeData.h"
 
-int SearchRun(Maze& maze, const Maze& mazeTarget);
-int ShortestRun(const Maze& maze);
-void MoveRobot(Direction dir);
+namespace maze_run {
+// 探索した迷路の壁情報がはいる
+Maze maze;
+// クラッシュした時のためのバックアップ
+Maze maze_backup;
+// 探索の指示を出す
+Agent agent(maze);
+// 前回のAgentの状態を保存しとく
+Agent::State prev_State = Agent::State::IDLE;
+IndexVec robot_position(0, 0);
+Direction robot_dir(NORTH);
+bool is_start_block = true;
+uint8_t prev_wall_cnt = 0;
+
+int search_run();
+void robot_move(Direction dir);
 void TurnRobot(Direction dir);
-int SearchRun(Maze& maze, std::function<bool()> isWallFront, std::function<bool()> isWallLeft, std::function<bool()> isWallRight) {
-  /* 探索テスト */
-  StepMap stepMap;  //< 経路導出に使用するステップマップ
-  /* 現在方向は、現在区画に向かう方向を表す。
-   * 現在区画から出る方向ではないことに注意する。
-   * +---+---+---+ 例
-   * |   <       | <--- (0, 2, West)
-   * +   +---+ ^ + <--- (2, 2, North)
-   * |   >       | <--- (1, 1, East)
-   * +   +---+ v + <--- (2, 0, South)
-   * | S |       | <--- (0, 0)
-   * +---+---+---+
-   */
-  Position currentPos = Position(0, 0);     //< 現在の区画位置
-  Direction currentDir = Direction::North;  //< 現在向いている方向
-  /* 1. ゴールへ向かう探索走行 */
-  while (1) {
-    /* 壁を確認。ここでは mazeTarget を参照しているが、実際には壁を見る */
-    uint8_t wall_front = 0;
-    uint8_t wall_left = 0;
-    uint8_t wall_right = 0;
-    for (int i = 0; i < 5; i++) {
-      wall_front += isWallFront();
-      wall_left += isWallLeft();
-      wall_right += isWallRight();
-      HAL_Delay(10);
-    }
-    if (wall_front >= 3) {
-      TurnRobot(Direction::Left);
-      wall_left = 0;
-      for (int i = 0; i < 5; i++) {
-        wall_left += isWallLeft();
-        HAL_Delay(10);
-      }
-      TurnRobot(Direction::Right);
-      wall_right = 0;
-      for (int i = 0; i < 5; i++) {
-        wall_right += isWallRight();
-        HAL_Delay(10);
-      }
-    }
-    /* 迷路の壁を更新 */
-    maze.updateWall(currentPos, currentDir + Direction::Front, wall_front >= 3);
-    maze.updateWall(currentPos, currentDir + Direction::Left, wall_left >= 3);
-    maze.updateWall(currentPos, currentDir + Direction::Right, wall_right >= 3);
-    // maze.print();
-    /* 現在地のゴール判定 */
-    const auto& goals = maze.getGoals();
-    if (std::find(goals.cbegin(), goals.cend(), currentPos) != goals.cend()) break;
-    /* 現在地からゴールへの移動経路を、未知壁はないものとして導出 */
-    const auto moveDirs = stepMap.calcShortestDirections(maze, currentPos, maze.getGoals(), false, true);
-    /* エラー処理 */
-    if (moveDirs.empty()) {
-      MAZE_LOGE << "Failed to Find a path to goal!" << std::endl;
-      return -1;
-    }
-    /* 未知壁のある区画に当たるまで進む */
-    for (const auto nextDir : moveDirs) {
-      /* 未知壁があったら終了 */
-      if (maze.unknownCount(currentPos)) break;
-      /* ロボットを動かす */
-      const auto relativeDir = Direction(nextDir - currentDir);
-      MoveRobot(relativeDir);
-      /* 現在地を進める */
-      currentPos = currentPos.next(nextDir);
-      currentDir = nextDir;
-    }
-  }
-  /* 2. 最短経路上の未知区画をつぶす探索走行 */
-  while (1) {
-    /* 壁を確認。ここでは mazeTarget を参照しているが、実際には壁を見る */
-    uint8_t wall_front = 0;
-    uint8_t wall_left = 0;
-    uint8_t wall_right = 0;
-    for (int i = 0; i < 5; i++) {
-      wall_front += isWallFront();
-      wall_left += isWallLeft();
-      wall_right += isWallRight();
-      HAL_Delay(10);
-    }
-    if (wall_front >= 3) {
-      TurnRobot(Direction::Left);
-      wall_left = 0;
-      for (int i = 0; i < 5; i++) {
-        wall_left += isWallLeft();
-        HAL_Delay(10);
-      }
-      TurnRobot(Direction::Right);
-      wall_right = 0;
-      for (int i = 0; i < 5; i++) {
-        wall_right += isWallRight();
-        HAL_Delay(10);
-      }
-    }
-    /* 迷路の壁を更新 */
-    maze.updateWall(currentPos, currentDir + Direction::Front, wall_front >= 3);
-    maze.updateWall(currentPos, currentDir + Direction::Left, wall_left >= 3);
-    maze.updateWall(currentPos, currentDir + Direction::Right, wall_right >= 3);
-    /* 最短経路上の未知区画を洗い出し */
-    const auto shortestDirs = stepMap.calcShortestDirections(maze, maze.getStart(), maze.getGoals(), false, false);
-    Positions shortestCandidates;
-    auto pos = maze.getStart();
-    for (const auto nextDir : shortestDirs) {
-      pos = pos.next(nextDir);
-      if (maze.unknownCount(pos)) shortestCandidates.push_back(pos);
-    }
-    /* 最短経路上に未知区画がなければ次へ */
-    if (shortestCandidates.empty()) break;
-    /* 現在地から最短候補への移動経路を未知壁はないものとして導出 */
-    const auto moveDirs = stepMap.calcShortestDirections(maze, currentPos, shortestCandidates, false, true);
-    /* エラー処理 */
-    if (moveDirs.empty()) {
-      printf("Failed to Find a path to goal!\r\n");
-      return -1;
-    }
-    /* 未知壁のある区画に当たるまで進む */
-    for (const auto nextDir : moveDirs) {
-      /* 未知壁があったら終了 */
-      if (maze.unknownCount(currentPos)) break;
-      /* ロボットを動かす */
-      const auto relativeDir = Direction(nextDir - currentDir);
-      MoveRobot(relativeDir);
-      /* 現在地を進める */
-      currentPos = currentPos.next(nextDir);
-      currentDir = nextDir; /* アニメーション表示 */
-    }
-  }
-  /* 3. スタート区画へ戻る走行 */
-  while (1) {
-    /* 現在地のスタート区画判定 */
-    if (currentPos == maze.getStart()) break;
-    /* 現在地からスタートへの最短経路を既知壁のみの経路で導出 */
-    const auto moveDirs = stepMap.calcShortestDirections(maze, currentPos, {maze.getStart()}, true, true);
-    /* エラー処理 */
-    if (moveDirs.empty()) {
-      printf("Failed to Find a path to goal!\r\n");
-      return -1;
-    }
-    /* 経路上を進む */
-    for (const auto nextDir : moveDirs) {
-      /* ロボットを動かす */
-      const auto relativeDir = Direction(nextDir - currentDir);
-      MoveRobot(relativeDir);
-      /* 現在地を進める */
-      currentPos = currentPos.next(nextDir);
-      currentDir = nextDir;
-    }
-  }
-  /* 正常終了 */
-  return 0;
+
+Direction get_wall_data();
+IndexVec get_robot_posion();
+
+IndexVec get_robot_posion() {
+  // 絶対座標系で返す
+  return robot_position;
 }
 
-/**
- * @brief 最短走行のアルゴリズム
- */
-int ShortestRun(const Maze& maze) {
-  /* スタートからゴールまでの最短経路導出 */
-  StepMap stepMap;
-  const auto shortestDirs = stepMap.calcShortestDirections(maze, maze.getStart(), maze.getGoals(), true, false);
-  if (shortestDirs.empty()) {
-    MAZE_LOGE << "Failed to Find a path to goal!" << std::endl;
-    return -1;
+int search_run() {
+  while (1) {
+    // センサから取得した壁情報を入れる
+    Direction wallData = get_wall_data();
+    // ロボットの座標を取得
+    IndexVec robotPos = get_robot_posion();
+
+    // 壁情報を更新 次に進むべき方向を計算
+    agent.update(robotPos, wallData);
+
+    // Agentの状態を確認
+    // FINISHEDになったら計測走行にうつる
+    if (agent.getState() == Agent::FINISHED) break;
+
+    // ゴールにたどり着いた瞬間に一度だけmazeのバックアップをとる
+    // Mazeクラスはoperator=が定義してあるからa = bでコピーできる
+    if (prev_State == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL) {
+      maze_backup = maze;
+    }
+    prev_State = agent.getState();
+
+    // Agentの状態が探索中の場合は次に進むべき方向を取得する
+    Direction nextDir = agent.getNextDirection();
+
+    // nextDirの示す方向に進む
+    // 突然今と180度逆の方向を示してくる場合もあるので注意
+    // 止まらないと壁にぶつかる
+    robot_move(nextDir);  // robotMove関数はDirection型を受け取ってロボットをそっちに動かす関数
   }
-  /* 最短走行 */
-  Position currentPos = maze.getStart();
-  Direction currentDir = Direction::North;
-  for (const auto nextDir : shortestDirs) {
-    /* ロボットを動かす */
-    const auto relativeDir = Direction(nextDir - currentDir);
-    MoveRobot(relativeDir);
-    /* 現在地を進める */
-    currentPos = currentPos.next(nextDir);
-    currentDir = nextDir;
-  }
-  /* 最短経路の表示 */
-  maze.print(shortestDirs);
-  /* 終了 */
   return 0;
 }
 
