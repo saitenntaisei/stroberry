@@ -24,13 +24,18 @@ class Status {
   bool left_wall = false;
   bool right_wall = false;
   uint8_t wall_sensor_cnt = 0;
-  static constexpr parts::wheel<T, T> control_th = {4000, 4000};
-  parts::wheel<T, T> wall_sensor_error = {0, 0};
-  static constexpr parts::wheel<T, T> wall_sensor_ref = {8000, 8000};
-  parts::wheel<bool, bool> is_control = {false, false};
-  static constexpr uint32_t left_threshold = 3800, right_threshold = 3800, front_threshold = 4000;
+  static constexpr parts::wheel<T, T> side_wall_control_th = {4000, 4000};
+  static constexpr parts::wheel<T, T> front_wall_control_th = {4000, 4000};
+  parts::wheel<T, T> side_wall_sensor_error = {0, 0};
+  parts::wheel<T, T> front_wall_sensor_error = {0, 0};
+  static constexpr parts::wheel<T, T> side_wall_sensor_ref = {8000, 8000};
+  static constexpr parts::wheel<T, T> front_wall_sensor_ref = {15000, 15000};
+  parts::wheel<bool, bool> is_side_wall_control = {false, false};
+
+  static constexpr uint32_t left_threshold = 3800, right_threshold = 3800, front_threshold = 10000;
   /* data */
  public:
+  parts::wheel<bool, bool> is_front_wall_control = {false, false};
   enum WallSensor { FRONT_LEFT, FRONT_RIGHT, LEFT, RIGHT };
   Status(T ts = 0.001F);  // NOLINT
   template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
@@ -48,8 +53,9 @@ class Status {
   bool get_front_wall() { return front_wall; }
   bool get_left_wall() { return left_wall; }
   bool get_right_wall() { return right_wall; }
-  parts::wheel<bool, bool> get_is_control() { return is_control; }
-  parts::wheel<T, T> get_wall_sensor_error() { return wall_sensor_error; }
+  parts::wheel<bool, bool> get_is_control() { return is_side_wall_control; }
+  parts::wheel<T, T> get_side_wall_sensor_error() { return side_wall_sensor_error; }
+  parts::wheel<T, T> get_front_wall_sensor_error() { return front_wall_sensor_error; }
 };
 template <typename T>
 Status<T>::Status(T ts) : ts(ts) {}
@@ -81,6 +87,22 @@ void Status<T>::update_wall_sensor(std::function<uint32_t *(void)> wall_sensor, 
       } else {
         front_wall = false;
       }
+
+      if (static_cast<float>(wall_sensor_value[FRONT_LEFT]) > front_wall_control_th.left) {
+        is_front_wall_control.left = true;
+        front_wall_sensor_error.left = static_cast<float>(wall_sensor_value[FRONT_LEFT]) - front_wall_sensor_ref.left;
+      } else {
+        is_front_wall_control.left = false;
+        front_wall_sensor_error.left = 0;
+      }
+
+      if (static_cast<float>(wall_sensor_value[FRONT_RIGHT]) > front_wall_control_th.right) {
+        is_front_wall_control.right = true;
+        front_wall_sensor_error.right = static_cast<float>(wall_sensor_value[FRONT_RIGHT]) - front_wall_sensor_ref.right;
+      } else {
+        is_front_wall_control.right = false;
+        front_wall_sensor_error.right = 0;
+      }
       side_light();
       break;
     case 1:
@@ -94,19 +116,19 @@ void Status<T>::update_wall_sensor(std::function<uint32_t *(void)> wall_sensor, 
       } else {
         right_wall = false;
       }
-      if (static_cast<float>(wall_sensor_value[LEFT]) > control_th.left) {
-        is_control.left = true;
-        wall_sensor_error.left = static_cast<float>(wall_sensor_value[LEFT]) - wall_sensor_ref.left;
+      if (static_cast<float>(wall_sensor_value[LEFT]) > side_wall_control_th.left) {
+        is_side_wall_control.left = true;
+        side_wall_sensor_error.left = static_cast<float>(wall_sensor_value[LEFT]) - side_wall_sensor_ref.left;
       } else {
-        is_control.left = false;
-        wall_sensor_error.left = 0;
+        is_side_wall_control.left = false;
+        side_wall_sensor_error.left = 0;
       }
-      if (static_cast<float>(wall_sensor_value[RIGHT]) > control_th.right) {
-        is_control.right = true;
-        wall_sensor_error.right = static_cast<float>(wall_sensor_value[RIGHT]) - wall_sensor_ref.right;
+      if (static_cast<float>(wall_sensor_value[RIGHT]) > side_wall_control_th.right) {
+        is_side_wall_control.right = true;
+        side_wall_sensor_error.right = static_cast<float>(wall_sensor_value[RIGHT]) - side_wall_sensor_ref.right;
       } else {
-        is_control.right = false;
-        wall_sensor_error.right = 0;
+        is_side_wall_control.right = false;
+        side_wall_sensor_error.right = 0;
       }
       front_light();
       break;

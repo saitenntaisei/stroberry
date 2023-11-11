@@ -182,23 +182,23 @@ void maze_run::robot_move(Direction dir) {
   }
   // 右
   else if (dir_diff == 1 || dir_diff == -3) {
-    ctrl->wall_control = false;
+    ctrl->side_wall_control = false;
     ctrl->straight(90.0, 400, 800, 0.0);
     HAL_Delay(1);
     ctrl->turn(-90, 540, 720);
     HAL_Delay(1);
     ctrl->straight(90.0, 400, 800, 0.0);
-    ctrl->wall_control = true;
+    ctrl->side_wall_control = true;
   }
   // 左
   else if (dir_diff == -1 || dir_diff == 3) {
-    ctrl->wall_control = false;
+    ctrl->side_wall_control = false;
     ctrl->straight(90.0, 400, 800, 0.0);
     HAL_Delay(1);
     ctrl->turn(90, 540, 720);
     HAL_Delay(1);
     ctrl->straight(90.0, 400, 800, 0.0);
-    ctrl->wall_control = true;
+    ctrl->side_wall_control = true;
   }
   // 180度ターン
   else {
@@ -380,7 +380,8 @@ int main() {
             is_drive_motor = true;
             HAL_TIM_Base_Start_IT(&htim10);
             HAL_TIM_Base_Start_IT(&htim11);
-            ctrl->turn(5400, 540, 180);
+            // ctrl->turn(5400, 540, 180);
+            ctrl->turn(3600, 540, 720);
             // ctrl->turn(-90, 540, 180);
           } break;
           case 2: {
@@ -487,7 +488,7 @@ int main() {
                 ir_value[i] = ir_sensor->get_ir_value(i);
               }
 
-              printf("ir: %ld, %ld, %ld\r\n", ir_value[0] + ir_value[1], ir_value[2], ir_value[3]);
+              printf("ir: %ld,%ld, %ld, %ld\r\n", ir_value[0], ir_value[1], ir_value[2], ir_value[3]);
               HAL_Delay(1);
               HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, ctrl->status.get_left_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
               HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, ctrl->status.get_front_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);

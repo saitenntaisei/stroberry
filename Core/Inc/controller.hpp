@@ -12,10 +12,11 @@ class Controller {
  private:
   parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed = {std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f),
                                                                     std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f)},
-                                                           ang_vel = {std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f),
-                                                                      std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f)},
+                                                           front_wall = {std::make_unique<PID>(0.00018f, 0.00f, 0.000f, 0.0f),
+                                                                         std::make_unique<PID>(0.00018f, 0.00f, 0.000f, 0.0f)},
                                                            ang = {std::make_unique<PID>(0.5f, 0.05f, 0.001f, 0.0f), std::make_unique<PID>(0.5f, 0.05f, 0.001f, 0.0f)};
-  std::unique_ptr<PID> wall = std::make_unique<PID>(0.01f, 0.00f, 0.000f, 0.0f);
+  std::unique_ptr<PID> side_wall = std::make_unique<PID>(0.01f, 0.00f, 0.000f, 0.0f);
+  std::unique_ptr<PID> ang_vel = std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f);
 
   parts::wheel<T, T> motor_duty = {0, 0};
   T tar_speed = 0, accel = 0;
@@ -32,14 +33,14 @@ class Controller {
   void reset() {
     speed.left->reset();
     speed.right->reset();
-    ang_vel.left->reset();
-    ang_vel.right->reset();
+    ang_vel->reset();
     ang.left->reset();
     ang.right->reset();
-    wall->reset();
+    side_wall->reset();
   }
   STATUS status;  // NOLINT
-  bool wall_control = true;
+  bool front_wall_control = false;
+  bool side_wall_control = true;
   Controller() : status() {}
   void update() {
     generate_tar_speed();
@@ -47,20 +48,28 @@ class Controller {
     motor_duty.right = 0;
 
     if (run_mode == parts::RunModeT::STRAIGHT_MODE) {
-      if (wall_control) {
-        parts::wheel<T, T> wall_sensor_error = status.get_wall_sensor_error();
-        tar_ang_vel += wall->update(0, wall_sensor_error.left - wall_sensor_error.right);
+      if (side_wall_control) {
+        parts::wheel<T, T> side_wall_sensor_error = status.get_side_wall_sensor_error();
+        tar_ang_vel += side_wall->update(0, side_wall_sensor_error.left - side_wall_sensor_error.right);
       }
     }
-    motor_duty.left += speed.left->update(tar_speed, status.get_speed());
-    motor_duty.right += speed.right->update(tar_speed, status.get_speed());
 
-    motor_duty.left -= ang_vel.left->update(tar_ang_vel, status.get_ang_vel());
-    motor_duty.right += ang_vel.right->update(tar_ang_vel, status.get_ang_vel());
+    if (!front_wall_control) {
+      motor_duty.left += speed.left->update(tar_speed, status.get_speed());
+      motor_duty.right += speed.right->update(tar_speed, status.get_speed());
+      float ang_vel_pid = ang_vel->update(tar_ang_vel, status.get_ang_vel());
+      motor_duty.left -= ang_vel_pid;
+      motor_duty.right += ang_vel_pid;
+    }
+    if (front_wall_control) {
+      parts::wheel<T, T> front_wall_sensor_error = status.get_front_wall_sensor_error();
+      motor_duty.left += front_wall.left->update(0, front_wall_sensor_error.left);
+      motor_duty.right += front_wall.right->update(0, front_wall_sensor_error.right);
+    }
     if (run_mode == parts::RunModeT::STRAIGHT_MODE) {
       tar_ang_vel = 0;
     }
-    if (run_mode == parts::RunModeT::STOP_MODE) {
+    if (run_mode == parts::RunModeT::STOP_MODE && !front_wall_control) {
       motor_duty.left -= ang.left->update(0.0F, status.get_ang());
       motor_duty.right += ang.right->update(0.0F, status.get_ang());
     }
@@ -147,6 +156,10 @@ class Controller {
         accel = 0;
         tar_speed = end_tar_speed;
       }
+      if (status.is_front_wall_control.left && status.is_front_wall_control.right && std::abs(end_speed) < FLT_EPSILON) {
+        front_wall_control = true;
+        break;
+      }
 
       HAL_Delay(1);
     }
@@ -159,9 +172,13 @@ class Controller {
         HAL_Delay(1);
       }
     }
+    if (front_wall_control) {
+      HAL_Delay(1000);
+    }
 
     // 現在距離を0にリセット
     status.reset();
+    front_wall_control = false;
     if (std::abs(end_speed) < FLT_EPSILON) run_mode = parts::RunModeT::STOP_MODE;
     speed.left->reset();
     speed.right->reset();
@@ -224,8 +241,8 @@ class Controller {
     status.reset();
 
     run_mode = parts::RunModeT::STOP_MODE;
-    ang_vel.left->reset();
-    ang_vel.right->reset();
+    ang_vel->reset();
+
     HAL_Delay(1);
   }
 };
