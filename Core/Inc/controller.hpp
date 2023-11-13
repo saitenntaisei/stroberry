@@ -12,10 +12,10 @@ class Controller {
  private:
   parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed = {std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f),
                                                                     std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f)},
-                                                           front_wall = {std::make_unique<PID>(0.00018f, 0.00f, 0.000f, 0.0f),
-                                                                         std::make_unique<PID>(0.00018f, 0.00f, 0.000f, 0.0f)},
+                                                           front_wall = {std::make_unique<PID>(0.00010f, 0.00001f, 0.000f, 0.0f),
+                                                                         std::make_unique<PID>(0.00010f, 0.00001f, 0.000f, 0.0f)},
                                                            ang = {std::make_unique<PID>(0.5f, 0.05f, 0.001f, 0.0f), std::make_unique<PID>(0.5f, 0.05f, 0.001f, 0.0f)};
-  std::unique_ptr<PID> side_wall = std::make_unique<PID>(0.01f, 0.00f, 0.000f, 0.0f);
+  std::unique_ptr<PID> side_wall = std::make_unique<PID>(0.015f, 0.000f, 0.0001f, 0.0f);
   std::unique_ptr<PID> ang_vel = std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f);
 
   parts::wheel<T, T> motor_duty = {0, 0};
@@ -23,7 +23,7 @@ class Controller {
   float tar_ang_vel = 0, ang_acc = 0, tar_degree = 0;
   float max_speed = 0, max_ang_vel = 0, max_degree = 0;
   static constexpr float turn_min_vel = 36.0F;
-  static constexpr float turn_vel_error = 3.0F;
+  static constexpr float turn_vel_error = 0.1F;      // 3.0F;
   static constexpr float len_start_dec_vel = 10.0F;  // mm
   static constexpr float min_speed = 100.0F;         // mm/s
 
@@ -37,10 +37,13 @@ class Controller {
     ang.left->reset();
     ang.right->reset();
     side_wall->reset();
+    front_wall.left->reset();
+    front_wall.right->reset();
   }
   STATUS status;  // NOLINT
   bool front_wall_control = false;
   bool side_wall_control = true;
+  bool maekabe = true;
   Controller() : status() {}
   void update() {
     generate_tar_speed();
@@ -50,7 +53,12 @@ class Controller {
     if (run_mode == parts::RunModeT::STRAIGHT_MODE) {
       if (side_wall_control) {
         parts::wheel<T, T> side_wall_sensor_error = status.get_side_wall_sensor_error();
-        tar_ang_vel += side_wall->update(0, side_wall_sensor_error.left - side_wall_sensor_error.right);
+        parts::wheel<bool, bool> is_side_wall = status.get_is_control();
+        uint8_t n = 1;
+        if (!is_side_wall.left || !is_side_wall.right) {
+          n = 2;
+        }
+        tar_ang_vel += side_wall->update(0, side_wall_sensor_error.left - side_wall_sensor_error.right) * (float)n;
       }
     }
 
@@ -156,10 +164,6 @@ class Controller {
         accel = 0;
         tar_speed = end_tar_speed;
       }
-      if (status.is_front_wall_control.left && status.is_front_wall_control.right && std::abs(end_speed) < FLT_EPSILON) {
-        front_wall_control = true;
-        break;
-      }
 
       HAL_Delay(1);
     }
@@ -167,18 +171,29 @@ class Controller {
     accel = 0;
     tar_speed = (std::abs(end_speed) < FLT_EPSILON ? 0 : end_speed);
 
-    if (std::abs(end_speed) < FLT_EPSILON) {
-      while (std::abs(status.get_speed()) > FLT_EPSILON) {
-        HAL_Delay(1);
+    bool side_wall_control_tmp = side_wall_control;
+    if (maekabe) {
+      if (status.is_front_wall_control.left && status.is_front_wall_control.right && std::abs(end_speed) < FLT_EPSILON) {
+        side_wall_control = false;
+        front_wall_control = true;
       }
-    }
-    if (front_wall_control) {
-      HAL_Delay(1000);
+      if (front_wall_control) {
+        while (std::abs(status.get_speed()) > FLT_EPSILON || std::abs(status.get_ang_vel()) > std::abs(turn_vel_error)) {
+          HAL_Delay(1);
+        }
+      }
+    } else {
+      if (std::abs(end_speed) < FLT_EPSILON) {
+        while (std::abs(status.get_speed()) > FLT_EPSILON) {
+          HAL_Delay(1);
+        }
+      }
     }
 
     // 現在距離を0にリセット
     status.reset();
     front_wall_control = false;
+    side_wall_control = side_wall_control_tmp;
     if (std::abs(end_speed) < FLT_EPSILON) run_mode = parts::RunModeT::STOP_MODE;
     speed.left->reset();
     speed.right->reset();

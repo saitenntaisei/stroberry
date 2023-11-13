@@ -124,7 +124,8 @@ AS_DEFS =
 # C defines
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
--DSTM32F405xx
+-DSTM32F405xx \
+-DARM_MATH_CM4
 #-D__weak=__attribute__((weak)) \
 #-D__packed=__attribute__((__packed__))
 
@@ -172,8 +173,8 @@ LDSCRIPT = STM32F405RGTx_FLASH.ld
 # libraries
 # LIBS = -lc -lm -lnosys
 LIBS = -lc -lm -lrdimon 
-LIBS += -lstdc++
-LIBDIR = 
+LIBS += -lstdc++ -larm_cortexM4lf_math
+LIBDIR = -L Drivers/CMSIS/Lib/GCC/
 #LDFLAGS = $(MCU) -specs=rdimon.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 LDFLAGS = $(MCU) -specs=nosys.specs -u _printf_float -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 #LDFLAGS = $(MCU) -specs=nosys.specs -specs=rdimon.specs -u _printf_float -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections

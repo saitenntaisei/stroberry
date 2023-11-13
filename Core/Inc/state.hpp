@@ -11,7 +11,7 @@ class Status {
   T right_speed_old = 0, left_speed_old = 0;
   T right_speed_new = 0, left_speed_new = 0;
   T previous_speed = 0;
-  static constexpr float diameter_wheel = 33.6F;
+  static constexpr float diameter_wheel = 32.8F;
   static constexpr float radius_wheel = diameter_wheel / 2.0F;
   T speed = 0;
   T left_speed = 0, right_speed = 0;
@@ -25,14 +25,14 @@ class Status {
   bool right_wall = false;
   uint8_t wall_sensor_cnt = 0;
   static constexpr parts::wheel<T, T> side_wall_control_th = {4000, 4000};
-  static constexpr parts::wheel<T, T> front_wall_control_th = {4000, 4000};
+  static constexpr parts::wheel<T, T> front_wall_control_th = {5000, 5000};
   parts::wheel<T, T> side_wall_sensor_error = {0, 0};
   parts::wheel<T, T> front_wall_sensor_error = {0, 0};
-  static constexpr parts::wheel<T, T> side_wall_sensor_ref = {8000, 8000};
-  static constexpr parts::wheel<T, T> front_wall_sensor_ref = {15000, 15000};
+  static constexpr parts::wheel<T, T> side_wall_sensor_ref = {6500, 6500};
+  static constexpr parts::wheel<T, T> front_wall_sensor_ref = {25000, 25000};
   parts::wheel<bool, bool> is_side_wall_control = {false, false};
 
-  static constexpr uint32_t left_threshold = 3800, right_threshold = 3800, front_threshold = 10000;
+  static constexpr uint32_t left_threshold = 2500, right_threshold = 2500, front_threshold = 3000;
   /* data */
  public:
   parts::wheel<bool, bool> is_front_wall_control = {false, false};
@@ -82,7 +82,7 @@ void Status<T>::update_wall_sensor(std::function<uint32_t *(void)> wall_sensor, 
   uint32_t *wall_sensor_value = wall_sensor();
   switch (wall_sensor_cnt) {
     case 0:
-      if (wall_sensor_value[FRONT_LEFT] + wall_sensor_value[FRONT_RIGHT] > front_threshold) {
+      if (wall_sensor_value[FRONT_LEFT] > front_threshold / 2 && wall_sensor_value[FRONT_RIGHT] > front_threshold / 2) {
         front_wall = true;
       } else {
         front_wall = false;
@@ -103,6 +103,12 @@ void Status<T>::update_wall_sensor(std::function<uint32_t *(void)> wall_sensor, 
         is_front_wall_control.right = false;
         front_wall_sensor_error.right = 0;
       }
+
+      // if (static_cast<float>(wall_sensor_value[FRONT_RIGHT]) < front_wall_control_th.right || static_cast<float>(wall_sensor_value[FRONT_LEFT]) < front_wall_control_th.left) {
+      //   front_wall_sensor_error.left = 0;
+      //   front_wall_sensor_error.right = 0;
+      // }
+
       side_light();
       break;
     case 1:
