@@ -25,6 +25,7 @@ class Gyro {
  public:
   Gyro();
   geometry read_gyro();
+  void init();
   void spi_gyro_who_am_i(void);
 };
 

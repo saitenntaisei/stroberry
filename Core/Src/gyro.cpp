@@ -1,6 +1,7 @@
 #include "./gyro.hpp"
 namespace spi {
-Gyro::Gyro() : gyro_offset(0, 0, 0) {
+Gyro::Gyro() : gyro_offset(0, 0, 0) {}
+void Gyro::init() {
   spi_gyro_who_am_i();
   HAL_Delay(100);
   spi_gyro_write(0x20, 0x00);  // Power Down
@@ -24,6 +25,7 @@ Gyro::Gyro() : gyro_offset(0, 0, 0) {
   gyro_offset.y = temp.y / times;
   printf("offset:=x:%f y:%f z:%f\r\n", gyro_offset.x, gyro_offset.y, gyro_offset.z);
 }
+
 void Gyro::spi_gyro_who_am_i(void) {
   HAL_Delay(100);
   while (true) {
