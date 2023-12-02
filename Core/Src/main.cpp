@@ -72,13 +72,13 @@ void SystemClock_Config(void);  // NOLINT
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 namespace {
-std::unique_ptr<spi::Gyro> gyro;
-parts::wheel<std::unique_ptr<pwm::Encoder<float, int16_t>>, std::unique_ptr<pwm::Encoder<float, int16_t>>> enc;
-parts::wheel<std::unique_ptr<pwm::Motor>, std::unique_ptr<pwm::Motor>> motor;
-std::unique_ptr<state::Controller<float, state::Status<float>, state::Pid<float>>> ctrl;
-std::unique_ptr<adc::IrSensor<uint32_t>> ir_sensor;
-std::unique_ptr<adc::Battery<float, uint32_t>> batt;
-std::unique_ptr<pwm::IrLight> ir_light_1, ir_light_2;
+spi::Gyro gyro;
+parts::wheel<pwm::Encoder<float, int16_t>, pwm::Encoder<float, int16_t>> enc = {pwm::Encoder<float, int16_t>(TIM1), pwm::Encoder<float, int16_t>(TIM8)};
+parts::wheel<pwm::Motor, pwm::Motor> motor = {pwm::Motor(&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4), pwm::Motor(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2)};
+state::Controller<float, state::Status<float>, state::Pid<float>> ctrl;
+adc::IrSensor<uint32_t> ir_sensor(&hadc2, 4, 160, 10);
+adc::Battery<float, uint32_t> batt(&hadc1);
+pwm::IrLight ir_light_1(&htim9, TIM_CHANNEL_1), ir_light_2(&htim9, TIM_CHANNEL_2);
 std::uint16_t mode = 0;
 bool safe_mode = false;
 data::drive_records drive_rec;
@@ -91,25 +91,25 @@ bool side_wall_off_allowed = false;
 }  // namespace
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
-    ctrl->status.update_encoder<pwm::Encoder<float, int16_t>, pwm::Encoder<float, int16_t>, &pwm::Encoder<float, int16_t>::read_encoder_value,
-                                &pwm::Encoder<float, int16_t>::read_encoder_value>(*(enc.left), *(enc.right));
-    ctrl->status.update_wall_sensor([]() { return ir_sensor->get_ir_values(); },
-                                    []() {
-                                      ir_light_2->ir_flash_stop();
-                                      ir_light_1->ir_flash_start();
-                                    },
-                                    []() {
-                                      ir_light_1->ir_flash_stop();
-                                      ir_light_2->ir_flash_start();
-                                    });
+    ctrl.status.update_encoder<pwm::Encoder<float, int16_t>, pwm::Encoder<float, int16_t>, &pwm::Encoder<float, int16_t>::read_encoder_value,
+                               &pwm::Encoder<float, int16_t>::read_encoder_value>(enc.left, enc.right);
+    ctrl.status.update_wall_sensor([]() { return ir_sensor.get_ir_values(); },
+                                   []() {
+                                     ir_light_2.ir_flash_stop();
+                                     ir_light_1.ir_flash_start();
+                                   },
+                                   []() {
+                                     ir_light_1.ir_flash_stop();
+                                     ir_light_2.ir_flash_start();
+                                   });
   }
   if (htim == &htim6) {
     switch (test_mode) {
       case param::TestMode::TURN_MODE:
-        drive_rec.push_back(data::drive_record(ctrl->status.get_ang_vel(), motor_signal));
+        drive_rec.push_back(data::drive_record(ctrl.status.get_ang_vel(), motor_signal));
         break;
       case param::TestMode::STRAIGHT_MODE:
-        drive_rec.push_back(data::drive_record(ctrl->status.get_speed(), motor_signal));
+        drive_rec.push_back(data::drive_record(ctrl.status.get_speed(), motor_signal));
         break;
       default:
         break;
@@ -117,10 +117,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   }
   if (htim == &htim11) {
     if (is_drive_motor) {
-      ctrl->update();
-      ctrl->drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(*(motor.left), *(motor.right), -1, 1);
+      ctrl.update();
+      ctrl.drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(motor.left, motor.right, -1, 1);
     }
-    ctrl->status.update_gyro([]() { return gyro->read_gyro().z; });
+    ctrl.status.update_gyro([]() { return gyro.read_gyro().z; });
   }
   if (htim == &htim7) {
     if (is_led_on) {
@@ -129,13 +129,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
       HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, ((mode >> 2) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
       HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, (safe_mode ? GPIO_PIN_SET : GPIO_PIN_RESET));
     }
-    batt->read_batt();
+    batt.read_batt();
   }
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle) {
   if (AdcHandle == &hadc2) {
-    ir_sensor->ir_sampling();
+    ir_sensor.ir_sampling();
   }
 }
 void HAL_GPIO_EXTI_Callback(std::uint16_t GPIO_Pin) {
@@ -169,54 +169,54 @@ void maze_run::robot_move(Direction dir) {
   // 直進
   if (dir_diff == 0) {
     if (is_start_block) {
-      batt->monitoring_state = false;
-      ctrl->back_1s();
+      batt.monitoring_state = false;
+      ctrl.back_1s();
 
-      ctrl->reset();
+      ctrl.reset();
       HAL_Delay(1);
-      ctrl->straight(180.0 - 40.0, 400, 800, 0.0);
-      batt->monitoring_state = true;
+      ctrl.straight(180.0 - 40.0, 400, 800, 0.0);
+      batt.monitoring_state = true;
       is_start_block = false;
     } else
-      ctrl->straight(180.0, 400, 800, 0.0);
+      ctrl.straight(180.0, 400, 800, 0.0);
 
   }
   // 右
   else if (dir_diff == 1 || dir_diff == -3) {
-    ctrl->side_wall_control = false;
-    ctrl->straight(90.0, 400, 800, 0.0);
+    ctrl.side_wall_control = false;
+    ctrl.straight(90.0, 400, 800, 0.0);
     HAL_Delay(1);
-    ctrl->turn(-90, 540, 720);
+    ctrl.turn(-90, 540, 720);
     HAL_Delay(1);
-    ctrl->straight(90.0, 400, 800, 0.0);
-    ctrl->side_wall_control = true;
+    ctrl.straight(90.0, 400, 800, 0.0);
+    ctrl.side_wall_control = true;
   }
   // 左
   else if (dir_diff == -1 || dir_diff == 3) {
-    ctrl->side_wall_control = false;
-    ctrl->straight(90.0, 400, 800, 0.0);
+    ctrl.side_wall_control = false;
+    ctrl.straight(90.0, 400, 800, 0.0);
     HAL_Delay(1);
-    ctrl->turn(90, 540, 720);
+    ctrl.turn(90, 540, 720);
     HAL_Delay(1);
-    ctrl->straight(90.0, 400, 800, 0.0);
-    ctrl->side_wall_control = true;
+    ctrl.straight(90.0, 400, 800, 0.0);
+    ctrl.side_wall_control = true;
   }
   // 180度ターン
   else {
     if (prev_wall_cnt == 3) {
-      ctrl->straight(90.0, 400, 800, 0.0);
-      ctrl->turn(180, 540, 720);
-      batt->monitoring_state = false;
-      ctrl->back_1s();
+      ctrl.straight(90.0, 400, 800, 0.0);
+      ctrl.turn(180, 540, 720);
+      batt.monitoring_state = false;
+      ctrl.back_1s();
 
-      ctrl->reset();
+      ctrl.reset();
       HAL_Delay(1);
-      ctrl->straight(180.0 - 40.0, 400, 800, 0.0);
-      batt->monitoring_state = true;
+      ctrl.straight(180.0 - 40.0, 400, 800, 0.0);
+      batt.monitoring_state = true;
     } else {
-      ctrl->straight(90.0, 400, 800, 0.0);
-      ctrl->turn(180, 540, 720);
-      ctrl->straight(90.0, 400, 800, 0.0);
+      ctrl.straight(90.0, 400, 800, 0.0);
+      ctrl.turn(180, 540, 720);
+      ctrl.straight(90.0, 400, 800, 0.0);
     }
   }
 
@@ -241,9 +241,9 @@ Direction maze_run::get_wall_data() {
   uint8_t wall_left = 0;
   uint8_t wall_right = 0;
   for (int i = 0; i < 5; i++) {
-    wall_front += ctrl->status.get_front_wall();
-    wall_left += ctrl->status.get_left_wall();
-    wall_right += ctrl->status.get_right_wall();
+    wall_front += ctrl.status.get_front_wall();
+    wall_left += ctrl.status.get_left_wall();
+    wall_right += ctrl.status.get_right_wall();
     HAL_Delay(100);
   }
   bool is_front_wall = wall_front >= 3;
@@ -255,9 +255,9 @@ Direction maze_run::get_wall_data() {
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED1_Pin, is_right_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
   if (!side_wall_off_allowed) {
     if (!is_left_wall || !is_right_wall) {
-      ctrl->side_wall_control = false;
+      ctrl.side_wall_control = false;
     } else {
-      ctrl->side_wall_control = true;
+      ctrl.side_wall_control = true;
     }
   }
   int8_t robot_dir_index = 0;
@@ -336,18 +336,8 @@ int main() {
   HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
   HAL_Delay(4000);
-  gyro = std::make_unique<spi::Gyro>();
+  gyro.init();
   HAL_Delay(400);
-  batt = std::make_unique<adc::Battery<float, uint32_t>>(&hadc1);
-
-  enc.right = std::make_unique<pwm::Encoder<float, int16_t>>(TIM8);
-  enc.left = std::make_unique<pwm::Encoder<float, int16_t>>(TIM1);
-  motor.left = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4);
-  motor.right = std::make_unique<pwm::Motor>(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2);
-  ctrl = std::make_unique<state::Controller<float, state::Status<float>, state::Pid<float>>>();
-  ir_sensor = std::make_unique<adc::IrSensor<uint32_t>>(&hadc2, 4, 160, 10);
-  ir_light_1 = std::make_unique<pwm::IrLight>(&htim9, TIM_CHANNEL_1);
-  ir_light_2 = std::make_unique<pwm::IrLight>(&htim9, TIM_CHANNEL_2);
 
   pwm::Buzzer buzzer(&htim12, TIM_CHANNEL_2);
   printf("stroberry\r\n");
@@ -356,8 +346,8 @@ int main() {
   // HAL_TIM_Base_Start_IT(&htim11);
   HAL_TIM_Base_Start_IT(&htim7);
   // HAL_TIM_Base_Start_IT(&htim6);
-  ir_light_1->ir_flash_start();
-  ir_light_2->ir_flash_start();
+  ir_light_1.ir_flash_start();
+  ir_light_2.ir_flash_start();
   HAL_TIM_GenerateEvent(&htim3, TIM_EVENTSOURCE_UPDATE);
   HAL_TIM_Base_Start_IT(&htim3);
 
@@ -365,14 +355,13 @@ int main() {
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  std::cout << "cout" << std::endl;
   while (true) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
     while (safe_mode) {
-      if (ir_sensor->get_ir_value(0) >= 1e4 && ir_sensor->get_ir_value(1) >= 1e4 && ir_sensor->get_ir_value(2) >= 1e4 && ir_sensor->get_ir_value(3) >= 1e4) {
+      if (ir_sensor.get_ir_value(0) >= 1e4 && ir_sensor.get_ir_value(1) >= 1e4 && ir_sensor.get_ir_value(2) >= 1e4 && ir_sensor.get_ir_value(3) >= 1e4) {
         safe_mode = false;
         is_led_on = false;
         HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
@@ -387,20 +376,20 @@ int main() {
             is_drive_motor = true;
             HAL_TIM_Base_Start_IT(&htim10);
             HAL_TIM_Base_Start_IT(&htim11);
-            // ctrl->turn(3600, 540, 720);
-            // ctrl->front_wall_control = true;
+            // ctrl.turn(3600, 540, 720);
+            // ctrl.front_wall_control = true;
 
-            ctrl->turn(3600, 540, 720);
-            // ctrl->turn(-90, 540, 180);
+            ctrl.turn(3600, 540, 720);
+            // ctrl.turn(-90, 540, 180);
           } break;
           case 5: {
             is_drive_motor = true;
             HAL_TIM_Base_Start_IT(&htim10);
             HAL_TIM_Base_Start_IT(&htim11);
-            // ctrl->front_wall_control = true;
+            // ctrl.front_wall_control = true;
             side_wall_off_allowed = true;
-            ctrl->back_1s();
-            ctrl->straight(180.0 * 8 - 40.0, 400, 800, 0.0);
+            ctrl.back_1s();
+            ctrl.straight(180.0 * 8 - 40.0, 400, 800, 0.0);
           } break;
           // case 3: {
           //   Mseq mseq(7);
@@ -485,26 +474,26 @@ int main() {
           //   HAL_TIM_Base_Start_IT(&htim11);
           //   while (1) {
           //     uint32_t ir_value[4];
-          //     ir_light_1->ir_flash_start();
-          //     ir_light_2->ir_flash_stop();
+          //     ir_light_1.ir_flash_start();
+          //     ir_light_2.ir_flash_stop();
           //     HAL_Delay(10);
 
           //     for (uint8_t i = 0; i < 2; ++i) {
-          //       ir_value[i] = ir_sensor->get_ir_value(i);
+          //       ir_value[i] = ir_sensor.get_ir_value(i);
           //     }
-          //     ir_light_1->ir_flash_stop();
-          //     ir_light_2->ir_flash_start();
+          //     ir_light_1.ir_flash_stop();
+          //     ir_light_2.ir_flash_start();
           //     HAL_Delay(10);
           //     for (uint8_t i = 2; i < 4; ++i) {
-          //       ir_value[i] = ir_sensor->get_ir_value(i);
+          //       ir_value[i] = ir_sensor.get_ir_value(i);
           //     }
 
           //     printf("ir: %ld,%ld, %ld, %ld\r\n", ir_value[0], ir_value[1], ir_value[2], ir_value[3]);
           //     HAL_Delay(1);
-          //     HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, ctrl->status.get_left_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
-          //     HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, ctrl->status.get_front_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
-          //     HAL_GPIO_WritePin(LED6_GPIO_Port, LED2_Pin, ctrl->status.get_front_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
-          //     HAL_GPIO_WritePin(LED6_GPIO_Port, LED1_Pin, ctrl->status.get_right_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
+          //     HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, ctrl.status.get_left_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
+          //     HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, ctrl.status.get_front_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
+          //     HAL_GPIO_WritePin(LED6_GPIO_Port, LED2_Pin, ctrl.status.get_front_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
+          //     HAL_GPIO_WritePin(LED6_GPIO_Port, LED1_Pin, ctrl.status.get_right_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
           //   }
 
           // } break;
@@ -520,7 +509,7 @@ int main() {
             // maze.setGoals(goals);
             // // HAL_Delay(4000);
             // // maze_run::SearchRun(
-            // //     maze, []() { return ctrl->status.get_front_wall(); }, []() { return ctrl->status.get_left_wall(); }, []() { return ctrl->status.get_right_wall(); });
+            // //     maze, []() { return ctrl.status.get_front_wall(); }, []() { return ctrl.status.get_left_wall(); }, []() { return ctrl.status.get_right_wall(); });
 
             // // HAL_TIM_Base_Stop_IT(&htim10);
             // // HAL_TIM_Base_Stop_IT(&htim11);
@@ -554,7 +543,7 @@ int main() {
             is_drive_motor = true;
             HAL_TIM_Base_Start_IT(&htim10);
             HAL_TIM_Base_Start_IT(&htim11);
-            ctrl->maekabe = false;
+            ctrl.maekabe = false;
             side_wall_off_allowed = false;
             maze_run::search_run();
           } break;
@@ -562,7 +551,7 @@ int main() {
             is_drive_motor = true;
             HAL_TIM_Base_Start_IT(&htim10);
             HAL_TIM_Base_Start_IT(&htim11);
-            ctrl->maekabe = false;
+            ctrl.maekabe = false;
             side_wall_off_allowed = true;
             maze_run::search_run();
           }
