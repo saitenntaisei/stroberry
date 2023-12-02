@@ -183,23 +183,23 @@ void maze_run::robot_move(Direction dir) {
   }
   // 右
   else if (dir_diff == 1 || dir_diff == -3) {
-    ctrl.side_wall_control = false;
+    ctrl.set_side_wall_control(false);
     ctrl.straight(90.0, 400, 800, 0.0);
     HAL_Delay(1);
     ctrl.turn(-90, 540, 720);
     HAL_Delay(1);
     ctrl.straight(90.0, 400, 800, 0.0);
-    ctrl.side_wall_control = true;
+    ctrl.set_side_wall_control(true);
   }
   // 左
   else if (dir_diff == -1 || dir_diff == 3) {
-    ctrl.side_wall_control = false;
+    ctrl.set_side_wall_control(false);
     ctrl.straight(90.0, 400, 800, 0.0);
     HAL_Delay(1);
     ctrl.turn(90, 540, 720);
     HAL_Delay(1);
     ctrl.straight(90.0, 400, 800, 0.0);
-    ctrl.side_wall_control = true;
+    ctrl.set_side_wall_control(true);
   }
   // 180度ターン
   else {
@@ -255,9 +255,9 @@ Direction maze_run::get_wall_data() {
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED1_Pin, is_right_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
   if (!side_wall_off_allowed) {
     if (!is_left_wall || !is_right_wall) {
-      ctrl.side_wall_control = false;
+      ctrl.set_side_wall_control(false);
     } else {
-      ctrl.side_wall_control = true;
+      ctrl.set_side_wall_control(true);
     }
   }
   int8_t robot_dir_index = 0;
@@ -543,7 +543,7 @@ int main() {
             is_drive_motor = true;
             HAL_TIM_Base_Start_IT(&htim10);
             HAL_TIM_Base_Start_IT(&htim11);
-            ctrl.maekabe = false;
+            ctrl.set_front_wall_control_permission(false);
             side_wall_off_allowed = false;
             maze_run::search_run();
           } break;
@@ -551,7 +551,7 @@ int main() {
             is_drive_motor = true;
             HAL_TIM_Base_Start_IT(&htim10);
             HAL_TIM_Base_Start_IT(&htim11);
-            ctrl.maekabe = false;
+            ctrl.set_front_wall_control_permission(false);
             side_wall_off_allowed = true;
             maze_run::search_run();
           }
