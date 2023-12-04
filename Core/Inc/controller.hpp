@@ -10,13 +10,11 @@ namespace state {
 template <typename T, class STATUS, class PID>
 class Controller {
  private:
-  parts::wheel<std::unique_ptr<PID>, std::unique_ptr<PID>> speed = {std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f),
-                                                                    std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f)},
-                                                           front_wall = {std::make_unique<PID>(0.00010f, 0.00001f, 0.000f, 0.0f),
-                                                                         std::make_unique<PID>(0.00010f, 0.00001f, 0.000f, 0.0f)},
-                                                           ang = {std::make_unique<PID>(0.5f, 0.05f, 0.001f, 0.0f), std::make_unique<PID>(0.5f, 0.05f, 0.001f, 0.0f)};
-  std::unique_ptr<PID> side_wall = std::make_unique<PID>(0.015f, 0.000f, 0.0001f, 0.0f);
-  std::unique_ptr<PID> ang_vel = std::make_unique<PID>(0.0041024f, 0.067247f, 0.0f, 0.0f);
+  parts::wheel<PID, PID> speed = {PID(0.0041024f, 0.067247f, 0.0f, 0.0f), PID(0.0041024f, 0.067247f, 0.0f, 0.0f)},
+                         front_wall = {PID(0.00010f, 0.00001f, 0.000f, 0.0f), PID(0.00010f, 0.00001f, 0.000f, 0.0f)},
+                         ang = {PID(0.5f, 0.05f, 0.001f, 0.0f), PID(0.5f, 0.05f, 0.001f, 0.0f)};
+  PID side_wall = PID(0.015f, 0.000f, 0.0001f, 0.0f);
+  PID ang_vel = PID(0.0041024f, 0.067247f, 0.0f, 0.0f);
 
   parts::wheel<T, T> motor_duty = {0, 0};
   T tar_speed = 0, accel = 0;
@@ -50,14 +48,14 @@ class Controller {
 
 template <typename T, class STATUS, class PID>
 void Controller<T, STATUS, PID>::reset() {
-  speed.left->reset();
-  speed.right->reset();
-  ang_vel->reset();
-  ang.left->reset();
-  ang.right->reset();
-  side_wall->reset();
-  front_wall.left->reset();
-  front_wall.right->reset();
+  speed.left.reset();
+  speed.right.reset();
+  ang_vel.reset();
+  ang.left.reset();
+  ang.right.reset();
+  side_wall.reset();
+  front_wall.left.reset();
+  front_wall.right.reset();
 }
 template <typename T, class STATUS, class PID>
 void Controller<T, STATUS, PID>::update() {
@@ -73,28 +71,28 @@ void Controller<T, STATUS, PID>::update() {
       if (!is_side_wall.left || !is_side_wall.right) {
         n = 2;
       }
-      tar_ang_vel += side_wall->update(0, side_wall_sensor_error.left - side_wall_sensor_error.right) * (float)n;
+      tar_ang_vel += side_wall.update(0, side_wall_sensor_error.left - side_wall_sensor_error.right) * (float)n;
     }
   }
 
   if (!front_wall_control) {
-    motor_duty.left += speed.left->update(tar_speed, status.get_speed());
-    motor_duty.right += speed.right->update(tar_speed, status.get_speed());
-    float ang_vel_pid = ang_vel->update(tar_ang_vel, status.get_ang_vel());
+    motor_duty.left += speed.left.update(tar_speed, status.get_speed());
+    motor_duty.right += speed.right.update(tar_speed, status.get_speed());
+    float ang_vel_pid = ang_vel.update(tar_ang_vel, status.get_ang_vel());
     motor_duty.left -= ang_vel_pid;
     motor_duty.right += ang_vel_pid;
   }
   if (front_wall_control) {
     parts::wheel<T, T> front_wall_sensor_error = status.get_front_wall_sensor_error();
-    motor_duty.left += front_wall.left->update(0, front_wall_sensor_error.left);
-    motor_duty.right += front_wall.right->update(0, front_wall_sensor_error.right);
+    motor_duty.left += front_wall.left.update(0, front_wall_sensor_error.left);
+    motor_duty.right += front_wall.right.update(0, front_wall_sensor_error.right);
   }
   if (run_mode == parts::RunModeT::STRAIGHT_MODE) {
     tar_ang_vel = 0;
   }
   if (run_mode == parts::RunModeT::STOP_MODE && !front_wall_control) {
-    motor_duty.left -= ang.left->update(0.0F, status.get_ang());
-    motor_duty.right += ang.right->update(0.0F, status.get_ang());
+    motor_duty.left -= ang.left.update(0.0F, status.get_ang());
+    motor_duty.right += ang.right.update(0.0F, status.get_ang());
   }
 }
 
@@ -145,8 +143,8 @@ void Controller<T, STATUS, PID>::back_1s() {
   tar_speed = 0;
   max_speed = 0;
   status.reset();
-  speed.left->reset();
-  speed.right->reset();
+  speed.left.reset();
+  speed.right.reset();
 }
 
 template <typename T, class STATUS, class PID>
@@ -215,8 +213,8 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
   front_wall_control = false;
   side_wall_control = side_wall_control_tmp;
   if (std::abs(end_speed) < FLT_EPSILON) run_mode = parts::RunModeT::STOP_MODE;
-  speed.left->reset();
-  speed.right->reset();
+  speed.left.reset();
+  speed.right.reset();
   HAL_Delay(1);
 }
 
@@ -277,7 +275,7 @@ void Controller<T, STATUS, PID>::turn(const float deg, float ang_accel, float ma
   status.reset();
 
   run_mode = parts::RunModeT::STOP_MODE;
-  ang_vel->reset();
+  ang_vel.reset();
 
   HAL_Delay(1);
 }
