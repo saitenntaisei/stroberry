@@ -35,11 +35,13 @@
 #include "./buzzer.hpp"
 #include "./controller.hpp"
 #include "./encoder.hpp"
+#include "./global_state.hpp"
 #include "./gyro.hpp"
 #include "./ir_sensor.hpp"
 #include "./maze_run.hpp"
 #include "./motor.hpp"
 #include "./pid.hpp"
+#include "./robot_operation.hpp"
 #include "./state.hpp"
 #include "data.hpp"
 /* USER CODE END Includes */
@@ -71,71 +73,61 @@ void SystemClock_Config(void);  // NOLINT
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-namespace {
-spi::Gyro gyro;
-parts::wheel<pwm::Encoder<float, int16_t>, pwm::Encoder<float, int16_t>> enc = {pwm::Encoder<float, int16_t>(TIM1), pwm::Encoder<float, int16_t>(TIM8)};
-parts::wheel<pwm::Motor, pwm::Motor> motor = {pwm::Motor(&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4), pwm::Motor(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2)};
-state::Controller<float, state::Status<float>, state::Pid<float>> ctrl;
-adc::IrSensor<uint32_t> ir_sensor(&hadc2, 4, 160, 10);
-adc::Battery<float, uint32_t> batt(&hadc1);
-pwm::IrLight ir_light_1(&htim9, TIM_CHANNEL_1), ir_light_2(&htim9, TIM_CHANNEL_2);
-std::uint16_t mode = 0;
-bool safe_mode = false;
-data::drive_records drive_rec;
-float motor_signal = 0.0f;
-param::TestMode test_mode = param::TestMode::NONE;
-bool is_drive_motor = false;
-bool is_led_on = true;
-bool side_wall_off_allowed = false;
+using global_state::GlobalState;
 
+namespace {
+std::uint8_t mode = 0;
+bool safe_mode = false;
+
+bool led_mode = true;
 }  // namespace
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
-    ctrl.status.update_encoder<pwm::Encoder<float, int16_t>, pwm::Encoder<float, int16_t>, &pwm::Encoder<float, int16_t>::read_encoder_value,
-                               &pwm::Encoder<float, int16_t>::read_encoder_value>(enc.left, enc.right);
-    ctrl.status.update_wall_sensor([]() { return ir_sensor.get_ir_values(); },
-                                   []() {
-                                     ir_light_2.ir_flash_stop();
-                                     ir_light_1.ir_flash_start();
-                                   },
-                                   []() {
-                                     ir_light_1.ir_flash_stop();
-                                     ir_light_2.ir_flash_start();
-                                   });
+    GlobalState::ctrl.status.update_encoder<pwm::Encoder<float, int16_t>, pwm::Encoder<float, int16_t>, &pwm::Encoder<float, int16_t>::read_encoder_value,
+                                            &pwm::Encoder<float, int16_t>::read_encoder_value>(GlobalState::enc.left, GlobalState::enc.right);
+    GlobalState::ctrl.status.update_wall_sensor([]() { return GlobalState::ir_sensor.get_ir_values(); },
+                                                []() {
+                                                  GlobalState::ir_light_2.ir_flash_stop();
+                                                  GlobalState::ir_light_1.ir_flash_start();
+                                                },
+                                                []() {
+                                                  GlobalState::ir_light_1.ir_flash_stop();
+                                                  GlobalState::ir_light_2.ir_flash_start();
+                                                });
   }
   if (htim == &htim6) {
-    switch (test_mode) {
+    switch (GlobalState::test_mode) {
       case param::TestMode::TURN_MODE:
-        drive_rec.push_back(data::drive_record(ctrl.status.get_ang_vel(), motor_signal));
+        GlobalState::drive_rec.push_back(data::drive_record(GlobalState::ctrl.status.get_ang_vel(), GlobalState::motor_signal));
         break;
       case param::TestMode::STRAIGHT_MODE:
-        drive_rec.push_back(data::drive_record(ctrl.status.get_speed(), motor_signal));
+        GlobalState::drive_rec.push_back(data::drive_record(GlobalState::ctrl.status.get_speed(), GlobalState::motor_signal));
         break;
       default:
         break;
     }
   }
   if (htim == &htim11) {
-    if (is_drive_motor) {
-      ctrl.update();
-      ctrl.drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(motor.left, motor.right, -1, 1);
-    }
-    ctrl.status.update_gyro([]() { return gyro.read_gyro().z; });
+    GlobalState::ctrl.update();
+    GlobalState::ctrl.drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(GlobalState::motor.left, GlobalState::motor.right, -1, 1);
+
+    GlobalState::ctrl.status.update_gyro([]() { return GlobalState::gyro.read_gyro().z; });
   }
   if (htim == &htim7) {
-    if (is_led_on) {
+    if (led_mode) {
       HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, (mode & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
       HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, ((mode >> 1) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
       HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, ((mode >> 2) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
       HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, (safe_mode ? GPIO_PIN_SET : GPIO_PIN_RESET));
     }
-    batt.read_batt();
+    GlobalState::batt.read_batt();
   }
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle) {
   if (AdcHandle == &hadc2) {
-    ir_sensor.ir_sampling();
+    GlobalState::ir_sensor.ir_sampling();
   }
 }
 void HAL_GPIO_EXTI_Callback(std::uint16_t GPIO_Pin) {
@@ -152,139 +144,6 @@ void HAL_SYSTICK_Callback(void) {  // 1kHz
   // This is system clock timer
 }
 
-void maze_run::robot_move(Direction dir) {
-  int8_t robot_dir_index = 0;
-  while (1) {
-    if (robot_dir.byte == NORTH << robot_dir_index) break;
-    robot_dir_index++;
-  }
-
-  int8_t next_dir_index = 0;
-  while (1) {
-    if (dir.byte == NORTH << next_dir_index) break;
-    next_dir_index++;
-  }
-
-  int8_t dir_diff = next_dir_index - robot_dir_index;
-  // 直進
-  if (dir_diff == 0) {
-    if (is_start_block) {
-      batt.monitoring_state = false;
-      ctrl.back_1s();
-
-      ctrl.reset();
-      HAL_Delay(1);
-      ctrl.straight(180.0 - 40.0, 400, 800, 0.0);
-      batt.monitoring_state = true;
-      is_start_block = false;
-    } else
-      ctrl.straight(180.0, 400, 800, 0.0);
-
-  }
-  // 右
-  else if (dir_diff == 1 || dir_diff == -3) {
-    ctrl.set_side_wall_control(false);
-    ctrl.straight(90.0, 400, 800, 0.0);
-    HAL_Delay(1);
-    ctrl.turn(-90, 540, 720);
-    HAL_Delay(1);
-    ctrl.straight(90.0, 400, 800, 0.0);
-    ctrl.set_side_wall_control(true);
-  }
-  // 左
-  else if (dir_diff == -1 || dir_diff == 3) {
-    ctrl.set_side_wall_control(false);
-    ctrl.straight(90.0, 400, 800, 0.0);
-    HAL_Delay(1);
-    ctrl.turn(90, 540, 720);
-    HAL_Delay(1);
-    ctrl.straight(90.0, 400, 800, 0.0);
-    ctrl.set_side_wall_control(true);
-  }
-  // 180度ターン
-  else {
-    if (prev_wall_cnt == 3) {
-      ctrl.straight(90.0, 400, 800, 0.0);
-      ctrl.turn(180, 540, 720);
-      batt.monitoring_state = false;
-      ctrl.back_1s();
-
-      ctrl.reset();
-      HAL_Delay(1);
-      ctrl.straight(180.0 - 40.0, 400, 800, 0.0);
-      batt.monitoring_state = true;
-    } else {
-      ctrl.straight(90.0, 400, 800, 0.0);
-      ctrl.turn(180, 540, 720);
-      ctrl.straight(90.0, 400, 800, 0.0);
-    }
-  }
-
-  robot_dir = dir;
-  // robot positionをdirの分だけ動かす
-  if (NORTH == dir.byte) {
-    robot_position += IndexVec::vecNorth;
-  } else if (SOUTH == dir.byte) {
-    robot_position += IndexVec::vecSouth;
-  } else if (EAST == dir.byte) {
-    robot_position += IndexVec::vecEast;
-  } else if (WEST == dir.byte) {
-    robot_position += IndexVec::vecWest;
-  }
-  return;
-}
-
-Direction maze_run::get_wall_data() {
-  Direction wall;
-
-  uint8_t wall_front = 0;
-  uint8_t wall_left = 0;
-  uint8_t wall_right = 0;
-  for (int i = 0; i < 5; i++) {
-    wall_front += ctrl.status.get_front_wall();
-    wall_left += ctrl.status.get_left_wall();
-    wall_right += ctrl.status.get_right_wall();
-    HAL_Delay(100);
-  }
-  bool is_front_wall = wall_front >= 3;
-  bool is_left_wall = wall_left >= 3;
-  bool is_right_wall = wall_right >= 3;
-  HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, is_left_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, is_front_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(LED6_GPIO_Port, LED2_Pin, is_front_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(LED6_GPIO_Port, LED1_Pin, is_right_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
-  if (!side_wall_off_allowed) {
-    if (!is_left_wall || !is_right_wall) {
-      ctrl.set_side_wall_control(false);
-    } else {
-      ctrl.set_side_wall_control(true);
-    }
-  }
-  int8_t robot_dir_index = 0;
-  while (1) {
-    if (robot_dir.byte == NORTH << robot_dir_index) break;
-    robot_dir_index++;
-  }
-
-  if (is_front_wall) {
-    wall.byte |= robot_dir;
-  }
-
-  if (is_right_wall) {
-    wall.byte |= NORTH << (robot_dir_index + 1) % 4;
-  }
-
-  if (is_left_wall) {
-    if (robot_dir_index == 0)
-      wall.byte |= WEST;
-    else
-      wall.byte |= NORTH << (robot_dir_index - 1) % 4;
-  }
-
-  prev_wall_cnt = wall.nWall();
-
-  return wall;
-}
 /* USER CODE END 0 */
 
 /**
@@ -336,18 +195,17 @@ int main() {
   HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
   HAL_Delay(4000);
-  gyro.init();
+  GlobalState::gyro.init();
   HAL_Delay(400);
 
-  pwm::Buzzer buzzer(&htim12, TIM_CHANNEL_2);
   printf("stroberry\r\n");
-  buzzer.beep("ok");
+  GlobalState::buzzer.beep("ok");
   // HAL_TIM_Base_Start_IT(&htim10);
   // HAL_TIM_Base_Start_IT(&htim11);
   HAL_TIM_Base_Start_IT(&htim7);
   // HAL_TIM_Base_Start_IT(&htim6);
-  ir_light_1.ir_flash_start();
-  ir_light_2.ir_flash_start();
+  GlobalState::ir_light_1.ir_flash_start();
+  GlobalState::ir_light_2.ir_flash_start();
   HAL_TIM_GenerateEvent(&htim3, TIM_EVENTSOURCE_UPDATE);
   HAL_TIM_Base_Start_IT(&htim3);
 
@@ -361,9 +219,10 @@ int main() {
     /* USER CODE BEGIN 3 */
 
     while (safe_mode) {
-      if (ir_sensor.get_ir_value(0) >= 1e4 && ir_sensor.get_ir_value(1) >= 1e4 && ir_sensor.get_ir_value(2) >= 1e4 && ir_sensor.get_ir_value(3) >= 1e4) {
+      if (GlobalState::ir_sensor.get_ir_value(0) >= 1e4 && GlobalState::ir_sensor.get_ir_value(1) >= 1e4 && GlobalState::ir_sensor.get_ir_value(2) >= 1e4 &&
+          GlobalState::ir_sensor.get_ir_value(3) >= 1e4) {
         safe_mode = false;
-        is_led_on = false;
+        led_mode = false;
         HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET);
@@ -371,199 +230,14 @@ int main() {
         HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GPIO_PIN_RESET);
         HAL_Delay(4000);
-        switch (mode) {
-          case 6: {
-            is_drive_motor = true;
-            HAL_TIM_Base_Start_IT(&htim10);
-            HAL_TIM_Base_Start_IT(&htim11);
-            // ctrl.turn(3600, 540, 720);
-            // ctrl.front_wall_control = true;
-
-            ctrl.turn(3600, 540, 720);
-            // ctrl.turn(-90, 540, 180);
-          } break;
-          case 5: {
-            is_drive_motor = true;
-            HAL_TIM_Base_Start_IT(&htim10);
-            HAL_TIM_Base_Start_IT(&htim11);
-            // ctrl.front_wall_control = true;
-            side_wall_off_allowed = true;
-            ctrl.back_1s();
-            ctrl.straight(180.0 * 8 - 40.0, 400, 800, 0.0);
-          } break;
-          // case 3: {
-          //   Mseq mseq(7);
-          //   HAL_TIM_Base_Start_IT(&htim10);
-          //   HAL_TIM_Base_Start_IT(&htim6);
-          //   HAL_TIM_Base_Start_IT(&htim11);
-          //   HAL_Delay(1);
-          //   test_mode = param::TestMode::TURN_MODE;
-          //   for (int i = 0; i < (1 << 7) - 1; ++i) {
-          //     uint8_t signal = mseq.update();
-          //     motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 2.5f;
-          //     motor.left->drive_vcc(motor_signal);
-          //     motor.right->drive_vcc(motor_signal);
-          //     HAL_Delay(400);
-          //   }
-          //   test_mode = param::TestMode::NONE;
-          //   HAL_TIM_Base_Stop_IT(&htim10);
-          //   HAL_TIM_Base_Stop_IT(&htim11);
-          //   HAL_TIM_Base_Stop_IT(&htim6);
-          //   motor.left->drive_vcc(0);
-          //   motor.right->drive_vcc(0);
-
-          //   printf("%d\r\n", drive_rec.size() * sizeof(data::twist));
-          //   if (drive_rec.size() * sizeof(data::twist) > BACKUP_FLASH_SECTOR_SIZE) {
-          //     HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_SET);
-          //     Error_Handler();
-          //   }
-
-          //   std::copy(drive_rec.begin(), drive_rec.end(), reinterpret_cast<data::drive_record *>(flash::work_ram));
-
-          //   flash::Store();
-          //   buzzer.beep("save");
-
-          // } break;
-
-          // case 4: {
-          //   Mseq mseq(6);
-          //   HAL_TIM_Base_Start_IT(&htim10);
-          //   HAL_TIM_Base_Start_IT(&htim6);
-          //   HAL_TIM_Base_Start_IT(&htim11);
-          //   HAL_Delay(1);
-          //   test_mode = param::TestMode::STRAIGHT_MODE;
-          //   for (int i = 0; i < (1 << 6) - 1; ++i) {
-          //     uint8_t signal = mseq.update();
-          //     motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 2.5f;
-          //     motor.left->drive_vcc(-motor_signal);
-          //     motor.right->drive_vcc(motor_signal);
-          //     HAL_Delay(400);
-          //     printf("%f, %f\r\n", enc.left->get_incremental_degrees(), enc.right->get_incremental_degrees());
-          //   }
-          //   test_mode = param::TestMode::NONE;
-          //   HAL_TIM_Base_Stop_IT(&htim10);
-          //   HAL_TIM_Base_Stop_IT(&htim11);
-          //   HAL_TIM_Base_Stop_IT(&htim6);
-          //   motor.left->drive_vcc(0);
-          //   motor.right->drive_vcc(0);
-          //   printf("%d\r\n", drive_rec.size() * sizeof(data::twist));
-          //   if (drive_rec.size() * sizeof(data::twist) > BACKUP_FLASH_SECTOR_SIZE) {
-          //     HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_SET);
-          //     Error_Handler();
-          //   }
-
-          //   std::copy(drive_rec.begin(), drive_rec.end(), reinterpret_cast<data::drive_record *>(flash::work_ram));
-
-          //   flash::Store();
-          //   buzzer.beep("save");
-
-          // } break;
-          // case 5: {
-          //   flash::Load();
-          //   std::copy((data::drive_record *)flash::work_ram, (data::drive_record *)flash::work_ram + 4000, std::back_inserter(drive_rec));
-          //   printf("speed, signal\r\n");
-          //   for (auto rec : drive_rec) {
-          //     printf("%f, %f\r\n", rec.speed, rec.signal);
-
-          //     HAL_Delay(1);
-          //   }
-          //   buzzer.beep("done");
-          // } break;
-          // case 6: {
-          //   // HAL_TIM_Base_Start_IT(&htim10);
-          //   HAL_TIM_Base_Start_IT(&htim11);
-          //   while (1) {
-          //     uint32_t ir_value[4];
-          //     ir_light_1.ir_flash_start();
-          //     ir_light_2.ir_flash_stop();
-          //     HAL_Delay(10);
-
-          //     for (uint8_t i = 0; i < 2; ++i) {
-          //       ir_value[i] = ir_sensor.get_ir_value(i);
-          //     }
-          //     ir_light_1.ir_flash_stop();
-          //     ir_light_2.ir_flash_start();
-          //     HAL_Delay(10);
-          //     for (uint8_t i = 2; i < 4; ++i) {
-          //       ir_value[i] = ir_sensor.get_ir_value(i);
-          //     }
-
-          //     printf("ir: %ld,%ld, %ld, %ld\r\n", ir_value[0], ir_value[1], ir_value[2], ir_value[3]);
-          //     HAL_Delay(1);
-          //     HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, ctrl.status.get_left_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
-          //     HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, ctrl.status.get_front_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
-          //     HAL_GPIO_WritePin(LED6_GPIO_Port, LED2_Pin, ctrl.status.get_front_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
-          //     HAL_GPIO_WritePin(LED6_GPIO_Port, LED1_Pin, ctrl.status.get_right_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
-          //   }
-
-          // } break;
-          case 0: {
-            is_drive_motor = true;
-            HAL_TIM_Base_Start_IT(&htim10);
-            HAL_TIM_Base_Start_IT(&htim11);
-            side_wall_off_allowed = false;
-            maze_run::search_run();
-            // MazeLib::Maze maze;
-            // MazeLib::Positions goals;
-            // goals.push_back(MazeLib::Position(0, 1));
-            // maze.setGoals(goals);
-            // // HAL_Delay(4000);
-            // // maze_run::SearchRun(
-            // //     maze, []() { return ctrl.status.get_front_wall(); }, []() { return ctrl.status.get_left_wall(); }, []() { return ctrl.status.get_right_wall(); });
-
-            // // HAL_TIM_Base_Stop_IT(&htim10);
-            // // HAL_TIM_Base_Stop_IT(&htim11);
-            // const MazeLib::WallRecords &wall_records = maze.getWallRecords();
-            // for (auto x : wall_records) {
-            //   std::cout << x << std::endl;
-            // }
-            // std::copy(wall_records.begin(), wall_records.end(), reinterpret_cast<MazeLib::WallRecord *>(flash::work_ram));
-            // flash::Store();
-            // buzzer.beep("save");
-            // is_drive_motor = false;
-            // while (1) {
-            //   maze.print();
-            // }
-
-          } break;
-          case 1: {
-            is_drive_motor = true;
-            HAL_TIM_Base_Start_IT(&htim10);
-            HAL_TIM_Base_Start_IT(&htim11);
-            side_wall_off_allowed = true;
-            maze_run::search_run();
-            // MazeLib::WallRecords wall_records;
-            // flash::Load();
-            // std::copy((MazeLib::WallRecord *)flash::work_ram, (MazeLib::WallRecord *)flash::work_ram + 4000, std::back_inserter(wall_records));
-            // for (auto x : wall_records) {
-            //   std::cout << x << std::endl;
-            // }
-          } break;
-          case 2: {
-            is_drive_motor = true;
-            HAL_TIM_Base_Start_IT(&htim10);
-            HAL_TIM_Base_Start_IT(&htim11);
-            ctrl.set_front_wall_control_permission(false);
-            side_wall_off_allowed = false;
-            maze_run::search_run();
-          } break;
-          case 3: {
-            is_drive_motor = true;
-            HAL_TIM_Base_Start_IT(&htim10);
-            HAL_TIM_Base_Start_IT(&htim11);
-            ctrl.set_front_wall_control_permission(false);
-            side_wall_off_allowed = true;
-            maze_run::search_run();
-          }
-
-          default:
-            break;
-        }
+        robot_operation::trueRunMode(mode);
+        // abjustMode(mode);
       }
 
       HAL_Delay(1);
     }
-    is_led_on = true;
+
+    led_mode = true;
 
     HAL_Delay(1);
   }
