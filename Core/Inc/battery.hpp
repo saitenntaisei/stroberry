@@ -1,6 +1,6 @@
 #ifndef CORE_INC_BATTERY_HPP_
 #define CORE_INC_BATTERY_HPP_
-
+#include <cstdint>
 namespace adc {
 template <typename T, typename RESO>
 class Battery {
@@ -9,7 +9,7 @@ class Battery {
   static constexpr float r1 = 20;
   // R1<->R0<->GND
   static constexpr float v_ref = 3.3F;
-  static constexpr uint8_t resolution_bit = 12;
+  static constexpr std::uint8_t resolution_bit = 12;
   static constexpr float threshold = 6.5;
   ADC_HandleTypeDef* hadc{};
 

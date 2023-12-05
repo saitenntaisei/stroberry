@@ -1,6 +1,8 @@
 #ifndef CORE_INC_ROBOTO_OPERATION_HPP_
 #define CORE_INC_ROBOTO_OPERATION_HPP_
 
+#include <cstdint>
+
 #include "../lib/Mseq/Mseq.h"
 #include "./global_state.hpp"
 #include "flash.hpp"
@@ -9,19 +11,19 @@
 using global_state::GlobalState;
 
 void maze_run::robot_move(Direction dir) {
-  int8_t robot_dir_index = 0;
+  std::int8_t robot_dir_index = 0;
   while (1) {
     if (robot_dir.byte == NORTH << robot_dir_index) break;
     robot_dir_index++;
   }
 
-  int8_t next_dir_index = 0;
+  std::int8_t next_dir_index = 0;
   while (1) {
     if (dir.byte == NORTH << next_dir_index) break;
     next_dir_index++;
   }
 
-  int8_t dir_diff = next_dir_index - robot_dir_index;
+  std::int8_t dir_diff = next_dir_index - robot_dir_index;
   // 直進
   if (dir_diff == 0) {
     if (is_start_block) {
@@ -93,9 +95,9 @@ void maze_run::robot_move(Direction dir) {
 Direction maze_run::get_wall_data() {
   Direction wall;
 
-  uint8_t wall_front = 0;
-  uint8_t wall_left = 0;
-  uint8_t wall_right = 0;
+  std::uint8_t wall_front = 0;
+  std::uint8_t wall_left = 0;
+  std::uint8_t wall_right = 0;
   for (int i = 0; i < 5; i++) {
     wall_front += GlobalState::ctrl.status.get_front_wall();
     wall_left += GlobalState::ctrl.status.get_left_wall();
@@ -116,7 +118,7 @@ Direction maze_run::get_wall_data() {
       GlobalState::ctrl.set_side_wall_control(true);
     }
   }
-  int8_t robot_dir_index = 0;
+  std::int8_t robot_dir_index = 0;
   while (1) {
     if (robot_dir.byte == NORTH << robot_dir_index) break;
     robot_dir_index++;
@@ -144,7 +146,7 @@ Direction maze_run::get_wall_data() {
 
 namespace robot_operation {
 
-void abjustMode(uint8_t mode) {
+void abjustMode(std::uint8_t mode) {
   switch (mode) {
     case 1: {
       HAL_TIM_Base_Start_IT(&htim10);
@@ -171,7 +173,7 @@ void abjustMode(uint8_t mode) {
       HAL_Delay(1);
       GlobalState::test_mode = param::TestMode::TURN_MODE;
       for (int i = 0; i < (1 << 7) - 1; ++i) {
-        uint8_t signal = mseq.update();
+        std::uint8_t signal = mseq.update();
         GlobalState::motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 2.5f;
         GlobalState::motor.left.drive_vcc(GlobalState::motor_signal);
         GlobalState::motor.right.drive_vcc(GlobalState::motor_signal);
@@ -205,7 +207,7 @@ void abjustMode(uint8_t mode) {
       HAL_Delay(1);
       GlobalState::test_mode = param::TestMode::STRAIGHT_MODE;
       for (int i = 0; i < (1 << 6) - 1; ++i) {
-        uint8_t signal = mseq.update();
+        std::uint8_t signal = mseq.update();
         GlobalState::motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 2.5f;
         GlobalState::motor.left.drive_vcc(-GlobalState::motor_signal);
         GlobalState::motor.right.drive_vcc(GlobalState::motor_signal);
@@ -244,18 +246,18 @@ void abjustMode(uint8_t mode) {
       // HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       while (1) {
-        uint32_t ir_value[4];
+        std::uint32_t ir_value[4];
         GlobalState::ir_light_1.ir_flash_start();
         GlobalState::ir_light_2.ir_flash_stop();
         HAL_Delay(10);
 
-        for (uint8_t i = 0; i < 2; ++i) {
+        for (std::uint8_t i = 0; i < 2; ++i) {
           ir_value[i] = GlobalState::ir_sensor.get_ir_value(i);
         }
         GlobalState::ir_light_1.ir_flash_stop();
         GlobalState::ir_light_2.ir_flash_start();
         HAL_Delay(10);
-        for (uint8_t i = 2; i < 4; ++i) {
+        for (std::uint8_t i = 2; i < 4; ++i) {
           ir_value[i] = GlobalState::ir_sensor.get_ir_value(i);
         }
 
@@ -274,7 +276,7 @@ void abjustMode(uint8_t mode) {
   }
 }
 
-void trueRunMode(uint8_t mode) {
+void trueRunMode(std::uint8_t mode) {
   switch (mode) {
     case 6: {
       HAL_TIM_Base_Start_IT(&htim10);

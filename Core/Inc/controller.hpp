@@ -39,7 +39,7 @@ class Controller {
   void reset();
   void update();
   template <class MOTOR, void (MOTOR::*DRIVEFn)(float)>
-  void drive_motor(MOTOR &left_motor, MOTOR &right_motor, const int8_t left_dir, const int8_t right_dir);
+  void drive_motor(MOTOR &left_motor, MOTOR &right_motor, const std::int8_t left_dir, const std::int8_t right_dir);
   void back_1s();
   void turn(const float deg, float ang_accel, float max_ang_velocity);
   void straight(T len, T acc, T max_sp, T end_sp);
@@ -67,7 +67,7 @@ void Controller<T, STATUS, PID>::update() {
     if (side_wall_control) {
       parts::wheel<T, T> side_wall_sensor_error = status.get_side_wall_sensor_error();
       parts::wheel<bool, bool> is_side_wall = status.get_is_control();
-      uint8_t n = 1;
+      std::uint8_t n = 1;
       if (!is_side_wall.left || !is_side_wall.right) {
         n = 2;
       }
@@ -98,7 +98,7 @@ void Controller<T, STATUS, PID>::update() {
 
 template <typename T, class STATUS, class PID>
 template <class MOTOR, void (MOTOR::*DRIVEFn)(float)>
-void Controller<T, STATUS, PID>::drive_motor(MOTOR &left_motor, MOTOR &right_motor, const int8_t left_dir, const int8_t right_dir) {
+void Controller<T, STATUS, PID>::drive_motor(MOTOR &left_motor, MOTOR &right_motor, const std::int8_t left_dir, const std::int8_t right_dir) {
   (left_motor.*DRIVEFn)(left_dir * static_cast<float>(motor_duty.left));
   (right_motor.*DRIVEFn)(right_dir * static_cast<float>(motor_duty.right));
 }

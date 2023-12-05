@@ -8,7 +8,7 @@ namespace pwm {
 class Buzzer {
  private:
   timerPin buzzer;
-  static constexpr uint16_t freq = 500;
+  static constexpr std::uint16_t freq = 500;
 
  public:
   Buzzer(TIM_HandleTypeDef* tim, unsigned int channel);

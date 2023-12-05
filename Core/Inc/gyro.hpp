@@ -1,5 +1,6 @@
 #ifndef CORE_INC_GYRO_HPP_
 #define CORE_INC_GYRO_HPP_
+#include <cstdint>
 #include <cstdio>
 
 #include "./spi.h"
@@ -20,8 +21,8 @@ class Gyro {
   float spi_gyro_OUT_Z(void);
   float spi_gyro_OUT_X(void);
   float spi_gyro_OUT_Y(void);
-  void spi_gyro_write(uint8_t address, uint8_t value);
-  uint8_t spi_gyro_read(uint8_t address);
+  void spi_gyro_write(std::uint8_t address, std::uint8_t value);
+  std::uint8_t spi_gyro_read(std::uint8_t address);
 
  public:
   Gyro();

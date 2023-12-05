@@ -1,10 +1,11 @@
 #include "flash.hpp"
+
 // Flashのsector1の先頭に配置される変数(ラベル)
 // 配置と定義はリンカスクリプトで行う
 
 // BEGINNOLINT
 extern "C" int _write(int file, char *ptr, int len) {
-  HAL_UART_Transmit(&huart4, (uint8_t *)ptr, len, 100);  // NOLINT
+  HAL_UART_Transmit(&huart4, (std::uint8_t *)ptr, len, 100);  // NOLINT
   return len;
 }
 // ENDNOLINT
@@ -13,7 +14,7 @@ namespace flash {
 
 // Flashのsectoe1を消去
 bool Clear() {
-  FLASH_WaitForLastOperation((uint32_t)50000U);
+  FLASH_WaitForLastOperation((std::uint32_t)50000U);
   HAL_FLASH_Unlock();
 
   FLASH_EraseInitTypeDef EraseInitStruct;
@@ -24,7 +25,7 @@ bool Clear() {
 
   // Eraseに失敗したsector番号がerror_sectorに入る
   // 正常にEraseができたときは0xFFFFFFFFが入る
-  uint32_t error_sector = 12;
+  std::uint32_t error_sector = 12;
   HAL_StatusTypeDef result = HAL_FLASHEx_Erase(&EraseInitStruct, &error_sector);
 
   HAL_FLASH_Lock();
@@ -34,7 +35,7 @@ bool Clear() {
 
 // Flashのsector1の内容を全てwork_ramに読み出す
 // work_ramの先頭アドレスを返す
-uint8_t *Load() {
+std::uint8_t *Load() {
   std::memcpy(work_ram, &_backup_flash_start, BACKUP_FLASH_SECTOR_SIZE);
   return work_ram;
 }
@@ -44,16 +45,16 @@ bool Store() {
   // Flashをclear
   if (!Clear()) return false;
 
-  uint32_t *p_work_ram = reinterpret_cast<uint32_t *>(work_ram);  // NOLINT
+  std::uint32_t *p_work_ram = reinterpret_cast<std::uint32_t *>(work_ram);  // NOLINT
 
   HAL_FLASH_Unlock();
 
   // work_ramにあるデータを4バイトごとまとめて書き込む
   HAL_StatusTypeDef result;
-  const size_t write_cnt = BACKUP_FLASH_SECTOR_SIZE / sizeof(uint32_t);
+  const size_t write_cnt = BACKUP_FLASH_SECTOR_SIZE / sizeof(std::uint32_t);
 
   for (size_t i = 0; i < write_cnt; i++) {
-    result = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, reinterpret_cast<uint32_t>(&_backup_flash_start) + sizeof(uint32_t) * i, p_work_ram[i]);
+    result = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, reinterpret_cast<std::uint32_t>(&_backup_flash_start) + sizeof(std::uint32_t) * i, p_work_ram[i]);
     if (result != HAL_OK) break;
   }
 
@@ -64,28 +65,28 @@ bool Store() {
 
 /*
  * @brief write flash(sector11)
- * @param uint32_t address sector11 start address
- * @param uint8_t * data write data
- * @param uint32_t size write data size
+ * @param std::uint32_t address sector11 start address
+ * @param std::uint8_t * data write data
+ * @param std::uint32_t size write data size
  */
-bool Store_struct(uint8_t *data, uint32_t size) {
+bool Store_struct(std::uint8_t *data, std::uint32_t size) {
   if (!Clear()) return false;  // erease sector1
   HAL_FLASH_Unlock();          // unlock flash
-  uint32_t address = reinterpret_cast<uint32_t>(&_backup_flash_start);
+  std::uint32_t address = reinterpret_cast<std::uint32_t>(&_backup_flash_start);
   HAL_StatusTypeDef result = HAL_OK;
-  for (uint32_t add = address; add < (address + size); add++, data++) {  // add data pointer
-    HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, add, *data);               // write byte
+  for (std::uint32_t add = address; add < (address + size); add++, data++) {  // add data pointer
+    HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, add, *data);                    // write byte
     if (result != HAL_OK) break;
   }
 
   HAL_FLASH_Lock();  // lock flash
   return result == HAL_OK;
 }
-void Load_struct(uint8_t *data, uint32_t size) {
+void Load_struct(std::uint8_t *data, std::uint32_t size) {
   memcpy(data, &_backup_flash_start, size);  // copy data
 }
 
-uint16_t Flash_string(std::string *str, uint16_t pos) {
+std::uint16_t Flash_string(std::string *str, std::uint16_t pos) {
   const char *cstr = str->c_str();
   if (strlen(cstr) + 1 > static_cast<size_t>(BACKUP_FLASH_SECTOR_SIZE - pos)) {
     return -1;

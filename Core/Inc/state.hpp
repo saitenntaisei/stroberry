@@ -23,7 +23,7 @@ class Status {
   bool front_wall = false;
   bool left_wall = false;
   bool right_wall = false;
-  uint8_t wall_sensor_cnt = 0;
+  std::uint8_t wall_sensor_cnt = 0;
   static constexpr parts::wheel<T, T> side_wall_control_th = {4000, 4000};
   static constexpr parts::wheel<T, T> front_wall_control_th = {5000, 5000};
   parts::wheel<T, T> side_wall_sensor_error = {0, 0};
@@ -32,7 +32,7 @@ class Status {
   static constexpr parts::wheel<T, T> front_wall_sensor_ref = {25000, 25000};
   parts::wheel<bool, bool> is_side_wall_control = {false, false};
 
-  static constexpr uint32_t left_threshold = 2500, right_threshold = 2500, front_threshold = 3000;
+  static constexpr std::uint32_t left_threshold = 2500, right_threshold = 2500, front_threshold = 3000;
   /* data */
  public:
   parts::wheel<bool, bool> is_front_wall_control = {false, false};
@@ -41,7 +41,7 @@ class Status {
   template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
   void update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc);
   void update_gyro(std::function<T(void)> gyro_yaw);
-  void update_wall_sensor(std::function<uint32_t *(void)> wall_sensor, std::function<void(void)> front_light, std::function<void(void)> side_light);
+  void update_wall_sensor(std::function<std::uint32_t *(void)> wall_sensor, std::function<void(void)> front_light, std::function<void(void)> side_light);
   T get_ang_vel() { return ang_vel; }
   T get_ang() { return degree; }
   T get_speed() { return speed; }
@@ -78,8 +78,8 @@ void Status<T>::update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc) {  // uni
   len_mouse += (left_speed_new + right_speed_new) / 2 / 100;  // mm
 }
 template <typename T>
-void Status<T>::update_wall_sensor(std::function<uint32_t *(void)> wall_sensor, std::function<void(void)> front_light, std::function<void(void)> side_light) {
-  uint32_t *wall_sensor_value = wall_sensor();
+void Status<T>::update_wall_sensor(std::function<std::uint32_t *(void)> wall_sensor, std::function<void(void)> front_light, std::function<void(void)> side_light) {
+  std::uint32_t *wall_sensor_value = wall_sensor();
   switch (wall_sensor_cnt) {
     case 0:
       if (wall_sensor_value[FRONT_LEFT] > front_threshold / 2 && wall_sensor_value[FRONT_RIGHT] > front_threshold / 2) {

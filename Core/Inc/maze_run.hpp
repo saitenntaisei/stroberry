@@ -18,7 +18,7 @@ Agent::State prev_State = Agent::State::IDLE;
 IndexVec robot_position(0, 0);
 Direction robot_dir(NORTH);
 bool is_start_block = true;
-uint8_t prev_wall_cnt = 0;
+std::uint8_t prev_wall_cnt = 0;
 bool conditional_side_wall_control = false;
 
 int search_run();

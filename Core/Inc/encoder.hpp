@@ -1,5 +1,6 @@
 #ifndef CORE_INC_ENCODER_HPP_
 #define CORE_INC_ENCODER_HPP_
+#include <cstdint>
 namespace pwm {
 constexpr float deg2rad = std::numbers::pi_v<float> / 180.0f;
 
@@ -7,7 +8,7 @@ template <typename T, typename CNT>
 class Encoder {
  private:
   const float gear_duty = 10;
-  const uint8_t encoder_resolution = 12;
+  const std::uint8_t encoder_resolution = 12;
 
   T speed_rads;
   T cnt_total;
