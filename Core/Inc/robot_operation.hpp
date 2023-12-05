@@ -1,6 +1,7 @@
 #ifndef CORE_INC_ROBOTO_OPERATION_HPP_
 #define CORE_INC_ROBOTO_OPERATION_HPP_
 
+#include "../lib/Mseq/Mseq.h"
 #include "./global_state.hpp"
 #include "flash.hpp"
 #include "maze_run.hpp"
