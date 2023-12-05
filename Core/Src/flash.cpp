@@ -1,4 +1,4 @@
-#include "mine.hpp"
+#include "flash.hpp"
 // Flashのsector1の先頭に配置される変数(ラベル)
 // 配置と定義はリンカスクリプトで行う
 

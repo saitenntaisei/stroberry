@@ -1,7 +1,8 @@
 #ifndef CORE_INC_GYRO_HPP_
 #define CORE_INC_GYRO_HPP_
+#include <cstdio>
 
-#include "./mine.hpp"
+#include "./spi.h"
 
 namespace spi {
 using geometry = struct geometry {

@@ -3,15 +3,14 @@
 #include "./battery.hpp"
 #include "./buzzer.hpp"
 #include "./controller.hpp"
+#include "./data.hpp"
 #include "./encoder.hpp"
-#include "./global_state.hpp"
+#include "./flash.hpp"
 #include "./gyro.hpp"
 #include "./ir_sensor.hpp"
-#include "./maze_run.hpp"
 #include "./motor.hpp"
 #include "./pid.hpp"
 #include "./state.hpp"
-#include "data.hpp"
 
 namespace global_state {
 class GlobalState {

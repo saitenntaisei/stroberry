@@ -1,18 +1,9 @@
 #ifndef CORE_INC_ROBOTO_OPERATION_HPP_
 #define CORE_INC_ROBOTO_OPERATION_HPP_
 
-#include "../lib/Mseq/Mseq.h"
-#include "../lib/micromouse-maze-library/include/MazeLib/Maze.h"
-#include "../lib/micromouse-maze-library/include/MazeLib/StepMap.h"
 #include "./global_state.hpp"
-#include "adc.h"
-#include "data.hpp"
-#include "dma.h"
-#include "gpio.h"
-#include "main.h"
-#include "spi.h"
-#include "tim.h"
-#include "usart.h"
+#include "flash.hpp"
+#include "maze_run.hpp"
 
 using global_state::GlobalState;
 

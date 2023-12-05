@@ -1,5 +1,5 @@
-#ifndef CORE_INC_MINE_HPP_
-#define CORE_INC_MINE_HPP_
+#ifndef CORE_INC_FLASH_HPP_
+#define CORE_INC_FLASH_HPP_
 #define BACKUP_FLASH_SECTOR_NUM FLASH_SECTOR_1
 #define BACKUP_FLASH_SECTOR_SIZE 1024 * 16
 #include <cstdio>
@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "./spi.h"
 #include "./usart.h"
 
 extern char _backup_flash_start;
@@ -54,4 +53,4 @@ std::string format(const std::string& fmt, Args... args) {
 // if (!Store()) {
 //   printf("Failed to write flash\n");
 // }
-#endif  // CORE_INC_MINE_HPP_
+#endif  // CORE_INC_FLASH_HPP_

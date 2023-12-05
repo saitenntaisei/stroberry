@@ -1,9 +1,6 @@
 #ifndef CORE_INC_BATTERY_HPP_
 #define CORE_INC_BATTERY_HPP_
 
-#include "./main.h"
-#include "./mine.hpp"
-
 namespace adc {
 template <typename T, typename RESO>
 class Battery {

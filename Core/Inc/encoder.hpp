@@ -1,6 +1,5 @@
 #ifndef CORE_INC_ENCODER_HPP_
 #define CORE_INC_ENCODER_HPP_
-#include "./mine.hpp"
 namespace pwm {
 constexpr float deg2rad = std::numbers::pi_v<float> / 180.0f;
 

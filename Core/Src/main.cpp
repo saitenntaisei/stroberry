@@ -29,12 +29,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../lib/Mseq/Mseq.h"
-#include "../lib/micromouse-maze-library/include/MazeLib/Maze.h"
-#include "../lib/micromouse-maze-library/include/MazeLib/StepMap.h"
 #include "./battery.hpp"
 #include "./buzzer.hpp"
 #include "./controller.hpp"
+#include "./data.hpp"
 #include "./encoder.hpp"
+#include "./flash.hpp"
 #include "./global_state.hpp"
 #include "./gyro.hpp"
 #include "./ir_sensor.hpp"
@@ -43,7 +43,6 @@
 #include "./pid.hpp"
 #include "./robot_operation.hpp"
 #include "./state.hpp"
-#include "data.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

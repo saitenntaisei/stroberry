@@ -6,9 +6,6 @@
 #include <numbers>
 #include <vector>
 
-#include "./main.h"
-#include "./mine.hpp"
-#include "./motor.hpp"
 namespace adc {
 
 template <typename T>

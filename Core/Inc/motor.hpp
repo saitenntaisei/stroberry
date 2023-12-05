@@ -1,7 +1,8 @@
 #ifndef CORE_INC_MOTOR_HPP_
 #define CORE_INC_MOTOR_HPP_
 
-#include "./mine.hpp"
+#include <cmath>
+
 #include "./tim.h"
 #include "adc.h"
 #include "battery.hpp"
