@@ -198,7 +198,10 @@ int main() {
   HAL_Delay(4000);
   GlobalState::gyro.init();
   HAL_Delay(400);
-
+  GlobalState::buzzer.init();
+  GlobalState::ir_sensor.init();
+  GlobalState::motor.left.init();
+  GlobalState::motor.right.init();
   printf("stroberry\r\n");
   GlobalState::buzzer.beep("ok");
   // HAL_TIM_Base_Start_IT(&htim10);

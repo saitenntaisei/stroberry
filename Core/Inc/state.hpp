@@ -62,7 +62,7 @@ Status<T>::Status(T ts) : ts(ts) {}
 template <typename T>
 template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
 void Status<T>::update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc) {  // unit is control freq(1ms)
-  T left_rads = (left_enc.*LEFTENCFn)();
+  T left_rads = -(left_enc.*LEFTENCFn)();
   T right_rads = (right_enc.*RIGHTENCFn)();
   left_speed_new = left_rads * static_cast<T>(radius_wheel) * 100;    // mm/s
   right_speed_new = right_rads * static_cast<T>(radius_wheel) * 100;  // mm/s

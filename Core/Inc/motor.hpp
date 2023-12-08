@@ -20,6 +20,7 @@ class Motor {
   /* data */
  public:
   Motor(TIM_HandleTypeDef* tim_1, TIM_HandleTypeDef* tim_2, unsigned int channel_1, unsigned int channel_2);
+  void init(void);
   void drive(int16_t duty);
   void drive_vcc(float volt);
   void brake();

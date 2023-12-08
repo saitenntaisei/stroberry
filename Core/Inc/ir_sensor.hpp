@@ -7,6 +7,8 @@
 #include <numbers>
 #include <vector>
 
+#include "motor.hpp"
+
 namespace adc {
 
 template <typename T>
@@ -26,6 +28,7 @@ class IrSensor {
 
  public:
   explicit IrSensor(ADC_HandleTypeDef* hadc, std::uint8_t num, std::uint16_t sampling_freq_kHz, std::uint16_t ir_flashing_freq_kHz);
+  void init(void);
   void ir_sampling(void);
   void ir_update(void);
   void ir_value_reset(void);
@@ -48,7 +51,9 @@ IrSensor<T>::IrSensor(ADC_HandleTypeDef* hadc, std::uint8_t num, std::uint16_t s
       sampling_freq_kHz(sampling_freq_kHz),
       ir_flashing_freq_kHz(ir_flashing_freq_kHz),
       pre_cos(),
-      pre_sin() {
+      pre_sin() {}
+template <typename T>
+void IrSensor<T>::init() {
   if (sampling_freq_kHz * 4 % ir_flashing_freq_kHz != 0) Error_Handler();
   sampling_times = static_cast<std::uint16_t>(sampling_freq_kHz * 4 / ir_flashing_freq_kHz);
   if (!HAL_ADC_Start_DMA(hadc, (uint32_t*)(g_adc_data.get()), ir_sensor_num) == HAL_OK) {
@@ -95,14 +100,14 @@ namespace pwm {
 class IrLight {
  private:
   timerPin ir_light;
-  std::uint16_t freq;
+  std::uint16_t freq = 50;
 
  public:
   IrLight(TIM_HandleTypeDef* tim, unsigned int channel);
   void ir_flash_start();
   void ir_flash_stop();
 };
-IrLight::IrLight(TIM_HandleTypeDef* tim, unsigned int channel) : ir_light(tim, channel), freq(static_cast<std::uint16_t>(tim->Init.Period / 2)) {}
+IrLight::IrLight(TIM_HandleTypeDef* tim, unsigned int channel) : ir_light(tim, channel) {}
 void IrLight::ir_flash_start() {
   HAL_TIM_PWM_Start(ir_light.tim, ir_light.channel);
   __HAL_TIM_SET_COMPARE(ir_light.tim, ir_light.channel, freq);  // Max 100
