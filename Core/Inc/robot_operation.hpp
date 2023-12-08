@@ -10,7 +10,7 @@
 
 using global_state::GlobalState;
 
-void maze_run::robot_move(Direction dir) {
+void maze_run::robot_move(const Direction &dir) {
   std::int8_t robot_dir_index = 0;
   while (1) {
     if (robot_dir.byte == NORTH << robot_dir_index) break;
@@ -92,9 +92,7 @@ void maze_run::robot_move(Direction dir) {
   return;
 }
 
-Direction maze_run::get_wall_data() {
-  Direction wall;
-
+const Direction &maze_run::get_wall_data() {
   std::uint8_t wall_front = 0;
   std::uint8_t wall_left = 0;
   std::uint8_t wall_right = 0;
@@ -278,24 +276,6 @@ void abjustMode(std::uint8_t mode) {
 
 void trueRunMode(std::uint8_t mode) {
   switch (mode) {
-    case 6: {
-      HAL_TIM_Base_Start_IT(&htim10);
-      HAL_TIM_Base_Start_IT(&htim11);
-      // GlobalState::ctrl.turn(3600, 540, 720);
-      // GlobalState::ctrl.front_wall_control = true;
-
-      GlobalState::ctrl.turn(3600, 540, 720);
-      // GlobalState::ctrl.turn(-90, 540, 180);
-    } break;
-    case 5: {
-      HAL_TIM_Base_Start_IT(&htim10);
-      HAL_TIM_Base_Start_IT(&htim11);
-      // GlobalState::ctrl.front_wall_control = true;
-      maze_run::conditional_side_wall_control = true;
-      GlobalState::ctrl.back_1s();
-      GlobalState::ctrl.straight(180.0 * 8 - 40.0, 400, 800, 0.0);
-    } break;
-
     case 0: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
@@ -322,7 +302,24 @@ void trueRunMode(std::uint8_t mode) {
       GlobalState::ctrl.set_front_wall_control_permission(false);
       maze_run::conditional_side_wall_control = true;
       maze_run::search_run();
-    }
+    } break;
+    case 6: {
+      HAL_TIM_Base_Start_IT(&htim10);
+      HAL_TIM_Base_Start_IT(&htim11);
+      // GlobalState::ctrl.turn(3600, 540, 720);
+      // GlobalState::ctrl.front_wall_control = true;
+
+      GlobalState::ctrl.turn(3600, 540, 720);
+      // GlobalState::ctrl.turn(-90, 540, 180);
+    } break;
+    case 5: {
+      HAL_TIM_Base_Start_IT(&htim10);
+      HAL_TIM_Base_Start_IT(&htim11);
+      // GlobalState::ctrl.front_wall_control = true;
+      maze_run::conditional_side_wall_control = true;
+      GlobalState::ctrl.back_1s();
+      GlobalState::ctrl.straight(180.0 * 8 - 40.0, 400, 800, 0.0);
+    } break;
 
     default:
       break;

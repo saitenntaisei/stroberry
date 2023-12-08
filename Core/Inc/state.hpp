@@ -31,11 +31,10 @@ class Status {
   static constexpr parts::wheel<T, T> side_wall_sensor_ref = {6500, 6500};
   static constexpr parts::wheel<T, T> front_wall_sensor_ref = {25000, 25000};
   parts::wheel<bool, bool> is_side_wall_control = {false, false};
-
-  static constexpr std::uint32_t left_threshold = 2500, right_threshold = 2500, front_threshold = 3000;
+  parts::wheel<bool, bool> is_front_wall_control = {false, false};
+  static constexpr std::uint32_t left_threshold = 2500, right_threshold = 2500, front_threshold = 4000;
   /* data */
  public:
-  parts::wheel<bool, bool> is_front_wall_control = {false, false};
   enum WallSensor { FRONT_LEFT, FRONT_RIGHT, LEFT, RIGHT };
   Status(T ts = 0.001F);  // NOLINT
   template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
@@ -53,7 +52,8 @@ class Status {
   bool get_front_wall() { return front_wall; }
   bool get_left_wall() { return left_wall; }
   bool get_right_wall() { return right_wall; }
-  parts::wheel<bool, bool> get_is_control() { return is_side_wall_control; }
+  parts::wheel<bool, bool> get_is_side_wall_control() { return is_side_wall_control; }
+  parts::wheel<bool, bool> get_is_front_wall_control() { return is_front_wall_control; }
   parts::wheel<T, T> get_side_wall_sensor_error() { return side_wall_sensor_error; }
   parts::wheel<T, T> get_front_wall_sensor_error() { return front_wall_sensor_error; }
 };

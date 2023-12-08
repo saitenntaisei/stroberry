@@ -66,11 +66,13 @@ void Controller<T, STATUS, PID>::update() {
   if (run_mode == parts::RunModeT::STRAIGHT_MODE) {
     if (side_wall_control) {
       parts::wheel<T, T> side_wall_sensor_error = status.get_side_wall_sensor_error();
-      parts::wheel<bool, bool> is_side_wall = status.get_is_control();
+      parts::wheel<bool, bool> is_side_wall = status.get_is_side_wall_control();
       std::uint8_t n = 1;
+
       if (!is_side_wall.left || !is_side_wall.right) {
         n = 2;
       }
+      if (!is_side_wall.left && !is_side_wall.right) n = 0;
       tar_ang_vel += side_wall.update(0, side_wall_sensor_error.left - side_wall_sensor_error.right) * (float)n;
     }
   }
@@ -191,7 +193,8 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
 
   bool side_wall_control_tmp = side_wall_control;
   if (is_enable_front_wall_control) {
-    if (status.is_front_wall_control.left && status.is_front_wall_control.right && std::abs(end_speed) < FLT_EPSILON) {
+    parts::wheel<bool, bool> is_front_wall_exsist = status.get_is_front_wall_control();
+    if (is_front_wall_exsist.left && is_front_wall_exsist.right && std::abs(end_speed) < FLT_EPSILON) {
       side_wall_control = false;
       front_wall_control = true;
     }
