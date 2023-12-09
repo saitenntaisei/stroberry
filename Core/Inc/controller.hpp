@@ -12,7 +12,7 @@ namespace state {
 template <typename T, class STATUS, class PID>
 class Controller {
  private:
-  parts::wheel<PID, PID> speed = {PID(0.0041024f, 0.067247f, 0.0f, 0.0f), PID(0.0041024f, 0.067247f, 0.0f, 0.0f)},
+  parts::wheel<PID, PID> speed = {PID(0.00809f, 0.031819f, 0.00048949f, 0.0f), PID(0.00809f, 0.031819f, 0.00048949f, 0.0f)},
                          front_wall = {PID(0.00005f, 0.00008f, 0.0000014f, 0.0f), PID(0.00005f, 0.00008f, 0.0000014f, 0.0f)},
                          ang = {PID(0.5f, 0.05f, 0.001f, 0.0f), PID(0.5f, 0.05f, 0.001f, 0.0f)};
   PID side_wall = PID(0.015f, 0.000f, 0.0000f, 0.0f);
