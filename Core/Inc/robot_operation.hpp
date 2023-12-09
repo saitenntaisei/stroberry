@@ -205,13 +205,17 @@ void abjustMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim11);
       HAL_Delay(1);
       GlobalState::test_mode = param::TestMode::STRAIGHT_MODE;
-      for (int i = 0; i < (1 << 6) - 1; ++i) {
-        std::uint8_t signal = mseq.update();
-        GlobalState::motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 2.5f;
-        GlobalState::motor.left.drive_vcc(-GlobalState::motor_signal);
-        GlobalState::motor.right.drive_vcc(GlobalState::motor_signal);
-        HAL_Delay(400);
-      }
+      // for (int i = 0; i < (1 << 6) - 1; ++i) {
+      //   std::uint8_t signal = mseq.update();
+      //   GlobalState::motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 2.5f;
+      //   GlobalState::motor.left.drive_vcc(-GlobalState::motor_signal);
+      //   GlobalState::motor.right.drive_vcc(GlobalState::motor_signal);
+      //   HAL_Delay(400);
+      // }
+      GlobalState::motor_signal = 2.0f;
+      GlobalState::motor.left.drive_vcc(-GlobalState::motor_signal);
+      GlobalState::motor.right.drive_vcc(GlobalState::motor_signal * 1.1f);
+      HAL_Delay(2000);
       GlobalState::test_mode = param::TestMode::NONE;
       HAL_TIM_Base_Stop_IT(&htim10);
       HAL_TIM_Base_Stop_IT(&htim11);

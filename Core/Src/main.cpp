@@ -239,7 +239,7 @@ int main() {
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GPIO_PIN_RESET);
         HAL_Delay(3000);
         robot_operation::trueRunMode(mode);
-        // abjustMode(mode);
+        // robot_operation::abjustMode(mode);
       }
 
       HAL_Delay(1);
