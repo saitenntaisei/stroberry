@@ -97,15 +97,15 @@ Direction maze_run::get_wall_data() {
   std::uint8_t wall_front = 0;
   std::uint8_t wall_left = 0;
   std::uint8_t wall_right = 0;
-  for (int i = 0; i < 1; i++) {
+  for (int i = 0; i < 5; i++) {
     wall_front += GlobalState::ctrl.status.get_front_wall();
     wall_left += GlobalState::ctrl.status.get_left_wall();
     wall_right += GlobalState::ctrl.status.get_right_wall();
-    // HAL_Delay(100);
+    HAL_Delay(100);
   }
-  bool is_front_wall = wall_front >= 1;
-  bool is_left_wall = wall_left >= 1;
-  bool is_right_wall = wall_right >= 1;
+  bool is_front_wall = wall_front >= 3;
+  bool is_left_wall = wall_left >= 3;
+  bool is_right_wall = wall_right >= 3;
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, is_left_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, is_front_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED2_Pin, is_front_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
