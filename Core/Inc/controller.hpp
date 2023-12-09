@@ -75,7 +75,7 @@ void Controller<T, STATUS, PID>::update() {
         n = 2;
       }
       if (!is_side_wall.left && !is_side_wall.right) n = 0;
-      if (maze_run::conditional_side_wall_control && !(is_side_wall.left && is_side_wall.right)) {
+      if (maze_run::conditional_side_wall_control && !(status.get_left_wall() && status.get_right_wall())) {
         n = 0;
       }
       tar_ang_vel += side_wall.update(0, side_wall_sensor_error.left - side_wall_sensor_error.right) * (float)n;
