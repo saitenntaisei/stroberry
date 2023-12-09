@@ -208,8 +208,8 @@ int main() {
   // HAL_TIM_Base_Start_IT(&htim11);
   HAL_TIM_Base_Start_IT(&htim7);
   // HAL_TIM_Base_Start_IT(&htim6);
-  GlobalState::ir_light_1.ir_flash_start();
-  GlobalState::ir_light_2.ir_flash_start();
+  GlobalState::ir_light_1.ir_flash_start();  // front
+  GlobalState::ir_light_2.ir_flash_start();  // side
   HAL_TIM_GenerateEvent(&htim3, TIM_EVENTSOURCE_UPDATE);
   HAL_TIM_Base_Start_IT(&htim3);
 

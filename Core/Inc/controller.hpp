@@ -11,9 +11,9 @@ template <typename T, class STATUS, class PID>
 class Controller {
  private:
   parts::wheel<PID, PID> speed = {PID(0.0041024f, 0.067247f, 0.0f, 0.0f), PID(0.0041024f, 0.067247f, 0.0f, 0.0f)},
-                         front_wall = {PID(0.00009f, 0.0001f, 0.0000014f, 0.0f), PID(0.00009f, 0.0001 f, 0.0000014f, 0.0f)},
+                         front_wall = {PID(0.00005f, 0.00008f, 0.0000014f, 0.0f), PID(0.00005f, 0.00008f, 0.0000014f, 0.0f)},
                          ang = {PID(0.5f, 0.05f, 0.001f, 0.0f), PID(0.5f, 0.05f, 0.001f, 0.0f)};
-  PID side_wall = PID(0.015f, 0.000f, 0.0001f, 0.0f);
+  PID side_wall = PID(0.03f, 0.000f, 0.0000f, 0.0f);
   PID ang_vel = PID(0.0041024f, 0.067247f, 0.0f, 0.0f);
 
   parts::wheel<T, T> motor_duty = {0, 0};
@@ -64,16 +64,21 @@ void Controller<T, STATUS, PID>::update() {
   motor_duty.right = 0;
 
   if (run_mode == parts::RunModeT::STRAIGHT_MODE) {
-    if (side_wall_control) {
-      parts::wheel<T, T> side_wall_sensor_error = status.get_side_wall_sensor_error();
-      parts::wheel<bool, bool> is_side_wall = status.get_is_side_wall_control();
-      std::uint8_t n = 1;
+    parts::wheel<T, T> side_wall_sensor_error = status.get_side_wall_sensor_error();
+    parts::wheel<bool, bool> is_side_wall = status.get_is_side_wall_control();
+    std::uint8_t n = 1;
 
-      if (!is_side_wall.left || !is_side_wall.right) {
-        n = 2;
-      }
-      if (!is_side_wall.left && !is_side_wall.right) n = 0;
+    // if ((!is_side_wall.left || !is_side_wall.right) && !side_wall_control) {
+    //   n = 0;
+    // } else {
+    //   n = 2;
+    // }
+    // if (!is_side_wall.left && !is_side_wall.right) n = 0;
+    if (is_side_wall.left && is_side_wall.right) {
       tar_ang_vel += side_wall.update(0, side_wall_sensor_error.left - side_wall_sensor_error.right) * (float)n;
+    } else {
+      side_wall.reset();
+      tar_ang_vel = 0;
     }
   }
 
@@ -203,17 +208,18 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
         HAL_Delay(1);
       }
     }
-  } else {
-    if (std::abs(end_speed) < FLT_EPSILON) {
-      while (std::abs(status.get_speed()) > FLT_EPSILON) {
-        HAL_Delay(1);
-      }
+    front_wall_control = false;
+  }
+
+  if (std::abs(end_speed) < FLT_EPSILON) {
+    while (std::abs(status.get_speed()) > FLT_EPSILON) {
+      HAL_Delay(1);
     }
   }
 
   // 現在距離を0にリセット
   status.reset();
-  front_wall_control = false;
+
   side_wall_control = side_wall_control_tmp;
   if (std::abs(end_speed) < FLT_EPSILON) run_mode = parts::RunModeT::STOP_MODE;
   speed.left.reset();

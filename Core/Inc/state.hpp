@@ -24,15 +24,15 @@ class Status {
   bool left_wall = false;
   bool right_wall = false;
   std::uint8_t wall_sensor_cnt = 0;
-  static constexpr parts::wheel<T, T> side_wall_control_th = {4000, 4000};
-  static constexpr parts::wheel<T, T> front_wall_control_th = {5000, 5000};
+  static constexpr parts::wheel<T, T> side_wall_control_th = {5000, 5000};
+  static constexpr parts::wheel<T, T> front_wall_control_th = {10000, 10000};
   parts::wheel<T, T> side_wall_sensor_error = {0, 0};
   parts::wheel<T, T> front_wall_sensor_error = {0, 0};
-  static constexpr parts::wheel<T, T> side_wall_sensor_ref = {6500, 6500};
+  static constexpr parts::wheel<T, T> side_wall_sensor_ref = {5000, 5000};
   static constexpr parts::wheel<T, T> front_wall_sensor_ref = {25000, 25000};
   parts::wheel<bool, bool> is_side_wall_control = {false, false};
   parts::wheel<bool, bool> is_front_wall_control = {false, false};
-  static constexpr std::uint32_t left_threshold = 2500, right_threshold = 2500, front_threshold = 4000;
+  static constexpr std::uint32_t left_threshold = 2500, right_threshold = 2500, front_threshold = 5000;
   /* data */
  public:
   enum WallSensor { FRONT_LEFT, FRONT_RIGHT, LEFT, RIGHT };
@@ -82,7 +82,7 @@ void Status<T>::update_wall_sensor(std::function<std::uint32_t *(void)> wall_sen
   std::uint32_t *wall_sensor_value = wall_sensor();
   switch (wall_sensor_cnt) {
     case 0:
-      if (wall_sensor_value[FRONT_LEFT] > front_threshold / 2 && wall_sensor_value[FRONT_RIGHT] > front_threshold / 2) {
+      if (wall_sensor_value[FRONT_LEFT] > front_threshold / 2 || wall_sensor_value[FRONT_RIGHT] > front_threshold / 2) {
         front_wall = true;
       } else {
         front_wall = false;
@@ -134,6 +134,12 @@ void Status<T>::update_wall_sensor(std::function<std::uint32_t *(void)> wall_sen
         side_wall_sensor_error.right = static_cast<float>(wall_sensor_value[RIGHT]) - side_wall_sensor_ref.right;
       } else {
         is_side_wall_control.right = false;
+        side_wall_sensor_error.right = 0;
+      }
+      if (!is_side_wall_control.right || !is_side_wall_control.left) {
+        is_side_wall_control.left = false;
+        is_side_wall_control.right = false;
+        side_wall_sensor_error.left = 0;
         side_wall_sensor_error.right = 0;
       }
       front_light();
