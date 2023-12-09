@@ -329,6 +329,31 @@ void trueRunMode(std::uint8_t mode) {
       GlobalState::ctrl.straight(250.0, 400, 800, 0.0);
     } break;
 
+    case 7: {
+      while (true) {
+        std::uint32_t ir_value[4];
+        GlobalState::ir_light_1.ir_flash_start();
+        GlobalState::ir_light_2.ir_flash_stop();
+        HAL_Delay(10);
+
+        for (std::uint8_t i = 0; i < 2; ++i) {
+          ir_value[i] = GlobalState::ir_sensor.get_ir_value(i);
+        }
+        GlobalState::ir_light_1.ir_flash_stop();
+        GlobalState::ir_light_2.ir_flash_start();
+        HAL_Delay(10);
+        for (std::uint8_t i = 2; i < 4; ++i) {
+          ir_value[i] = GlobalState::ir_sensor.get_ir_value(i);
+        }
+
+        printf("front_left: %ld, front_right: %ld, left: %ld, right: %ld\r\n", ir_value[0], ir_value[1], ir_value[2], ir_value[3]);
+        HAL_Delay(1);
+        HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GlobalState::ctrl.status.get_left_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, GlobalState::ctrl.status.get_front_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(LED6_GPIO_Port, LED2_Pin, GlobalState::ctrl.status.get_front_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(LED6_GPIO_Port, LED1_Pin, GlobalState::ctrl.status.get_right_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
+      }
+    }
     default:
       break;
   }
