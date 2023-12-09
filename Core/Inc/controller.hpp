@@ -33,7 +33,7 @@ class Controller {
   bool is_enable_front_wall_control = true;
 
  public:
-  STATUS status;  // NOLINT
+  state::Status<float> status;  // NOLINT
 
   Controller() : status() {}
   void set_side_wall_control(bool side_wall_control) { this->side_wall_control = side_wall_control; }
