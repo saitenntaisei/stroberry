@@ -136,12 +136,12 @@ void Status<T>::update_wall_sensor(std::function<std::uint32_t *(void)> wall_sen
         is_side_wall_control.right = false;
         side_wall_sensor_error.right = 0;
       }
-      if (!is_side_wall_control.right || !is_side_wall_control.left) {
-        is_side_wall_control.left = false;
-        is_side_wall_control.right = false;
-        side_wall_sensor_error.left = 0;
-        side_wall_sensor_error.right = 0;
-      }
+      // if (!is_side_wall_control.right || !is_side_wall_control.left) {
+      //   is_side_wall_control.left = false;
+      //   is_side_wall_control.right = false;
+      //   side_wall_sensor_error.left = 0;
+      //   side_wall_sensor_error.right = 0;
+      // }
       front_light();
       break;
     default:

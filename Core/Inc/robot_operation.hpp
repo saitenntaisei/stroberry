@@ -110,13 +110,13 @@ Direction maze_run::get_wall_data() {
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, is_front_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED2_Pin, is_front_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED1_Pin, is_right_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
-  // if (maze_run::conditional_side_wall_control) {
-  //   if (!is_left_wall || !is_right_wall) {
-  //     GlobalState::ctrl.set_side_wall_control(false);
-  //   } else {
-  //     GlobalState::ctrl.set_side_wall_control(true);
-  //   }
-  // }
+  if (maze_run::conditional_side_wall_control) {
+    if (!is_left_wall || !is_right_wall) {
+      GlobalState::ctrl.set_side_wall_control(false);
+    } else {
+      GlobalState::ctrl.set_side_wall_control(true);
+    }
+  }
   std::int8_t robot_dir_index = 0;
   while (1) {
     if (robot_dir.byte == NORTH << robot_dir_index) break;
@@ -280,32 +280,32 @@ void trueRunMode(std::uint8_t mode) {
     case 0: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
-      // maze_run::conditional_side_wall_control = false;
-      GlobalState::ctrl.set_side_wall_control(false);
+      maze_run::conditional_side_wall_control = false;
+      // GlobalState::ctrl.set_side_wall_control(false);
       maze_run::search_run();
 
     } break;
     case 1: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
-      // maze_run::conditional_side_wall_control = true;
-      GlobalState::ctrl.set_side_wall_control(true);
+      maze_run::conditional_side_wall_control = true;
+      // GlobalState::ctrl.set_side_wall_control(true);
       maze_run::search_run();
     } break;
     case 2: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       GlobalState::ctrl.set_front_wall_control_permission(false);
-      // maze_run::conditional_side_wall_control = false;
-      GlobalState::ctrl.set_side_wall_control(false);
+      maze_run::conditional_side_wall_control = false;
+      // GlobalState::ctrl.set_side_wall_control(false);
       maze_run::search_run();
     } break;
     case 3: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       GlobalState::ctrl.set_front_wall_control_permission(false);
-      // maze_run::conditional_side_wall_control = true;
-      GlobalState::ctrl.set_side_wall_control(false);
+      maze_run::conditional_side_wall_control = true;
+      // GlobalState::ctrl.set_side_wall_control(false);
       maze_run::search_run();
     } break;
     case 6: {
@@ -315,13 +315,16 @@ void trueRunMode(std::uint8_t mode) {
       // GlobalState::ctrl.front_wall_control = true;
 
       GlobalState::ctrl.turn(3600, 540, 720);
+      HAL_Delay(1000);
+      GlobalState::ctrl.turn(3600, 540, 720);
       // GlobalState::ctrl.turn(-90, 540, 180);
     } break;
     case 5: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       // GlobalState::ctrl.front_wall_control = true;
-      maze_run::conditional_side_wall_control = true;
+      maze_run::conditional_side_wall_control = false;
+      GlobalState::ctrl.set_side_wall_control(true);
       // GlobalState::ctrl.back_1s();
       GlobalState::ctrl.straight(250.0, 400, 800, 0.0);
     } break;
