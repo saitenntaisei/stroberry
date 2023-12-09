@@ -195,15 +195,20 @@ int main() {
   setbuf(stdout, nullptr);
   HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
-  HAL_Delay(4000);
+  HAL_Delay(100);
   GlobalState::gyro.init();
-  HAL_Delay(400);
+  HAL_Delay(2000);
   GlobalState::buzzer.init();
   GlobalState::ir_sensor.init();
   GlobalState::motor.left.init();
   GlobalState::motor.right.init();
-  printf("stroberry\r\n");
-  GlobalState::buzzer.beep("ok");
+  // printf("stroberry\r\n");
+  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, GPIO_PIN_SET);
+  HAL_Delay(500);
+  // GlobalState::buzzer.beep("ok");
   // HAL_TIM_Base_Start_IT(&htim10);
   // HAL_TIM_Base_Start_IT(&htim11);
   HAL_TIM_Base_Start_IT(&htim7);
@@ -223,8 +228,7 @@ int main() {
     /* USER CODE BEGIN 3 */
 
     while (safe_mode) {
-      if (GlobalState::ir_sensor.get_ir_value(0) >= 1e4 && GlobalState::ir_sensor.get_ir_value(1) >= 1e4 && GlobalState::ir_sensor.get_ir_value(2) >= 1e4 &&
-          GlobalState::ir_sensor.get_ir_value(3) >= 1e4) {
+      if (GlobalState::ir_sensor.get_ir_value(0) >= 1e4 && GlobalState::ir_sensor.get_ir_value(1) >= 1e4) {
         safe_mode = false;
         led_mode = false;
         HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
@@ -233,7 +237,7 @@ int main() {
         HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GPIO_PIN_RESET);
-        HAL_Delay(4000);
+        HAL_Delay(3000);
         robot_operation::trueRunMode(mode);
         // abjustMode(mode);
       }
