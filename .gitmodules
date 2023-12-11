@@ -1,0 +1,12 @@
+[submodule "Core/lib/Mseq"]
+	path = Core/lib/Mseq
+	url = git@github.com:saitenntaisei/Mseq.git
+[submodule "Core/lib/micromouse-maze-library"]
+	path = Core/lib/micromouse-maze-library
+	url = git@github.com:saitenntaisei/micromouse-maze-library.git 
+[submodule "Core/lib/micromouse-control-module"]
+	path = Core/lib/micromouse-control-module 
+	url =git@github.com:saitenntaisei/micromouse-control-module.git
+[submodule "Core/lib/MazeSolver2015"]
+	path = Core/lib/MazeSolver2015
+	url = git@github.com:idt12312/MazeSolver2015.git

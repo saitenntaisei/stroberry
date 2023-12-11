@@ -58,6 +58,31 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define Button2_Pin GPIO_PIN_13
+#define Button2_GPIO_Port GPIOC
+#define Button2_EXTI_IRQn EXTI15_10_IRQn
+#define IR_Sensor_OUT1_Pin GPIO_PIN_2
+#define IR_Sensor_OUT1_GPIO_Port GPIOA
+#define IR_Sensor_OUT2_Pin GPIO_PIN_3
+#define IR_Sensor_OUT2_GPIO_Port GPIOA
+#define IMU_CS_Pin GPIO_PIN_4
+#define IMU_CS_GPIO_Port GPIOA
+#define LED6_Pin GPIO_PIN_0
+#define LED6_GPIO_Port GPIOB
+#define LED5_Pin GPIO_PIN_1
+#define LED5_GPIO_Port GPIOB
+#define LED4_Pin GPIO_PIN_2
+#define LED4_GPIO_Port GPIOB
+#define Button1_Pin GPIO_PIN_12
+#define Button1_GPIO_Port GPIOC
+#define Button1_EXTI_IRQn EXTI15_10_IRQn
+#define LED3_Pin GPIO_PIN_3
+#define LED3_GPIO_Port GPIOB
+#define LED2_Pin GPIO_PIN_4
+#define LED2_GPIO_Port GPIOB
+#define LED1_Pin GPIO_PIN_5
+#define LED1_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
@@ -67,5 +92,3 @@ void Error_Handler(void);
 #endif
 
 #endif /* __MAIN_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
