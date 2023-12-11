@@ -5,15 +5,17 @@
 #include <functional>
 #include <memory>
 
+#include "maze_run.hpp"
 #include "parts.hpp"
+#include "state.hpp"
 namespace state {
 template <typename T, class STATUS, class PID>
 class Controller {
  private:
-  parts::wheel<PID, PID> speed = {PID(0.0041024f, 0.067247f, 0.0f, 0.0f), PID(0.0041024f, 0.067247f, 0.0f, 0.0f)},
-                         front_wall = {PID(0.00009f, 0.0001f, 0.0000014f, 0.0f), PID(0.00009f, 0.0001f, 0.0000014f, 0.0f)},
+  parts::wheel<PID, PID> speed = {PID(0.00809f, 0.031819f, 0.00048949f, 0.0f), PID(0.00809f, 0.031819f, 0.00048949f, 0.0f)},
+                         front_wall = {PID(0.00005f, 0.00008f, 0.0000014f, 0.0f), PID(0.00005f, 0.00008f, 0.0000014f, 0.0f)},
                          ang = {PID(0.5f, 0.05f, 0.001f, 0.0f), PID(0.5f, 0.05f, 0.001f, 0.0f)};
-  PID side_wall = PID(0.015f, 0.000f, 0.0001f, 0.0f);
+  PID side_wall = PID(0.008f, 0.000f, 0.0000f, 0.0f);
   PID ang_vel = PID(0.0041024f, 0.067247f, 0.0f, 0.0f);
 
   parts::wheel<T, T> motor_duty = {0, 0};
@@ -31,7 +33,7 @@ class Controller {
   bool is_enable_front_wall_control = true;
 
  public:
-  STATUS status;  // NOLINT
+  state::Status<float> status;  // NOLINT
 
   Controller() : status() {}
   void set_side_wall_control(bool side_wall_control) { this->side_wall_control = side_wall_control; }
@@ -73,13 +75,16 @@ void Controller<T, STATUS, PID>::update() {
         n = 2;
       }
       if (!is_side_wall.left && !is_side_wall.right) n = 0;
+      if (maze_run::conditional_side_wall_control && !(status.get_left_wall() && status.get_right_wall())) {
+        n = 0;
+      }
       tar_ang_vel += side_wall.update(0, side_wall_sensor_error.left - side_wall_sensor_error.right) * (float)n;
     }
   }
 
   if (!front_wall_control) {
     motor_duty.left += speed.left.update(tar_speed, status.get_speed());
-    motor_duty.right += speed.right.update(tar_speed, status.get_speed());
+    motor_duty.right += speed.right.update(tar_speed, status.get_speed()) * 1.1f;
     float ang_vel_pid = ang_vel.update(tar_ang_vel, status.get_ang_vel());
     motor_duty.left -= ang_vel_pid;
     motor_duty.right += ang_vel_pid;
@@ -174,6 +179,10 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
     HAL_Delay(1);
   }
   // 減速処理開始
+  bool side_wall_control_tmp = side_wall_control;
+  if (!maze_run::conditional_side_wall_control) {
+    side_wall_control = false;
+  }
 
   float end_tar_speed = (std::fabs(end_speed) < FLT_EPSILON ? min_speed : end_speed);
   accel = -acc;
@@ -190,8 +199,10 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
   // 加速度を0にする
   accel = 0;
   tar_speed = (std::abs(end_speed) < FLT_EPSILON ? 0 : end_speed);
+  if (maze_run::conditional_side_wall_control) {
+    side_wall_control = side_wall_control_tmp;
+  }
 
-  bool side_wall_control_tmp = side_wall_control;
   if (is_enable_front_wall_control) {
     parts::wheel<bool, bool> is_front_wall_exsist = status.get_is_front_wall_control();
     if (is_front_wall_exsist.left && is_front_wall_exsist.right && std::abs(end_speed) < FLT_EPSILON) {
@@ -203,21 +214,21 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
         HAL_Delay(1);
       }
     }
-  } else {
-    if (std::abs(end_speed) < FLT_EPSILON) {
-      while (std::abs(status.get_speed()) > FLT_EPSILON) {
-        HAL_Delay(1);
-      }
+    front_wall_control = false;
+  }
+
+  if (std::abs(end_speed) < FLT_EPSILON) {
+    while (std::abs(status.get_speed()) > FLT_EPSILON) {
+      HAL_Delay(1);
     }
   }
+  if (std::abs(end_speed) < FLT_EPSILON) run_mode = parts::RunModeT::STOP_MODE;
 
   // 現在距離を0にリセット
   status.reset();
-  front_wall_control = false;
-  side_wall_control = side_wall_control_tmp;
-  if (std::abs(end_speed) < FLT_EPSILON) run_mode = parts::RunModeT::STOP_MODE;
   speed.left.reset();
   speed.right.reset();
+  side_wall_control = side_wall_control_tmp;
   HAL_Delay(1);
 }
 

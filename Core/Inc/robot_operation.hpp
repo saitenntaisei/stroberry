@@ -10,7 +10,7 @@
 
 using global_state::GlobalState;
 
-void maze_run::robot_move(const Direction &dir) {
+void maze_run::robot_move(Direction dir) {
   std::int8_t robot_dir_index = 0;
   while (1) {
     if (robot_dir.byte == NORTH << robot_dir_index) break;
@@ -92,19 +92,20 @@ void maze_run::robot_move(const Direction &dir) {
   return;
 }
 
-const Direction &maze_run::get_wall_data() {
+Direction maze_run::get_wall_data() {
+  Direction wall;
   std::uint8_t wall_front = 0;
   std::uint8_t wall_left = 0;
   std::uint8_t wall_right = 0;
-  for (int i = 0; i < 1; i++) {
+  for (int i = 0; i < 5; i++) {
     wall_front += GlobalState::ctrl.status.get_front_wall();
     wall_left += GlobalState::ctrl.status.get_left_wall();
     wall_right += GlobalState::ctrl.status.get_right_wall();
-    // HAL_Delay(100);
+    HAL_Delay(100);
   }
-  bool is_front_wall = wall_front >= 1;
-  bool is_left_wall = wall_left >= 1;
-  bool is_right_wall = wall_right >= 1;
+  bool is_front_wall = (wall_front >= 3);
+  bool is_left_wall = (wall_left >= 3);
+  bool is_right_wall = (wall_right >= 3);
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, is_left_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, is_front_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED2_Pin, is_front_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -204,13 +205,17 @@ void abjustMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim11);
       HAL_Delay(1);
       GlobalState::test_mode = param::TestMode::STRAIGHT_MODE;
-      for (int i = 0; i < (1 << 6) - 1; ++i) {
-        std::uint8_t signal = mseq.update();
-        GlobalState::motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 2.5f;
-        GlobalState::motor.left.drive_vcc(-GlobalState::motor_signal);
-        GlobalState::motor.right.drive_vcc(GlobalState::motor_signal);
-        HAL_Delay(400);
-      }
+      // for (int i = 0; i < (1 << 6) - 1; ++i) {
+      //   std::uint8_t signal = mseq.update();
+      //   GlobalState::motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 2.5f;
+      //   GlobalState::motor.left.drive_vcc(-GlobalState::motor_signal);
+      //   GlobalState::motor.right.drive_vcc(GlobalState::motor_signal);
+      //   HAL_Delay(400);
+      // }
+      GlobalState::motor_signal = 2.0f;
+      GlobalState::motor.left.drive_vcc(-GlobalState::motor_signal);
+      GlobalState::motor.right.drive_vcc(GlobalState::motor_signal * 1.1f);
+      HAL_Delay(2000);
       GlobalState::test_mode = param::TestMode::NONE;
       HAL_TIM_Base_Stop_IT(&htim10);
       HAL_TIM_Base_Stop_IT(&htim11);
@@ -280,6 +285,7 @@ void trueRunMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       maze_run::conditional_side_wall_control = false;
+      // GlobalState::ctrl.set_side_wall_control(false);
       maze_run::search_run();
 
     } break;
@@ -287,6 +293,7 @@ void trueRunMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       maze_run::conditional_side_wall_control = true;
+      // GlobalState::ctrl.set_side_wall_control(true);
       maze_run::search_run();
     } break;
     case 2: {
@@ -294,6 +301,7 @@ void trueRunMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim11);
       GlobalState::ctrl.set_front_wall_control_permission(false);
       maze_run::conditional_side_wall_control = false;
+      // GlobalState::ctrl.set_side_wall_control(false);
       maze_run::search_run();
     } break;
     case 3: {
@@ -301,6 +309,7 @@ void trueRunMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim11);
       GlobalState::ctrl.set_front_wall_control_permission(false);
       maze_run::conditional_side_wall_control = true;
+      // GlobalState::ctrl.set_side_wall_control(false);
       maze_run::search_run();
     } break;
     case 6: {
@@ -310,6 +319,8 @@ void trueRunMode(std::uint8_t mode) {
       // GlobalState::ctrl.front_wall_control = true;
 
       GlobalState::ctrl.turn(3600, 540, 720);
+      HAL_Delay(1000);
+      GlobalState::ctrl.turn(-3600, 540, 720);
       // GlobalState::ctrl.turn(-90, 540, 180);
     } break;
     case 5: {
@@ -317,10 +328,36 @@ void trueRunMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim11);
       // GlobalState::ctrl.front_wall_control = true;
       maze_run::conditional_side_wall_control = true;
+      GlobalState::ctrl.set_side_wall_control(true);
       GlobalState::ctrl.back_1s();
-      GlobalState::ctrl.straight(180.0 * 8 - 40.0, 400, 800, 0.0);
+      GlobalState::ctrl.straight(5 * 180.0 - 40, 400, 800, 0.0);
     } break;
 
+    case 7: {
+      while (true) {
+        std::uint32_t ir_value[4];
+        GlobalState::ir_light_1.ir_flash_start();
+        GlobalState::ir_light_2.ir_flash_stop();
+        HAL_Delay(10);
+
+        for (std::uint8_t i = 0; i < 2; ++i) {
+          ir_value[i] = GlobalState::ir_sensor.get_ir_value(i);
+        }
+        GlobalState::ir_light_1.ir_flash_stop();
+        GlobalState::ir_light_2.ir_flash_start();
+        HAL_Delay(10);
+        for (std::uint8_t i = 2; i < 4; ++i) {
+          ir_value[i] = GlobalState::ir_sensor.get_ir_value(i);
+        }
+
+        printf("front_left: %ld, front_right: %ld, left: %ld, right: %ld\r\n", ir_value[0], ir_value[1], ir_value[2], ir_value[3]);
+        HAL_Delay(1);
+        HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GlobalState::ctrl.status.get_left_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, GlobalState::ctrl.status.get_front_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(LED6_GPIO_Port, LED2_Pin, GlobalState::ctrl.status.get_front_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(LED6_GPIO_Port, LED1_Pin, GlobalState::ctrl.status.get_right_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
+      }
+    }
     default:
       break;
   }

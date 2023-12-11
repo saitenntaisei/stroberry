@@ -20,13 +20,12 @@ Direction robot_dir(NORTH);
 bool is_start_block = true;
 int prev_wall_cnt = 0;
 bool conditional_side_wall_control = false;
-Direction wall;
 
 int search_run();
-void robot_move(const Direction& dir);
+void robot_move(Direction dir);
 void TurnRobot(Direction dir);
 
-const Direction& get_wall_data();
+Direction get_wall_data();
 IndexVec get_robot_posion();
 
 IndexVec get_robot_posion() {
@@ -37,7 +36,7 @@ IndexVec get_robot_posion() {
 int search_run() {
   while (1) {
     // センサから取得した壁情報を入れる
-    const Direction& wallData = get_wall_data();
+    const Direction wallData = get_wall_data();
     // ロボットの座標を取得
     IndexVec robotPos = get_robot_posion();
 
@@ -56,7 +55,7 @@ int search_run() {
     prev_State = agent.getState();
 
     // Agentの状態が探索中の場合は次に進むべき方向を取得する
-    const Direction& nextDir = agent.getNextDirection();
+    Direction nextDir = agent.getNextDirection();
 
     // nextDirの示す方向に進む
     // 突然今と180度逆の方向を示してくる場合もあるので注意
