@@ -8,6 +8,7 @@ jobs:
       - name: arm-none-eabi-gcc GNU Arm Embedded Toolchain
         uses: carlosperate/arm-none-eabi-gcc-action@v1.6.1
         with:
+          submodules: recursive
           release: 'latest'
           path-env-var: ARM_NONE_EABI_GCC_PATH
       - run: arm-none-eabi-gcc --version
