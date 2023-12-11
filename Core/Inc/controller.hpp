@@ -15,7 +15,7 @@ class Controller {
   parts::wheel<PID, PID> speed = {PID(0.00809f, 0.031819f, 0.00048949f, 0.0f), PID(0.00809f, 0.031819f, 0.00048949f, 0.0f)},
                          front_wall = {PID(0.00005f, 0.00008f, 0.0000014f, 0.0f), PID(0.00005f, 0.00008f, 0.0000014f, 0.0f)},
                          ang = {PID(0.5f, 0.05f, 0.001f, 0.0f), PID(0.5f, 0.05f, 0.001f, 0.0f)};
-  PID side_wall = PID(0.015f, 0.000f, 0.0000f, 0.0f);
+  PID side_wall = PID(0.008f, 0.000f, 0.0000f, 0.0f);
   PID ang_vel = PID(0.0041024f, 0.067247f, 0.0f, 0.0f);
 
   parts::wheel<T, T> motor_duty = {0, 0};
@@ -84,7 +84,7 @@ void Controller<T, STATUS, PID>::update() {
 
   if (!front_wall_control) {
     motor_duty.left += speed.left.update(tar_speed, status.get_speed());
-    motor_duty.right += speed.right.update(tar_speed, status.get_speed());
+    motor_duty.right += speed.right.update(tar_speed, status.get_speed()) * 1.1f;
     float ang_vel_pid = ang_vel.update(tar_ang_vel, status.get_ang_vel());
     motor_duty.left -= ang_vel_pid;
     motor_duty.right += ang_vel_pid;

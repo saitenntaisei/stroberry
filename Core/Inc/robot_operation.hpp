@@ -329,8 +329,8 @@ void trueRunMode(std::uint8_t mode) {
       // GlobalState::ctrl.front_wall_control = true;
       maze_run::conditional_side_wall_control = true;
       GlobalState::ctrl.set_side_wall_control(true);
-      // GlobalState::ctrl.back_1s();
-      GlobalState::ctrl.straight(250.0, 400, 800, 0.0);
+      GlobalState::ctrl.back_1s();
+      GlobalState::ctrl.straight(5 * 180.0 - 40, 400, 800, 0.0);
     } break;
 
     case 7: {
