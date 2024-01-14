@@ -41,23 +41,23 @@ void maze_run::robot_move(Direction dir) {
   }
   // 右
   else if (dir_diff == 1 || dir_diff == -3) {
-    GlobalState::ctrl.set_side_wall_control(false);
+    // GlobalState::ctrl.set_side_wall_control(false);
     GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
     HAL_Delay(1);
     GlobalState::ctrl.turn(-90, 540, 720);
     HAL_Delay(1);
     GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
-    GlobalState::ctrl.set_side_wall_control(true);
+    // GlobalState::ctrl.set_side_wall_control(true);
   }
   // 左
   else if (dir_diff == -1 || dir_diff == 3) {
-    GlobalState::ctrl.set_side_wall_control(false);
+    // GlobalState::ctrl.set_side_wall_control(false);
     GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
     HAL_Delay(1);
     GlobalState::ctrl.turn(90, 540, 720);
     HAL_Delay(1);
     GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
-    GlobalState::ctrl.set_side_wall_control(true);
+    // GlobalState::ctrl.set_side_wall_control(true);
   }
   // 180度ターン
   else {
@@ -97,26 +97,25 @@ Direction maze_run::get_wall_data() {
   std::uint8_t wall_front = 0;
   std::uint8_t wall_left = 0;
   std::uint8_t wall_right = 0;
-  for (int i = 0; i < 5; i++) {
-    wall_front += GlobalState::ctrl.status.get_front_wall();
-    wall_left += GlobalState::ctrl.status.get_left_wall();
-    wall_right += GlobalState::ctrl.status.get_right_wall();
-    HAL_Delay(100);
-  }
-  bool is_front_wall = (wall_front >= 3);
-  bool is_left_wall = (wall_left >= 3);
-  bool is_right_wall = (wall_right >= 3);
+  bool is_front_wall = GlobalState::ctrl.status.get_front_wall();
+  bool is_left_wall = GlobalState::ctrl.status.get_left_wall();
+  bool is_right_wall = GlobalState::ctrl.status.get_right_wall();
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, is_left_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, is_front_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED2_Pin, is_front_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED6_GPIO_Port, LED1_Pin, is_right_wall ? GPIO_PIN_SET : GPIO_PIN_RESET);
-  if (maze_run::conditional_side_wall_control) {
-    if (!is_left_wall || !is_right_wall) {
-      GlobalState::ctrl.set_side_wall_control(false);
-    } else {
-      GlobalState::ctrl.set_side_wall_control(true);
-    }
+  if (is_front_wall && !is_left_wall && !is_right_wall) {
+    GlobalState::ctrl.set_side_wall_control(false);
+  } else {
+    GlobalState::ctrl.set_side_wall_control(true);
   }
+  // if (!maze_run::conditional_side_wall_control) {
+  //   if (!is_left_wall || !is_right_wall) {
+  //     GlobalState::ctrl.set_side_wall_control(false);
+  //   } else {
+  //     GlobalState::ctrl.set_side_wall_control(true);
+  //   }
+  // }
   std::int8_t robot_dir_index = 0;
   while (1) {
     if (robot_dir.byte == NORTH << robot_dir_index) break;
@@ -319,23 +318,12 @@ void trueRunMode(std::uint8_t mode) {
     } break;
 
     case 7: {
+      HAL_TIM_Base_Start_IT(&htim11);
       while (true) {
-        std::uint32_t ir_value[4];
-        GlobalState::ir_light_1.ir_flash_start();
-        GlobalState::ir_light_2.ir_flash_stop();
-        HAL_Delay(10);
-
-        for (std::uint8_t i = 0; i < 2; ++i) {
-          ir_value[i] = GlobalState::ir_sensor.get_ir_value(i);
-        }
-        GlobalState::ir_light_1.ir_flash_stop();
-        GlobalState::ir_light_2.ir_flash_start();
-        HAL_Delay(10);
-        for (std::uint8_t i = 2; i < 4; ++i) {
-          ir_value[i] = GlobalState::ir_sensor.get_ir_value(i);
-        }
-
-        printf("front_left: %ld, front_right: %ld, left: %ld, right: %ld\r\n", ir_value[0], ir_value[1], ir_value[2], ir_value[3]);
+        parts::wheel<float, float> side_wall_sensor_error = GlobalState::ctrl.status.get_side_wall_sensor_error();
+        parts::wheel<float, float> front_wall_sensor_error = GlobalState::ctrl.status.get_front_wall_sensor_error();
+        printf("front_left: %f, front_right: %f, left: %f, right: %f\r\n", front_wall_sensor_error.left, front_wall_sensor_error.right, side_wall_sensor_error.left,
+               side_wall_sensor_error.right);
         HAL_Delay(1);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GlobalState::ctrl.status.get_left_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, GlobalState::ctrl.status.get_front_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);

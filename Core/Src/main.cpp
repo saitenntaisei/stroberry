@@ -87,8 +87,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
     GlobalState::ctrl.status.update_encoder<pwm::Encoder<float, std::int16_t>, pwm::Encoder<float, std::int16_t>, &pwm::Encoder<float, std::int16_t>::read_encoder_value,
                                             &pwm::Encoder<float, std::int16_t>::read_encoder_value>(GlobalState::enc.left, GlobalState::enc.right);
-    GlobalState::ctrl.status.update_wall_sensor([]() { return GlobalState::ir_sensor.get_ir_values(); });
-  }
+    }
   if (htim == &htim6) {
     switch (GlobalState::test_mode) {
       case param::TestMode::TURN_MODE:
@@ -104,7 +103,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim11) {
     GlobalState::ctrl.update();
     GlobalState::ctrl.drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(GlobalState::motor.left, GlobalState::motor.right, -1, 1);
-
+    GlobalState::ctrl.status.update_wall_sensor([]() { return GlobalState::ir_sensor.get_ir_values(); });
     GlobalState::ctrl.status.update_gyro([]() { return GlobalState::gyro.read_gyro().z; });
   }
   if (htim == &htim7) {
