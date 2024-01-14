@@ -87,15 +87,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
     GlobalState::ctrl.status.update_encoder<pwm::Encoder<float, std::int16_t>, pwm::Encoder<float, std::int16_t>, &pwm::Encoder<float, std::int16_t>::read_encoder_value,
                                             &pwm::Encoder<float, std::int16_t>::read_encoder_value>(GlobalState::enc.left, GlobalState::enc.right);
-    GlobalState::ctrl.status.update_wall_sensor([]() { return GlobalState::ir_sensor.get_ir_values(); },
-                                                []() {
-                                                  GlobalState::ir_light_2.ir_flash_stop();
-                                                  GlobalState::ir_light_1.ir_flash_start();
-                                                },
-                                                []() {
-                                                  GlobalState::ir_light_1.ir_flash_stop();
-                                                  GlobalState::ir_light_2.ir_flash_start();
-                                                });
+    GlobalState::ctrl.status.update_wall_sensor([]() { return GlobalState::ir_sensor.get_ir_values(); });
   }
   if (htim == &htim6) {
     switch (GlobalState::test_mode) {
