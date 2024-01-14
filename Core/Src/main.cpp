@@ -87,7 +87,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
     GlobalState::ctrl.status.update_encoder<pwm::Encoder<float, std::int16_t>, pwm::Encoder<float, std::int16_t>, &pwm::Encoder<float, std::int16_t>::read_encoder_value,
                                             &pwm::Encoder<float, std::int16_t>::read_encoder_value>(GlobalState::enc.left, GlobalState::enc.right);
-    }
+  }
   if (htim == &htim6) {
     switch (GlobalState::test_mode) {
       case param::TestMode::TURN_MODE:
