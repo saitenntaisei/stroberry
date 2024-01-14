@@ -296,22 +296,7 @@ void trueRunMode(std::uint8_t mode) {
       // GlobalState::ctrl.set_side_wall_control(true);
       maze_run::search_run();
     } break;
-    case 2: {
-      HAL_TIM_Base_Start_IT(&htim10);
-      HAL_TIM_Base_Start_IT(&htim11);
-      GlobalState::ctrl.set_front_wall_control_permission(false);
-      maze_run::conditional_side_wall_control = false;
-      // GlobalState::ctrl.set_side_wall_control(false);
-      maze_run::search_run();
-    } break;
-    case 3: {
-      HAL_TIM_Base_Start_IT(&htim10);
-      HAL_TIM_Base_Start_IT(&htim11);
-      GlobalState::ctrl.set_front_wall_control_permission(false);
-      maze_run::conditional_side_wall_control = true;
-      // GlobalState::ctrl.set_side_wall_control(false);
-      maze_run::search_run();
-    } break;
+
     case 6: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
