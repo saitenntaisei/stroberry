@@ -178,9 +178,6 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
   }
   // 減速処理開始
   bool side_wall_control_tmp = side_wall_control;
-  // if (!maze_run::conditional_side_wall_control) {
-  //   side_wall_control = false;
-  // }
 
   float end_tar_speed = (std::fabs(end_speed) < FLT_EPSILON ? min_speed : end_speed);
   accel = -acc;
@@ -197,9 +194,6 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
   // 加速度を0にする
   accel = 0;
   tar_speed = (std::abs(end_speed) < FLT_EPSILON ? 0 : end_speed);
-  // if (!maze_run::conditional_side_wall_control) {
-  //   side_wall_control = side_wall_control_tmp;
-  // }
 
   if (is_enable_front_wall_control) {
     parts::wheel<bool, bool> is_front_wall_exsist = status.get_is_front_wall_control();

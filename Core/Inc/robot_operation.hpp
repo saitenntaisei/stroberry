@@ -144,7 +144,6 @@ void abjustMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       // GlobalState::ctrl.turn(3600, 540, 720);
-      // GlobalState::ctrl.front_wall_control = true;
 
       GlobalState::ctrl.turn(3600, 540, 720);
       // GlobalState::ctrl.turn(-90, 540, 180);
@@ -152,8 +151,7 @@ void abjustMode(std::uint8_t mode) {
     case 2: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
-      // GlobalState::ctrl.front_wall_control = true;
-      maze_run::conditional_side_wall_control = true;
+
       GlobalState::ctrl.back_1s();
       GlobalState::ctrl.straight(180.0 * 8 - 40.0, 400, 800, 0.0);
     } break;
@@ -277,17 +275,10 @@ void trueRunMode(std::uint8_t mode) {
     case 0: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
-      maze_run::conditional_side_wall_control = false;
+
       // GlobalState::ctrl.set_side_wall_control(false);
       maze_run::search_run();
 
-    } break;
-    case 1: {
-      HAL_TIM_Base_Start_IT(&htim10);
-      HAL_TIM_Base_Start_IT(&htim11);
-      maze_run::conditional_side_wall_control = true;
-
-      maze_run::search_run();
     } break;
 
     case 6: {
@@ -304,8 +295,6 @@ void trueRunMode(std::uint8_t mode) {
     case 5: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
-      // GlobalState::ctrl.front_wall_control = true;
-      maze_run::conditional_side_wall_control = true;
       GlobalState::ctrl.set_side_wall_control(true);
       GlobalState::ctrl.back_1s();
       GlobalState::ctrl.straight(5 * 180.0 - 40, 400, 800, 0.0);

@@ -19,7 +19,6 @@ IndexVec robot_position(0, 0);
 Direction robot_dir(NORTH);
 bool is_start_block = true;
 int prev_wall_cnt = 0;
-bool conditional_side_wall_control = false;
 
 int search_run();
 void robot_move(Direction dir);
