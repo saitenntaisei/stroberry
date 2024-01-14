@@ -27,11 +27,11 @@ class IrSensor {
   std::uint16_t ir_flashing_freq_kHz = 0;
   std::uint16_t sampling_times = 0;
   static constexpr std::uint16_t delta = 2000;
-  std::vector<float> pre_cos, pre_sin;
   int moving_average_num = 5;
+  std::vector<float> pre_cos, pre_sin;
 
  public:
-  explicit IrSensor(ADC_HandleTypeDef* hadc, std::uint8_t num, std::uint16_t sampling_freq_kHz, std::uint16_t ir_flashing_freq_kHz);
+  explicit IrSensor(ADC_HandleTypeDef* hadc, std::uint8_t num, std::uint16_t sampling_freq_kHz, std::uint16_t ir_flashing_freq_kHz, int moving_average_num = 5);
   void init(void);
   void ir_sampling(void);
   void ir_update(void);
@@ -47,7 +47,7 @@ class IrSensor {
   T* get_ir_values(void) const { return ir_sensor_values.back().get(); }
 };
 template <typename T>
-IrSensor<T>::IrSensor(ADC_HandleTypeDef* hadc, std::uint8_t num, std::uint16_t sampling_freq_kHz, std::uint16_t ir_flashing_freq_kHz)
+IrSensor<T>::IrSensor(ADC_HandleTypeDef* hadc, std::uint8_t num, std::uint16_t sampling_freq_kHz, std::uint16_t ir_flashing_freq_kHz, int moving_average_num)
     : hadc(hadc),
       ir_sensor_num(num),
       g_adc_data(new std::uint16_t[num]),
@@ -56,6 +56,7 @@ IrSensor<T>::IrSensor(ADC_HandleTypeDef* hadc, std::uint8_t num, std::uint16_t s
       temp_ir_sensor_value(new std::pair<float, float>[num]),
       sampling_freq_kHz(sampling_freq_kHz),
       ir_flashing_freq_kHz(ir_flashing_freq_kHz),
+      moving_average_num(moving_average_num),
       pre_cos(),
       pre_sin() {}
 template <typename T>
