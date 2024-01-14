@@ -47,7 +47,7 @@ void maze_run::robot_move(Direction dir) {
     GlobalState::ctrl.turn(-90, 540, 720);
     HAL_Delay(1);
     GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
-    // GlobalState::ctrl.set_side_wall_control(true);
+
   }
   // 左
   else if (dir_diff == -1 || dir_diff == 3) {
@@ -57,7 +57,7 @@ void maze_run::robot_move(Direction dir) {
     GlobalState::ctrl.turn(90, 540, 720);
     HAL_Delay(1);
     GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
-    // GlobalState::ctrl.set_side_wall_control(true);
+
   }
   // 180度ターン
   else {
@@ -109,13 +109,7 @@ Direction maze_run::get_wall_data() {
   } else {
     GlobalState::ctrl.set_side_wall_control(true);
   }
-  // if (!maze_run::conditional_side_wall_control) {
-  //   if (!is_left_wall || !is_right_wall) {
-  //     GlobalState::ctrl.set_side_wall_control(false);
-  //   } else {
-  //     GlobalState::ctrl.set_side_wall_control(true);
-  //   }
-  // }
+
   std::int8_t robot_dir_index = 0;
   while (1) {
     if (robot_dir.byte == NORTH << robot_dir_index) break;
@@ -292,7 +286,7 @@ void trueRunMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       maze_run::conditional_side_wall_control = true;
-      // GlobalState::ctrl.set_side_wall_control(true);
+
       maze_run::search_run();
     } break;
 
@@ -321,7 +315,7 @@ void trueRunMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim11);
       while (true) {
         parts::wheel<float, float> side_wall_sensor_error = GlobalState::ctrl.status.get_side_wall_sensor_error();
-        parts::wheel<float, float> front_wall_sensor_error = GlobalState::ctrl.status.get_front_wall_sensor_error();
+        parts::wheel<float, float> front_wall_sensor_error = GlobalState::ctrl.status.get_front_wall_sensor_value();
         printf("front_left: %f, front_right: %f, left: %f, right: %f\r\n", front_wall_sensor_error.left, front_wall_sensor_error.right, side_wall_sensor_error.left,
                side_wall_sensor_error.right);
         HAL_Delay(1);

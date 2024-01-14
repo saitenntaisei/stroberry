@@ -27,6 +27,7 @@ class Status {
   static constexpr parts::wheel<T, T> front_wall_control_th = {6000, 6000};
   parts::wheel<T, T> side_wall_sensor_error = {0, 0};
   parts::wheel<T, T> front_wall_sensor_error = {0, 0};
+  parts::wheel<T, T> front_wall_sensor_value = {0, 0};
   static constexpr parts::wheel<T, T> side_wall_sensor_ref = {9000, 7000};
   static constexpr parts::wheel<T, T> front_wall_sensor_ref = {28000, 28000};
   parts::wheel<bool, bool> is_side_wall_control = {false, false};
@@ -55,6 +56,7 @@ class Status {
   parts::wheel<bool, bool> get_is_front_wall_control() { return is_front_wall_control; }
   parts::wheel<T, T> get_side_wall_sensor_error() { return side_wall_sensor_error; }
   parts::wheel<T, T> get_front_wall_sensor_error() { return front_wall_sensor_error; }
+  parts::wheel<T, T> get_front_wall_sensor_value() { return front_wall_sensor_value; }
 };
 template <typename T>
 Status<T>::Status(T ts) : ts(ts) {}
@@ -129,6 +131,8 @@ void Status<T>::update_wall_sensor(std::function<std::uint32_t *(void)> wall_sen
   if ((right_wall == false || left_wall == false) && (wall_sensor_value[FRONT_LEFT] > front_threshold / 2 || wall_sensor_value[FRONT_RIGHT] > front_threshold / 2)) {
     front_wall = true;
   }
+  front_wall_sensor_value.left = static_cast<float>(wall_sensor_value[FRONT_LEFT]);
+  front_wall_sensor_value.right = static_cast<float>(wall_sensor_value[FRONT_RIGHT]);
 }
 template <typename T>
 void Status<T>::update_gyro(std::function<T(void)> gyro_yaw) {  // unit is control freq(1ms)
