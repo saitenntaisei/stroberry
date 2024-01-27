@@ -99,7 +99,6 @@ void IrSensor<T>::ir_update(void) {
   for (std::uint8_t i = 0; i < ir_sensor_num; i++) {
     ir_sensor_value[i] = static_cast<T>(std::sqrt(std::pow(temp_ir_sensor_value[i].first, 2) + std::pow(temp_ir_sensor_value[i].second, 2)));
     temp_ir_sensor_value[i] = std::make_pair(0, 0);
-    ir_sensor_value[i] = std::log(ir_sensor_value[i]);
   }
 
   for (std::uint8_t i = 0; i < ir_sensor_num; i++) {
