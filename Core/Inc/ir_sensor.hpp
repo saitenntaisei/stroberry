@@ -6,6 +6,7 @@
 #include <memory>
 #include <numbers>
 #include <queue>
+#include <utility>
 #include <vector>
 
 #include "motor.hpp"
@@ -27,11 +28,11 @@ class IrSensor {
   std::uint16_t ir_flashing_freq_kHz = 0;
   std::uint16_t sampling_times = 0;
   static constexpr std::uint16_t delta = 2000;
-  int moving_average_num = 5;
+  int moving_average_num = 3;
   std::vector<float> pre_cos, pre_sin;
 
  public:
-  explicit IrSensor(ADC_HandleTypeDef* hadc, std::uint8_t num, std::uint16_t sampling_freq_kHz, std::uint16_t ir_flashing_freq_kHz, int moving_average_num = 5);
+  explicit IrSensor(ADC_HandleTypeDef* hadc, std::uint8_t num, std::uint16_t sampling_freq_kHz, std::uint16_t ir_flashing_freq_kHz, int moving_average_num = 3);
   void init(void);
   void ir_sampling(void);
   void ir_update(void);
@@ -67,7 +68,7 @@ template <typename T>
 void IrSensor<T>::init() {
   if (sampling_freq_kHz * 4 % ir_flashing_freq_kHz != 0) Error_Handler();
   sampling_times = static_cast<std::uint16_t>(sampling_freq_kHz * 4 / ir_flashing_freq_kHz);
-  if (!HAL_ADC_Start_DMA(hadc, (uint32_t*)(g_adc_data.get()), ir_sensor_num) == HAL_OK) {
+  if (!HAL_ADC_Start_DMA(hadc, reinterpret_cast<uint32_t*>(g_adc_data.get()), ir_sensor_num) == HAL_OK) {
     Error_Handler();
   }
   const std::uint16_t furier_ratio = sampling_freq_kHz / ir_flashing_freq_kHz;
