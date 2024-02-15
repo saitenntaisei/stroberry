@@ -54,7 +54,7 @@ void maze_run::robot_move(Direction dir) {
     GlobalState::ctrl.turn(90, 540, 720);
     HAL_Delay(1);
     GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
-  } else {   // 180度ターン
+  } else {  // 180度ターン
     if (prev_wall_cnt == 3) {
       GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
       GlobalState::ctrl.turn(180, 540, 720);
