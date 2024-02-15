@@ -172,8 +172,9 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
   // 最高速度を設定
   max_speed = max_sp;
   // 減速処理を始めるべき位置まで加速、定速区間を続行
-  while (std::abs((len_target - len_start_dec_vel) - status.get_len_mouse()) /*mm*/ >
-         std::abs((static_cast<float>(tar_speed * tar_speed) - static_cast<float>(end_speed * end_speed)) / std::abs(static_cast<float>(2 * accel))) /*mm*/) {
+  while ((len_target - len_start_dec_vel) - status.get_len_mouse() /*mm*/ >
+         (static_cast<float>(end_speed * end_speed)-static_cast<float>(tar_speed * tar_speed)) /(static_cast<float>(-2 * accel))) /*mm*/ {
+  
     HAL_Delay(1);
   }
   // 減速処理開始
@@ -215,11 +216,11 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
     }
   }
   if (std::abs(end_speed) < FLT_EPSILON) run_mode = parts::RunModeT::STOP_MODE;
-  HAL_Delay(10);
+HAL_Delay(10);
   // 現在距離を0にリセット
   status.reset();
-  speed.left.reset();
-  speed.right.reset();
+  // speed.left.reset();
+  // speed.right.reset();
   side_wall_control = side_wall_control_tmp;
   HAL_Delay(1);
 }
