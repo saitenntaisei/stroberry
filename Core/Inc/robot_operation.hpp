@@ -32,12 +32,12 @@ void maze_run::robot_move(Direction dir) {
 
       GlobalState::ctrl.reset();
       HAL_Delay(1);
-      GlobalState::ctrl.straight(180.0 - 40.0, 200, 100, 100);
+      GlobalState::ctrl.straight(180.0 - 40.0, 200, 200, 200);
       GlobalState::batt.monitoring_state = true;
 
       is_start_block = false;
     } else {
-      GlobalState::ctrl.straight(180.0, 200, 100, 100);
+      GlobalState::ctrl.straight(180.0, 200, 200, 200);
     }
   } else if (dir_diff == 1 || dir_diff == -3) {  // Right
     // GlobalState::ctrl.set_side_wall_control(false);
