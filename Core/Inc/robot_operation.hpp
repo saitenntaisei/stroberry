@@ -1,5 +1,5 @@
-#ifndef CORE_INC_ROBOTO_OPERATION_HPP_
-#define CORE_INC_ROBOTO_OPERATION_HPP_
+#ifndef CORE_INC_ROBOT_OPERATION_HPP_
+#define CORE_INC_ROBOT_OPERATION_HPP_
 
 #include <cstdint>
 
@@ -10,7 +10,7 @@
 
 using global_state::GlobalState;
 
-void maze_run::robot_move(Direction dir) {
+void maze_run::robot_move(const Direction& dir) {
   std::int8_t robot_dir_index = 0;
   while (1) {
     if (robot_dir.byte == NORTH << robot_dir_index) break;
@@ -86,11 +86,9 @@ void maze_run::robot_move(Direction dir) {
   return;
 }
 
-Direction maze_run::get_wall_data() {
-  Direction wall;
-  std::uint8_t wall_front = 0;
-  std::uint8_t wall_left = 0;
-  std::uint8_t wall_right = 0;
+const Direction& maze_run::get_wall_data() {
+  wall = 0;
+
   bool is_front_wall = GlobalState::ctrl.status.get_front_wall();
   bool is_left_wall = GlobalState::ctrl.status.get_left_wall();
   bool is_right_wall = GlobalState::ctrl.status.get_right_wall();
@@ -313,4 +311,4 @@ void trueRunMode(std::uint8_t mode) {
   }
 }
 }  // namespace robot_operation
-#endif
+#endif  // CORE_INC_ROBOT_OPERATION_HPP_

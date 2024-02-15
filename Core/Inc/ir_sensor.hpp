@@ -33,6 +33,11 @@ class IrSensor {
 
  public:
   explicit IrSensor(ADC_HandleTypeDef* hadc, std::uint8_t num, std::uint16_t sampling_freq_kHz, std::uint16_t ir_flashing_freq_kHz, int moving_average_num = 3);
+  IrSensor(const IrSensor&) = delete;
+  IrSensor& operator=(const IrSensor&) = delete;
+  IrSensor(IrSensor&&) = delete;
+  IrSensor& operator=(IrSensor&&) = delete;
+  ~IrSensor() = default;
   void init(void);
   void ir_sampling(void);
   void ir_update(void);
