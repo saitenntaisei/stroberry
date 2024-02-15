@@ -10,7 +10,7 @@
 
 using global_state::GlobalState;
 
-void maze_run::robot_move(const Direction& dir) {
+void maze_run::robot_move(const Direction &dir) {
   std::int8_t robot_dir_index = 0;
   while (1) {
     if (robot_dir.byte == NORTH << robot_dir_index) break;
@@ -86,7 +86,7 @@ void maze_run::robot_move(const Direction& dir) {
   return;
 }
 
-const Direction& maze_run::get_wall_data() {
+const Direction &maze_run::get_wall_data() {
   wall = 0;
 
   bool is_front_wall = GlobalState::ctrl.status.get_front_wall();
