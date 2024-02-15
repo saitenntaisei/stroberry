@@ -23,16 +23,16 @@ class Status {
   bool front_wall = false;
   bool left_wall = false;
   bool right_wall = false;
-  std::uint8_t wall_sensor_cnt = 0;
   static constexpr parts::wheel<T, T> side_wall_control_th = {5000, 5000};
-  static constexpr parts::wheel<T, T> front_wall_control_th = {8000, 8000};
+  static constexpr parts::wheel<T, T> front_wall_control_th = {6000, 6000};
   parts::wheel<T, T> side_wall_sensor_error = {0, 0};
   parts::wheel<T, T> front_wall_sensor_error = {0, 0};
-  static constexpr parts::wheel<T, T> side_wall_sensor_ref = {9800, 8000};
+  parts::wheel<T, T> front_wall_sensor_value = {0, 0};
+  static constexpr parts::wheel<T, T> side_wall_sensor_ref = {9000, 7000};
   static constexpr parts::wheel<T, T> front_wall_sensor_ref = {28000, 28000};
   parts::wheel<bool, bool> is_side_wall_control = {false, false};
   parts::wheel<bool, bool> is_front_wall_control = {false, false};
-  static constexpr std::uint32_t left_threshold = 2500, right_threshold = 2500, front_threshold = 4200;
+  static constexpr std::uint32_t left_threshold = 3800, right_threshold = 3800, front_threshold = 8000;
   /* data */
  public:
   enum WallSensor { FRONT_LEFT, FRONT_RIGHT, LEFT, RIGHT };
@@ -40,7 +40,7 @@ class Status {
   template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
   void update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc);
   void update_gyro(std::function<T(void)> gyro_yaw);
-  void update_wall_sensor(std::function<std::uint32_t *(void)> wall_sensor, std::function<void(void)> front_light, std::function<void(void)> side_light);
+  void update_wall_sensor(std::function<std::uint32_t *(void)> wall_sensor);
   T get_ang_vel() { return ang_vel; }
   T get_ang() { return degree; }
   T get_speed() { return speed; }
@@ -56,6 +56,7 @@ class Status {
   parts::wheel<bool, bool> get_is_front_wall_control() { return is_front_wall_control; }
   parts::wheel<T, T> get_side_wall_sensor_error() { return side_wall_sensor_error; }
   parts::wheel<T, T> get_front_wall_sensor_error() { return front_wall_sensor_error; }
+  parts::wheel<T, T> get_front_wall_sensor_value() { return front_wall_sensor_value; }
 };
 template <typename T>
 Status<T>::Status(T ts) : ts(ts) {}
@@ -78,77 +79,60 @@ void Status<T>::update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc) {  // uni
   len_mouse += (left_speed_new + right_speed_new) / 2 / 100;  // mm
 }
 template <typename T>
-void Status<T>::update_wall_sensor(std::function<std::uint32_t *(void)> wall_sensor, std::function<void(void)> front_light, std::function<void(void)> side_light) {
+void Status<T>::update_wall_sensor(std::function<std::uint32_t *(void)> wall_sensor) {
   std::uint32_t *wall_sensor_value = wall_sensor();
-  switch (wall_sensor_cnt) {
-    case 0:
-      if (wall_sensor_value[FRONT_LEFT] > front_threshold / 2 && wall_sensor_value[FRONT_RIGHT] > front_threshold / 2) {
-        front_wall = true;
-      } else {
-        front_wall = false;
-      }
 
-      if (static_cast<float>(wall_sensor_value[FRONT_LEFT]) > front_wall_control_th.left) {
-        is_front_wall_control.left = true;
-        front_wall_sensor_error.left = static_cast<float>(wall_sensor_value[FRONT_LEFT]) - front_wall_sensor_ref.left;
-      } else {
-        is_front_wall_control.left = false;
-        front_wall_sensor_error.left = 0;
-      }
-
-      if (static_cast<float>(wall_sensor_value[FRONT_RIGHT]) > front_wall_control_th.right) {
-        is_front_wall_control.right = true;
-        front_wall_sensor_error.right = static_cast<float>(wall_sensor_value[FRONT_RIGHT]) - front_wall_sensor_ref.right;
-      } else {
-        is_front_wall_control.right = false;
-        front_wall_sensor_error.right = 0;
-      }
-
-      // if (static_cast<float>(wall_sensor_value[FRONT_RIGHT]) < front_wall_control_th.right || static_cast<float>(wall_sensor_value[FRONT_LEFT]) < front_wall_control_th.left) {
-      //   front_wall_sensor_error.left = 0;
-      //   front_wall_sensor_error.right = 0;
-      // }
-
-      side_light();
-      break;
-    case 1:
-      if (wall_sensor_value[LEFT] > left_threshold) {
-        left_wall = true;
-      } else {
-        left_wall = false;
-      }
-      if (wall_sensor_value[RIGHT] > right_threshold) {
-        right_wall = true;
-      } else {
-        right_wall = false;
-      }
-      if (static_cast<float>(wall_sensor_value[LEFT]) > side_wall_control_th.left) {
-        is_side_wall_control.left = true;
-        side_wall_sensor_error.left = static_cast<float>(wall_sensor_value[LEFT]) - side_wall_sensor_ref.left;
-      } else {
-        is_side_wall_control.left = false;
-        side_wall_sensor_error.left = 0;
-      }
-      if (static_cast<float>(wall_sensor_value[RIGHT]) > side_wall_control_th.right) {
-        is_side_wall_control.right = true;
-        side_wall_sensor_error.right = static_cast<float>(wall_sensor_value[RIGHT]) - side_wall_sensor_ref.right;
-      } else {
-        is_side_wall_control.right = false;
-        side_wall_sensor_error.right = 0;
-      }
-      // if (!is_side_wall_control.right || !is_side_wall_control.left) {
-      //   is_side_wall_control.left = false;
-      //   is_side_wall_control.right = false;
-      //   side_wall_sensor_error.left = 0;
-      //   side_wall_sensor_error.right = 0;
-      // }
-      front_light();
-      break;
-    default:
-      break;
+  if (static_cast<float>(wall_sensor_value[FRONT_LEFT]) > front_wall_control_th.left) {
+    is_front_wall_control.left = true;
+    front_wall_sensor_error.left = static_cast<float>(wall_sensor_value[FRONT_LEFT]) - front_wall_sensor_ref.left;
+  } else {
+    is_front_wall_control.left = false;
+    front_wall_sensor_error.left = 0;
   }
-  wall_sensor_cnt++;
-  wall_sensor_cnt %= 2;
+
+  if (static_cast<float>(wall_sensor_value[FRONT_RIGHT]) > front_wall_control_th.right) {
+    is_front_wall_control.right = true;
+    front_wall_sensor_error.right = static_cast<float>(wall_sensor_value[FRONT_RIGHT]) - front_wall_sensor_ref.right;
+  } else {
+    is_front_wall_control.right = false;
+    front_wall_sensor_error.right = 0;
+  }
+  if (wall_sensor_value[LEFT] > left_threshold) {
+    left_wall = true;
+  } else {
+    left_wall = false;
+  }
+  if (wall_sensor_value[RIGHT] > right_threshold) {
+    right_wall = true;
+  } else {
+    right_wall = false;
+  }
+  if (static_cast<float>(wall_sensor_value[LEFT]) > side_wall_control_th.left) {
+    is_side_wall_control.left = true;
+    side_wall_sensor_error.left = static_cast<float>(wall_sensor_value[LEFT]) - side_wall_sensor_ref.left;
+  } else {
+    is_side_wall_control.left = false;
+    side_wall_sensor_error.left = 0;
+  }
+  if (static_cast<float>(wall_sensor_value[RIGHT]) > side_wall_control_th.right) {
+    is_side_wall_control.right = true;
+    side_wall_sensor_error.right = static_cast<float>(wall_sensor_value[RIGHT]) - side_wall_sensor_ref.right;
+  } else {
+    is_side_wall_control.right = false;
+    side_wall_sensor_error.right = 0;
+  }
+
+  if (wall_sensor_value[FRONT_LEFT] > front_threshold / 2 && wall_sensor_value[FRONT_RIGHT] > front_threshold / 2) {
+    front_wall = true;
+  } else {
+    front_wall = false;
+  }
+
+  if ((right_wall == false || left_wall == false) && (wall_sensor_value[FRONT_LEFT] > front_threshold / 2 || wall_sensor_value[FRONT_RIGHT] > front_threshold / 2)) {
+    front_wall = true;
+  }
+  front_wall_sensor_value.left = static_cast<float>(wall_sensor_value[FRONT_LEFT]);
+  front_wall_sensor_value.right = static_cast<float>(wall_sensor_value[FRONT_RIGHT]);
 }
 template <typename T>
 void Status<T>::update_gyro(std::function<T(void)> gyro_yaw) {  // unit is control freq(1ms)
