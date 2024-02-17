@@ -218,8 +218,10 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
   HAL_Delay(10);
   // 現在距離を0にリセット
   status.reset();
-  // speed.left.reset();
-  // speed.right.reset();
+  if(std::abs(end_speed) < FLT_EPSILON) {
+    speed.left.reset();
+    speed.right.reset();
+  }
   side_wall_control = side_wall_control_tmp;
   HAL_Delay(1);
 }

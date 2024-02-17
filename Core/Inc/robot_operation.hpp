@@ -197,7 +197,7 @@ void abjustMode(std::uint8_t mode) {
       // }
       GlobalState::motor_signal = 2.0f;
       GlobalState::motor.left.drive_vcc(-GlobalState::motor_signal);
-      GlobalState::motor.right.drive_vcc(GlobalState::motor_signal * 1.1f);
+      GlobalState::motor.right.drive_vcc(GlobalState::motor_signal);
       HAL_Delay(2000);
       GlobalState::test_mode = param::TestMode::NONE;
       HAL_TIM_Base_Stop_IT(&htim10);
