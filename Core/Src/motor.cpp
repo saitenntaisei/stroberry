@@ -10,10 +10,10 @@ void Motor::init(void) {
   HAL_TIM_PWM_Start(out_2.tim, out_2.channel);
 }
 void Motor::drive(std::int16_t duty) {
-  if (duty >= 1000) {
-    duty = 999;
-  } else if (duty <= -1000) {
-    duty = -999;
+  if (duty >= 100) {
+    duty = 99;
+  } else if (duty <= -100) {
+    duty = -99;
   }
   if (duty >= 0) {
     __HAL_TIM_SET_COMPARE(out_1.tim, out_1.channel, abs(duty));
@@ -29,10 +29,10 @@ void Motor::drive_vcc(float volt) {
     volt = -max_volt;
   }
   if (volt >= 0) {
-    __HAL_TIM_SET_COMPARE(out_1.tim, out_1.channel, static_cast<std::uint16_t>(std::abs(volt / max_volt * 1000)));
+    __HAL_TIM_SET_COMPARE(out_1.tim, out_1.channel, static_cast<std::uint16_t>(std::abs(volt / max_volt * 100)));
     __HAL_TIM_SET_COMPARE(out_2.tim, out_2.channel, 0);
   } else if (volt < 0) {
-    __HAL_TIM_SET_COMPARE(out_2.tim, out_2.channel, static_cast<std::uint16_t>(std::abs(volt / max_volt * 1000)));
+    __HAL_TIM_SET_COMPARE(out_2.tim, out_2.channel, static_cast<std::uint16_t>(std::abs(volt / max_volt * 100)));
     __HAL_TIM_SET_COMPARE(out_1.tim, out_1.channel, 0);
   }
 }

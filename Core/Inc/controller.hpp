@@ -142,8 +142,8 @@ void Controller<T, STATUS, PID>::generate_tar_speed() {
 template <typename T, class STATUS, class PID>
 void Controller<T, STATUS, PID>::back_1s() {
   run_mode = parts::RunModeT::STRAIGHT_MODE;
-  tar_speed = -50;
-  max_speed = -50;
+  tar_speed = -100;
+  max_speed = -100;
   HAL_Delay(2000);
   tar_speed = 0;
   max_speed = 0;
