@@ -13,9 +13,9 @@ template <typename T, class STATUS, class PID>
 class Controller {
  private:
   parts::wheel<PID, PID> speed = {PID(0.00809f, 0.031819f, 0.00048949f, 0.0f), PID(0.00809f, 0.031819f, 0.00048949f, 0.0f)},
-                         front_wall = {PID(0.00005f, 0.00008f, 0.0000014f, 0.0f), PID(0.00005f, 0.00008f, 0.0000014f, 0.0f)},
+                         front_wall = {PID(0.00007f, 0.00008f, 0.0000014f, 0.0f), PID(0.00007f, 0.00008f, 0.0000014f, 0.0f)},
                          ang = {PID(0.5f, 0.05f, 0.001f, 0.0f), PID(0.5f, 0.05f, 0.001f, 0.0f)};
-  PID side_wall = PID(0.004f, 0.000f, 0.0000f, 0.0f);
+  PID side_wall = PID(0.003f, 0.000f, 0.0000f, 0.0f);
   PID ang_vel = PID(0.0041024f, 0.067247f, 0.0f, 0.0f);
 
   parts::wheel<T, T> motor_duty = {0, 0};
@@ -142,9 +142,9 @@ void Controller<T, STATUS, PID>::generate_tar_speed() {
 template <typename T, class STATUS, class PID>
 void Controller<T, STATUS, PID>::back_1s() {
   run_mode = parts::RunModeT::STRAIGHT_MODE;
-  tar_speed = -100;
-  max_speed = -100;
-  HAL_Delay(2000);
+  tar_speed = -150;
+  max_speed = -150;
+  HAL_Delay(2500);
   tar_speed = 0;
   max_speed = 0;
   status.reset();
@@ -219,8 +219,7 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
   // 現在距離を0にリセット
   status.reset();
   if (std::abs(end_speed) < FLT_EPSILON) {
-    speed.left.reset();
-    speed.right.reset();
+    reset();
   }
   side_wall_control = side_wall_control_tmp;
   HAL_Delay(1);
@@ -283,7 +282,7 @@ void Controller<T, STATUS, PID>::turn(const float deg, float ang_accel, float ma
   status.reset();
 
   run_mode = parts::RunModeT::STOP_MODE;
-  ang_vel.reset();
+  reset();
 
   HAL_Delay(1);
 }
