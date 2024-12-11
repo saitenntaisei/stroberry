@@ -32,28 +32,32 @@ void maze_run::robot_move(const Direction &dir) {
 
       GlobalState::ctrl.reset();
       HAL_Delay(1);
-      GlobalState::ctrl.straight(180.0 - 40.0, 200, 200, 200);
+      GlobalState::ctrl.straight(180.0 - 40.0, 200, 400, 200);
       GlobalState::batt.monitoring_state = true;
 
       is_start_block = false;
     } else {
-      GlobalState::ctrl.straight(180.0, 200, 200, 200);
+      GlobalState::ctrl.straight(180.0, 200, 400, 200);
     }
   } else if (dir_diff == 1 || dir_diff == -3) {  // Right
     // GlobalState::ctrl.set_side_wall_control(false);
     GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
     HAL_Delay(1);
-    GlobalState::ctrl.turn(-90, 540, 720);
+    GlobalState::ctrl.turn(-85, 540, 720);
     HAL_Delay(1);
-    GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
+    // GlobalState::ctrl.set_side_wall_control(false);
+    GlobalState::ctrl.straight(90.0, 200, 400, 200.0);
+    // GlobalState::ctrl.set_side_wall_control(true);
 
   } else if (dir_diff == -1 || dir_diff == 3) {  // LEFT
     // GlobalState::ctrl.set_side_wall_control(false);
     GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
     HAL_Delay(1);
-    GlobalState::ctrl.turn(90, 540, 720);
+    GlobalState::ctrl.turn(85, 540, 720);
     HAL_Delay(1);
-    GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
+    // GlobalState::ctrl.set_side_wall_control(false);
+    GlobalState::ctrl.straight(90.0, 200, 400, 200.0);
+    // GlobalState::ctrl.set_side_wall_control(true);
   } else {  // 180度ターン
     if (prev_wall_cnt == 3) {
       GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
@@ -156,7 +160,7 @@ void abjustMode(std::uint8_t mode) {
       GlobalState::test_mode = param::TestMode::TURN_MODE;
       for (int i = 0; i < (1 << 7) - 1; ++i) {
         std::uint8_t signal = mseq.update();
-        GlobalState::motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 2.5f;
+        GlobalState::motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 4.5f;
         GlobalState::motor.left.drive_vcc(GlobalState::motor_signal);
         GlobalState::motor.right.drive_vcc(GlobalState::motor_signal);
         HAL_Delay(400);
@@ -188,17 +192,17 @@ void abjustMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim11);
       HAL_Delay(1);
       GlobalState::test_mode = param::TestMode::STRAIGHT_MODE;
-      // for (int i = 0; i < (1 << 6) - 1; ++i) {
-      //   std::uint8_t signal = mseq.update();
-      //   GlobalState::motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 2.5f;
-      //   GlobalState::motor.left.drive_vcc(-GlobalState::motor_signal);
-      //   GlobalState::motor.right.drive_vcc(GlobalState::motor_signal);
-      //   HAL_Delay(400);
-      // }
-      GlobalState::motor_signal = 2.0f;
-      GlobalState::motor.left.drive_vcc(-GlobalState::motor_signal);
-      GlobalState::motor.right.drive_vcc(GlobalState::motor_signal * 1.1f);
-      HAL_Delay(2000);
+      for (int i = 0; i < (1 << 6) - 1; ++i) {
+        std::uint8_t signal = mseq.update();
+        GlobalState::motor_signal = (static_cast<float>(signal) - 0.5f) * 2 * 5.0f;
+        GlobalState::motor.left.drive_vcc(-GlobalState::motor_signal);
+        GlobalState::motor.right.drive_vcc(GlobalState::motor_signal);
+        HAL_Delay(400);
+      }
+      // GlobalState::motor_signal = 5.0f;
+      // GlobalState::motor.left.drive_vcc(-GlobalState::motor_signal);
+      // GlobalState::motor.right.drive_vcc(GlobalState::motor_signal);
+      // HAL_Delay(2000);
       GlobalState::test_mode = param::TestMode::NONE;
       HAL_TIM_Base_Stop_IT(&htim10);
       HAL_TIM_Base_Stop_IT(&htim11);
@@ -279,9 +283,8 @@ void trueRunMode(std::uint8_t mode) {
       // GlobalState::ctrl.turn(3600, 540, 720);
       // GlobalState::ctrl.front_wall_control = true;
 
-      GlobalState::ctrl.turn(3600, 540, 720);
+      GlobalState::ctrl.turn(176, 540, 720);
       HAL_Delay(1000);
-      GlobalState::ctrl.turn(-3600, 540, 720);
       // GlobalState::ctrl.turn(-90, 540, 180);
     } break;
     case 5: {
