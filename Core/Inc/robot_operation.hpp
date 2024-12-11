@@ -32,32 +32,32 @@ void maze_run::robot_move(const Direction &dir) {
 
       GlobalState::ctrl.reset();
       HAL_Delay(1);
-      GlobalState::ctrl.straight(180.0 - 40.0, 200, 200, 200);
+      GlobalState::ctrl.straight(180.0 - 40.0, 200, 400, 200);
       GlobalState::batt.monitoring_state = true;
 
       is_start_block = false;
     } else {
-      GlobalState::ctrl.straight(180.0, 200, 200, 200);
+      GlobalState::ctrl.straight(180.0, 200, 400, 200);
     }
   } else if (dir_diff == 1 || dir_diff == -3) {  // Right
     // GlobalState::ctrl.set_side_wall_control(false);
     GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
     HAL_Delay(1);
-    GlobalState::ctrl.turn(-86, 540, 720);
+    GlobalState::ctrl.turn(-85, 540, 720);
     HAL_Delay(1);
-    GlobalState::ctrl.set_side_wall_control(false);
-    GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
-    GlobalState::ctrl.set_side_wall_control(true);
+    //GlobalState::ctrl.set_side_wall_control(false);
+    GlobalState::ctrl.straight(90.0, 200, 400, 200.0);
+    //GlobalState::ctrl.set_side_wall_control(true);
 
   } else if (dir_diff == -1 || dir_diff == 3) {  // LEFT
     // GlobalState::ctrl.set_side_wall_control(false);
     GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
     HAL_Delay(1);
-    GlobalState::ctrl.turn(86, 540, 720);
+    GlobalState::ctrl.turn(85, 540, 720);
     HAL_Delay(1);
-    GlobalState::ctrl.set_side_wall_control(false);
-    GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
-    GlobalState::ctrl.set_side_wall_control(true);
+    //GlobalState::ctrl.set_side_wall_control(false);
+    GlobalState::ctrl.straight(90.0, 200, 400, 200.0);
+    //GlobalState::ctrl.set_side_wall_control(true);
   } else {  // 180度ターン
     if (prev_wall_cnt == 3) {
       GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
