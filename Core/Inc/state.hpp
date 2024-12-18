@@ -24,7 +24,7 @@ class Status {
   bool left_wall = false;
   bool right_wall = false;
   static constexpr parts::wheel<T, T> side_wall_control_th = {5000, 5000};
-  static constexpr parts::wheel<T, T> front_wall_control_th = {6000, 6000};
+  static constexpr parts::wheel<T, T> front_wall_control_th = {55000, 5500};
   parts::wheel<T, T> side_wall_sensor_error = {0, 0};
   parts::wheel<T, T> front_wall_sensor_error = {0, 0};
   parts::wheel<T, T> front_wall_sensor_value = {0, 0};
@@ -32,7 +32,7 @@ class Status {
   static constexpr parts::wheel<T, T> front_wall_sensor_ref = {28000, 28000};
   parts::wheel<bool, bool> is_side_wall_control = {false, false};
   parts::wheel<bool, bool> is_front_wall_control = {false, false};
-  static constexpr std::uint32_t left_threshold = 3800, right_threshold = 3800, front_threshold = 8000;
+  static constexpr std::uint32_t left_threshold = 1500, right_threshold = 1000, front_threshold = 4000;
   /* data */
  public:
   enum WallSensor { FRONT_LEFT, FRONT_RIGHT, LEFT, RIGHT };
