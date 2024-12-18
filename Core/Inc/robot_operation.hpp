@@ -247,7 +247,7 @@ void abjustMode(std::uint8_t mode) {
           ir_value[i] = GlobalState::ir_sensor.get_ir_value(i);
         }
 
-        printf("ir: %ld,%ld, %ld, %ld\r\n", ir_value[0], ir_value[1], ir_value[2], ir_value[3]);
+        printf("FRONT_LEFT: %ld, FRONT_RIGHT: %ld, LEFT: %ld, RIGHT: %ld\r\n", ir_value[0], ir_value[1], ir_value[2], ir_value[3]);
         HAL_Delay(1);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GlobalState::ctrl.status.get_left_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, GlobalState::ctrl.status.get_front_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
