@@ -29,6 +29,7 @@ class IrSensor {
   static constexpr std::uint16_t delta = 2000;
   int moving_average_num = 1;
   std::vector<float> pre_cos, pre_sin;
+  std::uint16_t temp_cnt = 0;
 
  public:
   explicit IrSensor(ADC_HandleTypeDef* hadc, std::uint8_t num, std::uint16_t sampling_freq_kHz, std::uint16_t ir_flashing_freq_kHz, int moving_average_num = 3);
@@ -104,9 +105,20 @@ void IrSensor<T>::ir_sampling(void) {
 }
 template <typename T>
 void IrSensor<T>::ir_update(void) {
+  if (temp_cnt < 1) {
+    temp_cnt++;
+    counter_k = 0;
+    std::uint8_t ir_sensor_index = 0;
+    if (ir_selection == SIDE) ir_sensor_index = 2;
+    for (std::uint8_t i = ir_sensor_index; i < ir_sensor_index + 2; i++) {
+      temp_ir_sensor_value[i] = std::make_pair(0, 0);
+    }
+    return;
+  }
   if (ir_selection == FRONT) {
     ir_selection = SIDE;
     counter_k = 0;
+    temp_cnt = 0;
     return;
   } else
     ir_selection = FRONT;
@@ -128,6 +140,7 @@ void IrSensor<T>::ir_update(void) {
     ir_sensor_values.pop();
   }
   counter_k = 0;
+  temp_cnt = 0;
 }
 
 }  // namespace adc
