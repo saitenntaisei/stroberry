@@ -120,6 +120,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle) {
   if (AdcHandle == &hadc2) {
     GlobalState::ir_sensor.ir_sampling();
+
+    if (GlobalState::ir_sensor.ir_selection == adc::IrSensor<std::uint32_t>::IrSelection::FRONT) {
+      GlobalState::ir_light_2.ir_flash_stop();
+      GlobalState::ir_light_1.ir_flash_start();
+    } else {
+      GlobalState::ir_light_1.ir_flash_stop();
+      GlobalState::ir_light_2.ir_flash_start();
+    }
   }
 }
 void HAL_GPIO_EXTI_Callback(std::uint16_t GPIO_Pin) {

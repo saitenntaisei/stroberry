@@ -233,17 +233,8 @@ void abjustMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim11);
       while (1) {
         std::uint32_t ir_value[4];
-        GlobalState::ir_light_1.ir_flash_start();
-        GlobalState::ir_light_2.ir_flash_stop();
-        HAL_Delay(10);
 
-        for (std::uint8_t i = 0; i < 2; ++i) {
-          ir_value[i] = GlobalState::ir_sensor.get_ir_value(i);
-        }
-        GlobalState::ir_light_1.ir_flash_stop();
-        GlobalState::ir_light_2.ir_flash_start();
-        HAL_Delay(10);
-        for (std::uint8_t i = 2; i < 4; ++i) {
+        for (std::uint8_t i = 0; i < 4; ++i) {
           ir_value[i] = GlobalState::ir_sensor.get_ir_value(i);
         }
 

@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "motor.hpp"
-
 namespace adc {
 
 template <typename T>
@@ -28,7 +27,7 @@ class IrSensor {
   std::uint16_t ir_flashing_freq_kHz = 0;
   std::uint16_t sampling_times = 0;
   static constexpr std::uint16_t delta = 2000;
-  int moving_average_num = 3;
+  int moving_average_num = 1;
   std::vector<float> pre_cos, pre_sin;
 
  public:
@@ -41,6 +40,8 @@ class IrSensor {
   void init(void);
   void ir_sampling(void);
   void ir_update(void);
+  enum IrSelection { FRONT, SIDE };
+  IrSelection ir_selection = FRONT;
 
   T get_ir_value(std::uint8_t num) {
     if (num >= ir_sensor_num) {
@@ -90,7 +91,9 @@ void IrSensor<T>::init() {
 }
 template <typename T>
 void IrSensor<T>::ir_sampling(void) {
-  for (std::uint8_t i = 0; i < ir_sensor_num; i++) {
+  std::uint8_t ir_sensor_index = 0;
+  if (ir_selection == SIDE) ir_sensor_index = 2;
+  for (std::uint8_t i = ir_sensor_index; i < ir_sensor_index + 2; i++) {
     temp_ir_sensor_value[i].first += (g_adc_data[i] - delta) * pre_cos[counter_k];
     temp_ir_sensor_value[i].second += (g_adc_data[i] - delta) * pre_sin[counter_k];
   }
@@ -101,6 +104,12 @@ void IrSensor<T>::ir_sampling(void) {
 }
 template <typename T>
 void IrSensor<T>::ir_update(void) {
+  if (ir_selection == FRONT) {
+    ir_selection = SIDE;
+    counter_k = 0;
+    return;
+  } else
+    ir_selection = FRONT;
   std::unique_ptr<T[]> ir_sensor_value(new T[ir_sensor_num]);
   for (std::uint8_t i = 0; i < ir_sensor_num; i++) {
     ir_sensor_value[i] = static_cast<T>(std::sqrt(std::pow(temp_ir_sensor_value[i].first, 2) + std::pow(temp_ir_sensor_value[i].second, 2)));
@@ -128,6 +137,7 @@ class IrLight {
  private:
   timerPin ir_light;
   std::uint16_t freq = 50;
+  bool is_flash = false;
 
  public:
   IrLight(TIM_HandleTypeDef* tim, unsigned int channel);
@@ -136,12 +146,15 @@ class IrLight {
 };
 IrLight::IrLight(TIM_HandleTypeDef* tim, unsigned int channel) : ir_light(tim, channel) {}
 void IrLight::ir_flash_start() {
-  HAL_TIM_PWM_Start(ir_light.tim, ir_light.channel);
+  if (!is_flash) {
+    HAL_TIM_PWM_Start(ir_light.tim, ir_light.channel);
+    is_flash = true;
+  }
   __HAL_TIM_SET_COMPARE(ir_light.tim, ir_light.channel, freq);  // Max 100
 }
 void IrLight::ir_flash_stop() {
-  HAL_TIM_PWM_Stop(ir_light.tim, ir_light.channel);
-  __HAL_TIM_SET_COMPARE(ir_light.tim, ir_light.channel, freq);  // Max 100
+  // HAL_TIM_PWM_Stop(ir_light.tim, ir_light.channel);
+  __HAL_TIM_SET_COMPARE(ir_light.tim, ir_light.channel, 0);  // Max 100
 }
 
 }  // namespace pwm
