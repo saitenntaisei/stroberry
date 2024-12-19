@@ -77,8 +77,8 @@ void SystemClock_Config(void);  // NOLINT
 using global_state::GlobalState;
 
 namespace {
-std::uint8_t mode = 0;
-bool safe_mode = false;
+std::uint8_t run_mode = 0;
+std::uint8_t system_mode = 0;
 
 bool led_mode = true;
 }  // namespace
@@ -108,10 +108,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   }
   if (htim == &htim7) {
     if (led_mode) {
-      HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, (mode & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, ((mode >> 1) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, ((mode >> 2) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, (safe_mode ? GPIO_PIN_SET : GPIO_PIN_RESET));
+      HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, (run_mode & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, ((run_mode >> 1) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, ((run_mode >> 2) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, ((system_mode & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET));
+      HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, ((system_mode >> 1) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
     }
     GlobalState::batt.read_batt();
   }
@@ -132,11 +133,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle) {
 }
 void HAL_GPIO_EXTI_Callback(std::uint16_t GPIO_Pin) {
   if (GPIO_Pin == Button1_Pin) {
-    safe_mode = !safe_mode;
+    system_mode++;
+    system_mode %= 3;
   }
   if (GPIO_Pin == Button2_Pin) {
-    mode++;
-    mode %= 8;
+    run_mode++;
+    run_mode %= 8;
   }
 }
 
@@ -224,9 +226,8 @@ int main() {
 
     /* USER CODE BEGIN 3 */
 
-    while (safe_mode) {
+    while (system_mode > 0) {
       if (GlobalState::ir_sensor.get_ir_value(0) >= 1e4 && GlobalState::ir_sensor.get_ir_value(1) >= 1e4) {
-        safe_mode = false;
         led_mode = false;
         HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
@@ -236,8 +237,17 @@ int main() {
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GPIO_PIN_RESET);
         GlobalState::gyro.init();
         HAL_Delay(3000);
-        robot_operation::trueRunMode(mode);
-        // robot_operation::abjustMode(mode);
+
+        switch (system_mode) {
+          case 1:
+            robot_operation::trueRunMode(run_mode);
+            break;
+
+          case 2:
+            robot_operation::abjustMode(run_mode);
+            break;
+        }
+        system_mode = 0;
       }
 
       HAL_Delay(1);
