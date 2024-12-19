@@ -194,9 +194,7 @@ int main() {
   setbuf(stdout, nullptr);
   HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
-  HAL_Delay(100);
-  GlobalState::gyro.init();
-  HAL_Delay(2000);
+  HAL_Delay(500);
   GlobalState::buzzer.init();
   GlobalState::ir_sensor.init();
   GlobalState::motor.left.init();
@@ -236,6 +234,7 @@ int main() {
         HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GPIO_PIN_RESET);
+        GlobalState::gyro.init();
         HAL_Delay(3000);
         robot_operation::trueRunMode(mode);
         // robot_operation::abjustMode(mode);
