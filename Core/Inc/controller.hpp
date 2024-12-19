@@ -142,11 +142,12 @@ void Controller<T, STATUS, PID>::generate_tar_speed() {
 template <typename T, class STATUS, class PID>
 void Controller<T, STATUS, PID>::back_1s() {
   run_mode = parts::RunModeT::STRAIGHT_MODE;
-  tar_speed = -100;
-  max_speed = -100;
+  tar_speed = -150;
+  max_speed = -150;
   HAL_Delay(2000);
   tar_speed = 0;
   max_speed = 0;
+  HAL_Delay(500);
   status.reset();
   speed.left.reset();
   speed.right.reset();
@@ -218,8 +219,10 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
   HAL_Delay(10);
   // 現在距離を0にリセット
   status.reset();
-  // speed.left.reset();
-  // speed.right.reset();
+  if (std::abs(end_speed) < FLT_EPSILON) {
+    speed.left.reset();
+    speed.right.reset();
+  }
   side_wall_control = side_wall_control_tmp;
   HAL_Delay(1);
 }
@@ -227,6 +230,7 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
 template <typename T, class STATUS, class PID>
 // positive: left, negative: right
 void Controller<T, STATUS, PID>::turn(const float deg, float ang_accel, float max_ang_velocity) {
+  run_mode = parts::RunModeT::TURN_MODE;
   ang_accel = std::abs(ang_accel);
   max_ang_velocity = std::abs(max_ang_velocity);
   if (deg < 0) {
@@ -240,7 +244,6 @@ void Controller<T, STATUS, PID>::turn(const float deg, float ang_accel, float ma
   tar_speed = 0;
   tar_ang_vel = 0;
   // 走行モードをスラロームモードにする
-  run_mode = parts::RunModeT::TURN_MODE;
 
   // 車体の現在角度を取得
   local_degree = status.get_ang();
