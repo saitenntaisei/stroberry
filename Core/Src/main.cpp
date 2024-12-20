@@ -101,11 +101,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     }
   }
   if (htim == &htim11) {
-    GlobalState::ctrl.update();
-    GlobalState::ctrl.drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(GlobalState::motor.left, GlobalState::motor.right, -1, 1);
     GlobalState::ctrl.status.update_wall_sensor([]() { return GlobalState::ir_sensor.get_average_ir_values(); });
     GlobalState::ctrl.status.update_gyro([]() { return GlobalState::gyro.read_gyro().z; });
   }
+
+  if (htim == &htim13) {
+    GlobalState::ctrl.update();
+    GlobalState::ctrl.drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(GlobalState::motor.left, GlobalState::motor.right, -1, 1);
+  }
+
   if (htim == &htim7) {
     if (led_mode) {
       HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, (run_mode & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -119,6 +123,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle) {
+  __disable_irq();
   if (AdcHandle == &hadc2) {
     GlobalState::ir_sensor.ir_sampling();
 
@@ -130,6 +135,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle) {
       GlobalState::ir_light_2.ir_flash_start();
     }
   }
+  __enable_irq();
 }
 void HAL_GPIO_EXTI_Callback(std::uint16_t GPIO_Pin) {
   if (GPIO_Pin == Button1_Pin) {
@@ -192,6 +198,7 @@ int main() {
   MX_TIM7_Init();
   MX_TIM6_Init();
   MX_TIM1_Init();
+  MX_TIM13_Init();
   /* USER CODE BEGIN 2 */
   setbuf(stdout, nullptr);
   HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
@@ -227,7 +234,7 @@ int main() {
     /* USER CODE BEGIN 3 */
 
     while (system_mode > 0) {
-      if (GlobalState::ir_sensor.get_ir_value(0) >= 1e4 && GlobalState::ir_sensor.get_ir_value(1) >= 1e4) {
+      if (GlobalState::ir_sensor.get_ir_value(0) >= 12.0f && GlobalState::ir_sensor.get_ir_value(1) >= 12.0f) {
         led_mode = false;
         HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);

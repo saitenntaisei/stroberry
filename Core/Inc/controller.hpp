@@ -13,9 +13,9 @@ template <typename T, class STATUS, class PID>
 class Controller {
  private:
   parts::wheel<PID, PID> speed = {PID(0.00809f, 0.031819f, 0.00048949f, 0.0f), PID(0.00809f, 0.031819f, 0.00048949f, 0.0f)},
-                         front_wall = {PID(0.00005f, 0.00008f, 0.0000014f, 0.0f), PID(0.00005f, 0.00008f, 0.0000014f, 0.0f)},
+                         front_wall = {PID(0.0000f, 0.0000f, 0.00000f, 0.0f), PID(0.0000f, 0.0000f, 0.0000f, 0.0f)},
                          ang = {PID(0.5f, 0.05f, 0.001f, 0.0f), PID(0.5f, 0.05f, 0.001f, 0.0f)};
-  PID side_wall = PID(0.004f, 0.000f, 0.0000f, 0.0f);
+  PID side_wall = PID(0.2f, 0.00f, 0.002f, 0.0f);
   PID ang_vel = PID(0.0081024f, 0.207247f, 0.0f, 0.0f);
 
   parts::wheel<T, T> motor_duty = {0, 0};
@@ -65,25 +65,26 @@ void Controller<T, STATUS, PID>::update() {
   motor_duty.left = 0;
   motor_duty.right = 0;
 
-  if (run_mode == parts::RunModeT::STRAIGHT_MODE) {
-    if (side_wall_control) {
-      parts::wheel<T, T> side_wall_sensor_error = status.get_side_wall_sensor_error();
-      parts::wheel<bool, bool> is_side_wall = status.get_is_side_wall_control();
-      std::uint8_t n = 1;
-
-      if (!is_side_wall.left || !is_side_wall.right) {
-        n = 1;
-      }
-      if (!is_side_wall.left && !is_side_wall.right) n = 0;
-
-      tar_ang_vel += side_wall.update(0, side_wall_sensor_error.left - side_wall_sensor_error.right) * (float)n;
-    }
-  }
-
   if (!front_wall_control) {
     motor_duty.left += speed.left.update(tar_speed, status.get_speed());
     motor_duty.right += speed.right.update(tar_speed, status.get_speed()) * 1.1f;
     float ang_vel_pid = ang_vel.update(tar_ang_vel, status.get_ang_vel());
+
+    if (run_mode == parts::RunModeT::STRAIGHT_MODE) {
+      if (side_wall_control) {
+        parts::wheel<T, T> side_wall_sensor_error = status.get_side_wall_sensor_error();
+        parts::wheel<bool, bool> is_side_wall = status.get_is_side_wall_control();
+        std::uint8_t n = 1;
+
+        if (!is_side_wall.left || !is_side_wall.right) {
+          n = 2;
+        }
+        if (!is_side_wall.left && !is_side_wall.right) n = 0;
+        ang_vel_pid = side_wall.update(0, side_wall_sensor_error.left - side_wall_sensor_error.right) * static_cast<float>(n);
+        // tar_ang_vel += side_wall.update(0, side_wall_sensor_error.left - side_wall_sensor_error.right) * (float)n;
+      }
+    }
+
     motor_duty.left -= ang_vel_pid;
     motor_duty.right += ang_vel_pid;
   }
