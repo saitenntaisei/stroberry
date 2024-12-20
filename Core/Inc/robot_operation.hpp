@@ -137,6 +137,7 @@ void abjustMode(std::uint8_t mode) {
     case 1: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
+      HAL_TIM_Base_Start_IT(&htim13);
       // GlobalState::ctrl.turn(3600, 540, 720);
 
       GlobalState::ctrl.turn(-90, 540, 720);
@@ -262,7 +263,7 @@ void trueRunMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       HAL_TIM_Base_Start_IT(&htim13);
-      GlobalState::ctrl.set_front_wall_control_permission(false);
+      GlobalState::ctrl.set_front_wall_control_permission(true);
       // GlobalState::ctrl.set_side_wall_control(false);
       maze_run::search_run();
 

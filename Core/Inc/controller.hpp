@@ -13,9 +13,9 @@ template <typename T, class STATUS, class PID>
 class Controller {
  private:
   parts::wheel<PID, PID> speed = {PID(0.00809f, 0.031819f, 0.00048949f, 0.0f), PID(0.00809f, 0.031819f, 0.00048949f, 0.0f)},
-                         front_wall = {PID(0.0000f, 0.0000f, 0.00000f, 0.0f), PID(0.0000f, 0.0000f, 0.0000f, 0.0f)},
+                         front_wall = {PID(4.0f, 12.0000f, 0.2000f, 0.0f), PID(4.0f, 12.0000f, 0.2000f, 0.0f)},
                          ang = {PID(0.5f, 0.05f, 0.001f, 0.0f), PID(0.5f, 0.05f, 0.001f, 0.0f)};
-  PID side_wall = PID(0.2f, 0.00f, 0.002f, 0.0f);
+  PID side_wall = PID(0.15f, 0.00f, 0.05f, 0.0f);
   PID ang_vel = PID(0.0081024f, 0.207247f, 0.0f, 0.0f);
 
   parts::wheel<T, T> motor_duty = {0, 0};
@@ -66,6 +66,7 @@ void Controller<T, STATUS, PID>::update() {
   motor_duty.right = 0;
 
   if (!front_wall_control) {
+    HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_RESET);
     motor_duty.left += speed.left.update(tar_speed, status.get_speed());
     motor_duty.right += speed.right.update(tar_speed, status.get_speed()) * 1.1f;
     float ang_vel_pid = ang_vel.update(tar_ang_vel, status.get_ang_vel());
@@ -89,6 +90,7 @@ void Controller<T, STATUS, PID>::update() {
     motor_duty.right += ang_vel_pid;
   }
   if (front_wall_control) {
+    HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_SET);
     parts::wheel<T, T> front_wall_sensor_error = status.get_front_wall_sensor_error();
     motor_duty.left += front_wall.left.update(0, front_wall_sensor_error.left);
     motor_duty.right += front_wall.right.update(0, front_wall_sensor_error.right);
@@ -204,9 +206,12 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
       front_wall_control = true;
     }
     if (front_wall_control) {
+      HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET);
+      HAL_Delay(2000);
       while (std::abs(status.get_speed()) > FLT_EPSILON || std::abs(status.get_ang_vel()) > std::abs(turn_vel_error)) {
         HAL_Delay(1);
       }
+      HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET);
     }
     front_wall_control = false;
   }
