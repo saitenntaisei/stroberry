@@ -61,12 +61,14 @@ void maze_run::robot_move(const Direction &dir) {
       GlobalState::ctrl.straight(90.0, 200, 200, 0.0);
       GlobalState::ctrl.turn(180, 540, 720);
       GlobalState::batt.monitoring_state = false;
+      GlobalState::ctrl.set_side_wall_control(false);
       GlobalState::ctrl.back_1s();
 
       GlobalState::ctrl.reset();
       HAL_Delay(1);
       GlobalState::ctrl.straight(180.0 - 40.0, 200, 200, 200);
       GlobalState::batt.monitoring_state = true;
+      GlobalState::ctrl.set_side_wall_control(true);
     } else {
       GlobalState::ctrl.straight(90.0, 200, 200, 0.0);
       GlobalState::ctrl.turn(180, 540, 720);
