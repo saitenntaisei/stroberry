@@ -16,7 +16,7 @@ class Controller {
                          front_wall = {PID(4.0f, 12.0000f, 0.2000f, 0.0f), PID(4.0f, 12.0000f, 0.2000f, 0.0f)},
                          ang = {PID(0.5f, 0.05f, 0.001f, 0.0f), PID(0.5f, 0.05f, 0.001f, 0.0f)};
   PID side_wall = PID(80.0f, 0.00f, 10.0f, 0.0f);
-  PID ang_vel = PID(0.0151024f, 0.207247f, 0.0f, 0.0f);
+  PID ang_vel = PID(0.0121024f, 0.207247f, 0.0f, 0.0f);
 
   parts::wheel<T, T> motor_duty = {0, 0};
   T tar_speed = 0, accel = 0;

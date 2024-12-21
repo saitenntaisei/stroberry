@@ -11,7 +11,7 @@ class Status {
   T right_speed_old = 0, left_speed_old = 0;
   T right_speed_new = 0, left_speed_new = 0;
   T previous_speed = 0;
-  static constexpr float diameter_wheel = 32.8F;
+  static constexpr float diameter_wheel = 32.82F;
   static constexpr float radius_wheel = diameter_wheel / 2.0F;
   T speed = 0;
   T left_speed = 0, right_speed = 0;

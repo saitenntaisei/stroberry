@@ -28,12 +28,14 @@ void maze_run::robot_move(const Direction &dir) {
   if (dir_diff == 0) {
     if (is_start_block) {
       GlobalState::batt.monitoring_state = false;
+      GlobalState::ctrl.set_side_wall_control(false);
       GlobalState::ctrl.back_1s();
 
       GlobalState::ctrl.reset();
       HAL_Delay(1);
       GlobalState::ctrl.straight(180.0 - 40.0, 200, 200, 200);
       GlobalState::batt.monitoring_state = true;
+      GlobalState::ctrl.set_side_wall_control(true);
 
       is_start_block = false;
     } else {
@@ -140,7 +142,7 @@ void abjustMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       HAL_TIM_Base_Start_IT(&htim13);
-      // GlobalState::ctrl.turn(3600, 540, 720);
+      GlobalState::ctrl.turn(3600, 540, 720);
 
       // GlobalState::ctrl.turn(-90, 540, 720);
       // GlobalState::ctrl.turn(-90, 540, 180);
@@ -148,10 +150,11 @@ void abjustMode(std::uint8_t mode) {
     case 2: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
-      GlobalState::ctrl.set_side_wall_control(false);
+      HAL_TIM_Base_Start_IT(&htim13);
+      // GlobalState::ctrl.set_side_wall_control(false);
 
       GlobalState::ctrl.back_1s();
-      GlobalState::ctrl.straight(180.0 * 2 - 40.0, 400, 800, 0.0);
+      GlobalState::ctrl.straight(180.0 * 8 - 40.0, 400, 800, 0.0);
     } break;
     case 3: {
       Mseq mseq(7);

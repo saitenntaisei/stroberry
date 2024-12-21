@@ -17,7 +17,7 @@ class Gyro {
  private:
   /* data */
   geometry gyro_offset;
-  const float gyro_sensitivty = 0.070F;
+  const float gyro_sensitivty = 0.0702F;
   float spi_gyro_OUT_Z(void);
   float spi_gyro_OUT_X(void);
   float spi_gyro_OUT_Y(void);
