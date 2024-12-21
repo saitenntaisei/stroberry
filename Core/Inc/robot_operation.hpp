@@ -140,7 +140,7 @@ void abjustMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim13);
       // GlobalState::ctrl.turn(3600, 540, 720);
 
-      GlobalState::ctrl.turn(-90, 540, 720);
+      // GlobalState::ctrl.turn(-90, 540, 720);
       // GlobalState::ctrl.turn(-90, 540, 180);
     } break;
     case 2: {
