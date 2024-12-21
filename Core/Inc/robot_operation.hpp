@@ -57,7 +57,7 @@ void maze_run::robot_move(const Direction &dir) {
     GlobalState::ctrl.straight(90.0, 200, 200, 200);
     GlobalState::ctrl.set_side_wall_control(true);
   } else {  // 180度ターン
-    if (prev_wall_cnt == 3) {
+    if (prev_wall_cnt == 3 || GlobalState::ctrl.status.get_front_wall()) {
       GlobalState::ctrl.straight(90.0, 200, 200, 0.0);
       GlobalState::ctrl.turn(180, 540, 720);
       GlobalState::batt.monitoring_state = false;

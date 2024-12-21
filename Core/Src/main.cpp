@@ -234,7 +234,7 @@ int main() {
     /* USER CODE BEGIN 3 */
 
     while (system_mode > 0) {
-      if (GlobalState::ir_sensor.get_ir_value(0) >= 12.0f && GlobalState::ir_sensor.get_ir_value(1) >= 12.0f) {
+      if (GlobalState::ir_sensor.get_ir_value(0) >= 14.0f && GlobalState::ir_sensor.get_ir_value(1) >= 14.0f) {
         led_mode = false;
         HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);

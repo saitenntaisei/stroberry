@@ -28,7 +28,7 @@ class Status {
   parts::wheel<T, T> side_wall_sensor_error = {0, 0};
   parts::wheel<T, T> front_wall_sensor_error = {0, 0};
   parts::wheel<T, T> front_wall_sensor_value = {0, 0};
-  static constexpr parts::wheel<T, T> side_wall_sensor_ref = {13.0f, 13.0f};
+  static constexpr parts::wheel<T, T> side_wall_sensor_ref = {12.8f, 12.8f};
   static constexpr parts::wheel<T, T> front_wall_sensor_ref = {14.5f, 14.5f};
   parts::wheel<bool, bool> is_side_wall_control = {false, false};
   parts::wheel<bool, bool> is_front_wall_control = {false, false};

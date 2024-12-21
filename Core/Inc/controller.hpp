@@ -15,8 +15,8 @@ class Controller {
   parts::wheel<PID, PID> speed = {PID(0.00809f, 0.031819f, 0.00048949f, 0.0f), PID(0.00809f, 0.031819f, 0.00048949f, 0.0f)},
                          front_wall = {PID(4.0f, 12.0000f, 0.2000f, 0.0f), PID(4.0f, 12.0000f, 0.2000f, 0.0f)},
                          ang = {PID(0.5f, 0.05f, 0.001f, 0.0f), PID(0.5f, 0.05f, 0.001f, 0.0f)};
-  PID side_wall = PID(100.0f, 0.00f, 1.0f, 0.0f);
-  PID ang_vel = PID(0.0081024f, 0.207247f, 0.0f, 0.0f);
+  PID side_wall = PID(80.0f, 0.00f, 10.0f, 0.0f);
+  PID ang_vel = PID(0.0121024f, 0.207247f, 0.0f, 0.0f);
 
   parts::wheel<T, T> motor_duty = {0, 0};
   T tar_speed = 0, accel = 0;
@@ -207,9 +207,7 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
     if (front_wall_control) {
       reset();
       HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET);
-      for (int i = 0; i < 2000; i++) {
-        HAL_Delay(1);
-      }
+      HAL_Delay(500);
       while (std::abs(status.get_speed()) > FLT_EPSILON || std::abs(status.get_ang_vel()) > std::abs(turn_vel_error)) {
         HAL_Delay(1);
       }

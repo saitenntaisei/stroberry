@@ -19,7 +19,7 @@ class IrSensor {
   std::uint8_t ir_sensor_num = 0;
   std::unique_ptr<std::uint16_t[]> g_adc_data;
 
-  std::queue<std::unique_ptr<T[]>> ir_sensor_values;
+  std::list<std::unique_ptr<T[]>> ir_sensor_values;
   std::unique_ptr<T[]> moving_average;
   std::unique_ptr<std::pair<float, float>[]> temp_ir_sensor_value;
   std::uint16_t counter_k = 0;
@@ -27,7 +27,7 @@ class IrSensor {
   std::uint16_t ir_flashing_freq_kHz = 0;
   std::uint16_t sampling_times = 0;
   static constexpr std::uint16_t delta = 2000;
-  int moving_average_num = 1;
+  int moving_average_num = 3;
   std::vector<float> pre_cos, pre_sin;
   std::uint16_t temp_cnt = 0;
 
@@ -129,17 +129,22 @@ void IrSensor<T>::ir_update(void) {
     temp_ir_sensor_value[i] = std::make_pair(0, 0);
   }
 
-  for (std::uint8_t i = 0; i < ir_sensor_num; i++) {
-    moving_average[i] += ir_sensor_value[i] / moving_average_num;
-  }
-  ir_sensor_values.push(std::move(ir_sensor_value));
+  ir_sensor_values.push_front(std::move(ir_sensor_value));
 
   if (moving_average_num < static_cast<int>(ir_sensor_values.size())) {
-    for (std::uint8_t i = 0; i < ir_sensor_num; i++) {
-      moving_average[i] -= ir_sensor_values.front()[i] / moving_average_num;
-    }
-    ir_sensor_values.pop();
+    ir_sensor_values.pop_back();
   }
+
+  for (std::uint8_t i = 0; i < ir_sensor_num; i++) {
+    moving_average[i] = 0;
+  }
+
+  std::for_each(ir_sensor_values.cbegin(), ir_sensor_values.cend(), [&](const std::unique_ptr<T[]>& x) {
+    for (std::uint8_t i = 0; i < ir_sensor_num; i++) {
+      moving_average[i] = std::max(x[i], moving_average[i]);
+    }
+  });
+
   counter_k = 0;
   temp_cnt = 0;
 }
