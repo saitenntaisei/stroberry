@@ -13,10 +13,10 @@ template <typename T, class STATUS, class PID>
 class Controller {
  private:
   parts::wheel<PID, PID> speed = {PID(0.00809f, 0.031819f, 0.00048949f, 0.0f), PID(0.00809f, 0.031819f, 0.00048949f, 0.0f)},
-                         front_wall = {PID(0.00005f, 0.00008f, 0.0000014f, 0.0f), PID(0.00005f, 0.00008f, 0.0000014f, 0.0f)},
+                         front_wall = {PID(4.0f, 12.0000f, 0.2000f, 0.0f), PID(4.0f, 12.0000f, 0.2000f, 0.0f)},
                          ang = {PID(0.5f, 0.05f, 0.001f, 0.0f), PID(0.5f, 0.05f, 0.001f, 0.0f)};
-  PID side_wall = PID(0.004f, 0.000f, 0.0000f, 0.0f);
-  PID ang_vel = PID(0.0081024f, 0.207247f, 0.0f, 0.0f);
+  PID side_wall = PID(80.0f, 0.00f, 10.0f, 0.0f);
+  PID ang_vel = PID(0.0121024f, 0.207247f, 0.0f, 0.0f);
 
   parts::wheel<T, T> motor_duty = {0, 0};
   T tar_speed = 0, accel = 0;
@@ -65,7 +65,7 @@ void Controller<T, STATUS, PID>::update() {
   motor_duty.left = 0;
   motor_duty.right = 0;
 
-  if (run_mode == parts::RunModeT::STRAIGHT_MODE) {
+  if (run_mode == parts::RunModeT::STRAIGHT_MODE && !front_wall_control) {
     if (side_wall_control) {
       parts::wheel<T, T> side_wall_sensor_error = status.get_side_wall_sensor_error();
       parts::wheel<bool, bool> is_side_wall = status.get_is_side_wall_control();
@@ -74,19 +74,18 @@ void Controller<T, STATUS, PID>::update() {
       if (!is_side_wall.left || !is_side_wall.right) {
         n = 1;
       }
-      if (!is_side_wall.left && !is_side_wall.right) n = 0;
+      if (!is_side_wall.left && !is_side_wall.right) n = 2;
 
       tar_ang_vel += side_wall.update(0, side_wall_sensor_error.left - side_wall_sensor_error.right) * (float)n;
     }
   }
 
-  if (!front_wall_control) {
-    motor_duty.left += speed.left.update(tar_speed, status.get_speed());
-    motor_duty.right += speed.right.update(tar_speed, status.get_speed()) * 1.1f;
-    float ang_vel_pid = ang_vel.update(tar_ang_vel, status.get_ang_vel());
-    motor_duty.left -= ang_vel_pid;
-    motor_duty.right += ang_vel_pid;
-  }
+  motor_duty.left += speed.left.update(tar_speed, status.get_speed());
+  motor_duty.right += speed.right.update(tar_speed, status.get_speed()) * 1.1f;
+  float ang_vel_pid = ang_vel.update(tar_ang_vel, status.get_ang_vel());
+  motor_duty.left -= ang_vel_pid;
+  motor_duty.right += ang_vel_pid;
+
   if (front_wall_control) {
     parts::wheel<T, T> front_wall_sensor_error = status.get_front_wall_sensor_error();
     motor_duty.left += front_wall.left.update(0, front_wall_sensor_error.left);
@@ -141,6 +140,8 @@ void Controller<T, STATUS, PID>::generate_tar_speed() {
 
 template <typename T, class STATUS, class PID>
 void Controller<T, STATUS, PID>::back_1s() {
+  bool side_wall_control_tmp = side_wall_control;
+  side_wall_control = false;
   run_mode = parts::RunModeT::STRAIGHT_MODE;
   tar_speed = -150;
   max_speed = -150;
@@ -149,6 +150,7 @@ void Controller<T, STATUS, PID>::back_1s() {
   max_speed = 0;
   HAL_Delay(500);
   status.reset();
+  side_wall_control = side_wall_control_tmp;
   speed.left.reset();
   speed.right.reset();
 }
@@ -203,9 +205,15 @@ void Controller<T, STATUS, PID>::straight(T len, T acc, T max_sp, T end_sp) {  /
       front_wall_control = true;
     }
     if (front_wall_control) {
+      reset();
+      HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET);
+      HAL_Delay(500);
       while (std::abs(status.get_speed()) > FLT_EPSILON || std::abs(status.get_ang_vel()) > std::abs(turn_vel_error)) {
         HAL_Delay(1);
       }
+      HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET);
+      reset();
+      status.reset();
     }
     front_wall_control = false;
   }

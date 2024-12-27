@@ -28,47 +28,53 @@ void maze_run::robot_move(const Direction &dir) {
   if (dir_diff == 0) {
     if (is_start_block) {
       GlobalState::batt.monitoring_state = false;
+      GlobalState::ctrl.set_side_wall_control(false);
       GlobalState::ctrl.back_1s();
 
       GlobalState::ctrl.reset();
       HAL_Delay(1);
       GlobalState::ctrl.straight(180.0 - 40.0, 200, 200, 200);
       GlobalState::batt.monitoring_state = true;
+      GlobalState::ctrl.set_side_wall_control(true);
 
       is_start_block = false;
     } else {
       GlobalState::ctrl.straight(180.0, 200, 200, 200);
     }
   } else if (dir_diff == 1 || dir_diff == -3) {  // Right
-    // GlobalState::ctrl.set_side_wall_control(false);
-    GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
+    GlobalState::ctrl.set_side_wall_control(false);
+    GlobalState::ctrl.straight(90.0, 200, 200, 0.0);
     HAL_Delay(1);
     GlobalState::ctrl.turn(-90, 540, 720);
     HAL_Delay(1);
-    GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
+    GlobalState::ctrl.straight(90.0, 200, 200, 200);
+    GlobalState::ctrl.set_side_wall_control(true);
 
   } else if (dir_diff == -1 || dir_diff == 3) {  // LEFT
-    // GlobalState::ctrl.set_side_wall_control(false);
-    GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
+    GlobalState::ctrl.set_side_wall_control(false);
+    GlobalState::ctrl.straight(90.0, 200, 200, 0.0);
     HAL_Delay(1);
     GlobalState::ctrl.turn(90, 540, 720);
     HAL_Delay(1);
-    GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
+    GlobalState::ctrl.straight(90.0, 200, 200, 200);
+    GlobalState::ctrl.set_side_wall_control(true);
   } else {  // 180度ターン
-    if (prev_wall_cnt == 3) {
-      GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
+    if (prev_wall_cnt == 3 || GlobalState::ctrl.status.get_front_wall()) {
+      GlobalState::ctrl.straight(90.0, 200, 200, 0.0);
       GlobalState::ctrl.turn(180, 540, 720);
       GlobalState::batt.monitoring_state = false;
+      GlobalState::ctrl.set_side_wall_control(false);
       GlobalState::ctrl.back_1s();
 
       GlobalState::ctrl.reset();
       HAL_Delay(1);
-      GlobalState::ctrl.straight(180.0 - 40.0, 400, 800, 0.0);
+      GlobalState::ctrl.straight(180.0 - 40.0, 200, 200, 200);
       GlobalState::batt.monitoring_state = true;
+      GlobalState::ctrl.set_side_wall_control(true);
     } else {
-      GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
+      GlobalState::ctrl.straight(90.0, 200, 200, 0.0);
       GlobalState::ctrl.turn(180, 540, 720);
-      GlobalState::ctrl.straight(90.0, 400, 800, 0.0);
+      GlobalState::ctrl.straight(90.0, 200, 200, 200);
     }
   }
 
@@ -135,14 +141,17 @@ void abjustMode(std::uint8_t mode) {
     case 1: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
-      // GlobalState::ctrl.turn(3600, 540, 720);
-
+      HAL_TIM_Base_Start_IT(&htim13);
       GlobalState::ctrl.turn(3600, 540, 720);
+
+      // GlobalState::ctrl.turn(-90, 540, 720);
       // GlobalState::ctrl.turn(-90, 540, 180);
     } break;
     case 2: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
+      HAL_TIM_Base_Start_IT(&htim13);
+      // GlobalState::ctrl.set_side_wall_control(false);
 
       GlobalState::ctrl.back_1s();
       GlobalState::ctrl.straight(180.0 * 8 - 40.0, 400, 800, 0.0);
@@ -229,16 +238,16 @@ void abjustMode(std::uint8_t mode) {
       GlobalState::buzzer.beep("done");
     } break;
     case 6: {
-      // HAL_TIM_Base_Start_IT(&htim10);
+      HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       while (1) {
-        std::uint32_t ir_value[4];
+        float ir_value[4];
 
         for (std::uint8_t i = 0; i < 4; ++i) {
           ir_value[i] = GlobalState::ir_sensor.get_ir_value(i);
         }
 
-        printf("FRONT_LEFT: %ld, FRONT_RIGHT: %ld, LEFT: %ld, RIGHT: %ld\r\n", ir_value[0], ir_value[1], ir_value[2], ir_value[3]);
+        printf("FRONT_LEFT: %f, FRONT_RIGHT: %f, LEFT: %f, RIGHT: %f, LEN: %f\r\n", ir_value[0], ir_value[1], ir_value[2], ir_value[3], GlobalState::ctrl.status.get_len_mouse());
         HAL_Delay(1);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GlobalState::ctrl.status.get_left_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, GlobalState::ctrl.status.get_front_wall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -258,7 +267,8 @@ void trueRunMode(std::uint8_t mode) {
     case 0: {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
-
+      HAL_TIM_Base_Start_IT(&htim13);
+      GlobalState::ctrl.set_front_wall_control_permission(true);
       // GlobalState::ctrl.set_side_wall_control(false);
       maze_run::search_run();
 

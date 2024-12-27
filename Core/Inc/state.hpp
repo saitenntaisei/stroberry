@@ -11,7 +11,7 @@ class Status {
   T right_speed_old = 0, left_speed_old = 0;
   T right_speed_new = 0, left_speed_new = 0;
   T previous_speed = 0;
-  static constexpr float diameter_wheel = 32.8F;
+  static constexpr float diameter_wheel = 32.82F;
   static constexpr float radius_wheel = diameter_wheel / 2.0F;
   T speed = 0;
   T left_speed = 0, right_speed = 0;
@@ -23,16 +23,16 @@ class Status {
   bool front_wall = false;
   bool left_wall = false;
   bool right_wall = false;
-  static constexpr parts::wheel<T, T> side_wall_control_th = {5000, 5000};
-  static constexpr parts::wheel<T, T> front_wall_control_th = {55000, 5500};
+  static constexpr parts::wheel<T, T> side_wall_control_th = {12.0f, 12.0f};
+  static constexpr parts::wheel<T, T> front_wall_control_th = {13.0f, 13.0f};
   parts::wheel<T, T> side_wall_sensor_error = {0, 0};
   parts::wheel<T, T> front_wall_sensor_error = {0, 0};
   parts::wheel<T, T> front_wall_sensor_value = {0, 0};
-  static constexpr parts::wheel<T, T> side_wall_sensor_ref = {9000, 7000};
-  static constexpr parts::wheel<T, T> front_wall_sensor_ref = {28000, 28000};
+  static constexpr parts::wheel<T, T> side_wall_sensor_ref = {12.8f, 12.8f};
+  static constexpr parts::wheel<T, T> front_wall_sensor_ref = {14.5f, 14.5f};
   parts::wheel<bool, bool> is_side_wall_control = {false, false};
   parts::wheel<bool, bool> is_front_wall_control = {false, false};
-  static constexpr std::uint32_t left_threshold = 1500, right_threshold = 1000, front_threshold = 4000;
+  static constexpr float left_threshold = 11.5f, right_threshold = 11.5f, front_threshold = 24.0f;
   /* data */
  public:
   enum WallSensor { FRONT_LEFT, FRONT_RIGHT, LEFT, RIGHT };
@@ -40,7 +40,7 @@ class Status {
   template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
   void update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc);
   void update_gyro(std::function<T(void)> gyro_yaw);
-  void update_wall_sensor(std::function<std::uint32_t *(void)> wall_sensor);
+  void update_wall_sensor(std::function<float *(void)> wall_sensor);
   T get_ang_vel() { return ang_vel; }
   T get_ang() { return degree; }
   T get_speed() { return speed; }
@@ -79,8 +79,8 @@ void Status<T>::update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc) {  // uni
   len_mouse += (left_speed_new + right_speed_new) / 2 / 100;  // mm
 }
 template <typename T>
-void Status<T>::update_wall_sensor(std::function<std::uint32_t *(void)> wall_sensor) {
-  std::uint32_t *wall_sensor_value = wall_sensor();
+void Status<T>::update_wall_sensor(std::function<float *(void)> wall_sensor) {
+  float *wall_sensor_value = wall_sensor();
 
   if (static_cast<float>(wall_sensor_value[FRONT_LEFT]) > front_wall_control_th.left) {
     is_front_wall_control.left = true;

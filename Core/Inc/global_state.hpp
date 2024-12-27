@@ -20,7 +20,7 @@ class GlobalState {
   static parts::wheel<pwm::Encoder<float, std::int16_t>, pwm::Encoder<float, std::int16_t>> enc;
   static parts::wheel<pwm::Motor, pwm::Motor> motor;
   static state::Controller<float, state::Status<float>, state::Pid<float>> ctrl;
-  static adc::IrSensor<std::uint32_t> ir_sensor;
+  static adc::IrSensor<float> ir_sensor;
   static adc::Battery<float, std::uint32_t> batt;
   static pwm::IrLight ir_light_1, ir_light_2;
   static pwm::Buzzer buzzer;
@@ -32,7 +32,7 @@ class GlobalState {
 
 spi::Gyro GlobalState::gyro;
 state::Controller<float, state::Status<float>, state::Pid<float>> GlobalState::ctrl;
-adc::IrSensor<std::uint32_t> GlobalState::ir_sensor(&hadc2, 4, 160, 10);
+adc::IrSensor<float> GlobalState::ir_sensor(&hadc2, 4, 160, 10);
 adc::Battery<float, std::uint32_t> GlobalState::batt(&hadc1);
 pwm::IrLight GlobalState::ir_light_1(&htim9, TIM_CHANNEL_1), GlobalState::ir_light_2(&htim9, TIM_CHANNEL_2);
 pwm::Buzzer GlobalState::buzzer(&htim12, TIM_CHANNEL_2);
