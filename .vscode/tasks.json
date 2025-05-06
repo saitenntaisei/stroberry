@@ -10,12 +10,8 @@
             "args": [
                 "DEBUG=1",
                 "-j2",
-                "all",
-                "GCC_PATH=/opt/gcc-arm-none-eabi/bin/"
+                "all"
                 
-            ],
-            "problemMatcher": [
-                "$gcc"
             ],
             "group": {
                 "kind": "build",

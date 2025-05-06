@@ -36,13 +36,10 @@
 #include "./controller.hpp"
 #include "./data.hpp"
 #include "./encoder.hpp"
-#include "./flash.hpp"
 #include "./global_state.hpp"
 #include "./gyro.hpp"
 #include "./ir_sensor.hpp"
-#include "./maze_run.hpp"
 #include "./motor.hpp"
-#include "./pid.hpp"
 #include "./robot_operation.hpp"
 #include "./state.hpp"
 /* USER CODE END Includes */

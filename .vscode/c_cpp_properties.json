@@ -3,16 +3,14 @@
         {
             "name": "STM32",
             "includePath": [
-                "${workspaceFolder}/**",
-                "/opt/gcc-arm-none-eabi/include/**",
-                "/opt/gcc-arm-none-eabi/lib/gcc/arm-none-eabi/12.3.1/include**"
+                "${workspaceFolder}/**"
             ],
             "defines": [
                 "USE_HAL_DRIVER",
                 "STM32F405xx",
                 "__weak=__attribute__((weak))"
             ],
-            "compilerPath": "/opt/gcc-arm-none-eabi/bin/arm-none-eabi-gcc",
+            "compilerPath": "arm-none-eabi-gcc",
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "clang-x64",
