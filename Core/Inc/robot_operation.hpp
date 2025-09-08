@@ -138,7 +138,7 @@ namespace robot_operation {
 
 void abjustMode(std::uint8_t mode) {
   switch (mode) {
-    case 1: {
+    case 1: {  // 360度回転テストモード - ジャイロセンサーの調整用
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       HAL_TIM_Base_Start_IT(&htim13);
@@ -147,7 +147,7 @@ void abjustMode(std::uint8_t mode) {
       // GlobalState::ctrl.turn(-90, 540, 720);
       // GlobalState::ctrl.turn(-90, 540, 180);
     } break;
-    case 2: {
+    case 2: {  // 直進テストモード - エンコーダー調整用
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       HAL_TIM_Base_Start_IT(&htim13);
@@ -156,7 +156,7 @@ void abjustMode(std::uint8_t mode) {
       GlobalState::ctrl.back_1s();
       GlobalState::ctrl.straight(180.0 * 8 - 40.0, 400, 800, 0.0);
     } break;
-    case 3: {
+    case 3: {  // 旋回特性測定モード - M系列信号を使用したモーター応答測定
       Mseq mseq(7);
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim6);
@@ -190,7 +190,7 @@ void abjustMode(std::uint8_t mode) {
 
     } break;
 
-    case 4: {
+    case 4: {  // 電圧を直接入力して直進
       Mseq mseq(6);
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim6);
@@ -226,7 +226,7 @@ void abjustMode(std::uint8_t mode) {
       GlobalState::buzzer.beep("save");
 
     } break;
-    case 5: {
+    case 5: {  // フラッシュメモリから記録データを読み込み表示
       flash::Load();
       std::copy((data::drive_record *)flash::work_ram, (data::drive_record *)flash::work_ram + 4000, std::back_inserter(GlobalState::drive_rec));
       printf("speed, signal\r\n");
@@ -237,7 +237,7 @@ void abjustMode(std::uint8_t mode) {
       }
       GlobalState::buzzer.beep("done");
     } break;
-    case 6: {
+    case 6: {  // 赤外線センサーと壁検知状態のリアルタイム表示
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       while (1) {
@@ -264,7 +264,7 @@ void abjustMode(std::uint8_t mode) {
 
 void trueRunMode(std::uint8_t mode) {
   switch (mode) {
-    case 0: {
+    case 0: {  // 　メインの迷路探索実行
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       HAL_TIM_Base_Start_IT(&htim13);
@@ -274,7 +274,7 @@ void trueRunMode(std::uint8_t mode) {
 
     } break;
 
-    case 6: {
+    case 6: {  // 時計回り・反時計回りの回転テスト
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       // GlobalState::ctrl.turn(3600, 540, 720);
@@ -285,7 +285,7 @@ void trueRunMode(std::uint8_t mode) {
       GlobalState::ctrl.turn(-3600, 540, 720);
       // GlobalState::ctrl.turn(-90, 540, 180);
     } break;
-    case 5: {
+    case 5: {  // 壁制御有効での直進
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       GlobalState::ctrl.set_side_wall_control(true);
@@ -293,7 +293,7 @@ void trueRunMode(std::uint8_t mode) {
       GlobalState::ctrl.straight(5 * 180.0 - 40, 400, 800, 0.0);
     } break;
 
-    case 7: {
+    case 7: {  // 壁センサーエラー値とセンサー値の詳細表示
       HAL_TIM_Base_Start_IT(&htim11);
       while (true) {
         parts::wheel<float, float> side_wall_sensor_error = GlobalState::ctrl.status.get_side_wall_sensor_error();
