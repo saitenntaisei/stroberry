@@ -257,6 +257,22 @@ void abjustMode(std::uint8_t mode) {
 
     } break;
 
+    case 7: {
+      std::vector<int> v = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+      std::copy(v.begin(), v.end(), reinterpret_cast<int *>(flash::work_ram));
+      if (!flash::Store()) {
+        printf("store failed\n");
+        Error_Handler();
+      }
+      // -- Load --
+      flash::Load();
+      std::vector<int> v2;
+      std::copy(reinterpret_cast<int *>(flash::work_ram), reinterpret_cast<int *>(flash::work_ram) + 10, std::back_inserter(v2));
+      for (auto i : v2) {
+        printf("%d ", i);
+      }
+    }
+
     default:
       break;
   }
