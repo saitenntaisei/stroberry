@@ -1,25 +1,21 @@
 #ifndef CORE_INC_MAZE_RUN_HPP_
 #define CORE_INC_MAZE_RUN_HPP_
-#include <algorithm>
-#include <cstdio>
 
 #include "../lib/MazeSolver2015/Agent.h"
 #include "../lib/MazeSolver2015/Maze.h"
-#include "../lib/MazeSolver2015/mazeData.h"
-#include "flash.hpp"
 
 namespace maze_run {
 // 探索した迷路の壁情報がはいる
-Maze maze;
+extern Maze maze;
 // 探索の指示を出す
-Agent agent(maze);
+extern Agent agent;
 // 前回のAgentの状態を保存しとく
-Agent::State prev_State = Agent::State::IDLE;
-IndexVec robot_position(0, 0);
-Direction robot_dir(NORTH);
-bool is_start_block = true;
-int prev_wall_cnt = 0;
-Direction wall;
+extern Agent::State prev_State;
+extern IndexVec robot_position;
+extern Direction robot_dir;
+extern bool is_start_block;
+extern int prev_wall_cnt;
+extern Direction wall;
 
 int search_run();
 void robot_move(const Direction& dir);
@@ -27,62 +23,6 @@ void robot_stop();
 
 const Direction& get_wall_data();
 const IndexVec& get_robot_posion();
-
-const IndexVec& get_robot_posion() {
-  // 絶対座標系で返す
-  return robot_position;
-}
-
-int search_run() {
-  auto save_maze_to_flash = []() -> int {
-    char asciiData[MAZE_SIZE + 1][MAZE_SIZE + 1];
-    maze.saveToArray(asciiData);
-    std::memcpy(flash::work_ram, asciiData, sizeof(asciiData));
-    if (!flash::Store()) {
-      printf("flash store error\r\n");
-      return -1;
-    }
-    return 0;
-  };
-
-  while (1) {
-    // センサから取得した壁情報を入れる
-    const Direction wallData = get_wall_data();
-    // ロボットの座標を取得
-    const IndexVec robotPos = get_robot_posion();
-
-    // 壁情報を更新 次に進むべき方向を計算
-    agent.update(robotPos, wallData);
-    // Agentの状態を確認
-    // FINISHEDになったら計測走行にうつる
-    if (agent.getState() == Agent::FINISHED) {
-      if (save_maze_to_flash() != 0) {
-        return -1;
-      }
-      break;
-    }
-
-    // ゴールにたどり着いた瞬間に一度だけmazeのバックアップをとる
-    // Mazeクラスはoperator=が定義してあるからa = bでコピーできる
-    if (prev_State == Agent::SEARCHING_NOT_GOAL && agent.getState() != Agent::SEARCHING_NOT_GOAL) {
-      if (save_maze_to_flash() != 0) {
-        return -1;
-      }
-    }
-    prev_State = agent.getState();
-
-    // Agentの状態が探索中の場合は次に進むべき方向を取得する
-    const Direction& nextDir = agent.getNextDirection();
-
-    // nextDirの示す方向に進む
-    // 突然今と180度逆の方向を示してくる場合もあるので注意
-    // 止まらないと壁にぶつかる
-    robot_move(nextDir);  // robotMove関数はDirection型を受け取ってロボットをそっちに動かす関数
-  }
-  maze_run::robot_stop();
-  HAL_Delay(100);
-  return 0;
-}
 
 }  // namespace maze_run
 #endif  // CORE_INC_MAZE_RUN_HPP_
