@@ -275,11 +275,10 @@ void trueRunMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim13);
       GlobalState::ctrl.set_front_wall_control_permission(true);
       // GlobalState::ctrl.set_side_wall_control(false);
-      maze_run::search_run();
-      if (!flash::Store()) {
-        printf("flash store error\r\n");
+      if (maze_run::search_run() != 0) {
         Error_Handler();
       }
+
       HAL_TIM_Base_Stop_IT(&htim10);
       HAL_TIM_Base_Stop_IT(&htim11);
       HAL_TIM_Base_Stop_IT(&htim13);

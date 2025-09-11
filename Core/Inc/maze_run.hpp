@@ -34,6 +34,17 @@ const IndexVec& get_robot_posion() {
 }
 
 int search_run() {
+  auto save_maze_to_flash = []() -> int {
+    char asciiData[MAZE_SIZE + 1][MAZE_SIZE + 1];
+    maze.saveToArray(asciiData);
+    std::copy(reinterpret_cast<char*>(asciiData), reinterpret_cast<char*>(asciiData) + sizeof(asciiData), reinterpret_cast<char*>(flash::work_ram));
+    if (!flash::Store()) {
+      printf("flash store error\r\n");
+      return -1;
+    }
+    return 0;
+  };
+
   while (1) {
     // センサから取得した壁情報を入れる
     const Direction wallData = get_wall_data();
@@ -45,16 +56,18 @@ int search_run() {
     // Agentの状態を確認
     // FINISHEDになったら計測走行にうつる
     if (agent.getState() == Agent::FINISHED) {
+      if (save_maze_to_flash() != 0) {
+        return -1;
+      }
       break;
     }
 
     // ゴールにたどり着いた瞬間に一度だけmazeのバックアップをとる
     // Mazeクラスはoperator=が定義してあるからa = bでコピーできる
     if (prev_State == Agent::SEARCHING_NOT_GOAL && agent.getState() != Agent::SEARCHING_NOT_GOAL) {
-      char asciiData[MAZE_SIZE + 1][MAZE_SIZE + 1];
-      maze.saveToArray(asciiData);
-      std::copy(reinterpret_cast<char*>(asciiData), reinterpret_cast<char*>(asciiData) + sizeof(asciiData), reinterpret_cast<char*>(flash::work_ram));
-      // return 0;
+      if (save_maze_to_flash() != 0) {
+        return -1;
+      }
     }
     prev_State = agent.getState();
 
