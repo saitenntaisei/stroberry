@@ -37,7 +37,7 @@ int search_run() {
   auto save_maze_to_flash = []() -> int {
     char asciiData[MAZE_SIZE + 1][MAZE_SIZE + 1];
     maze.saveToArray(asciiData);
-    std::copy(reinterpret_cast<char*>(asciiData), reinterpret_cast<char*>(asciiData) + sizeof(asciiData), reinterpret_cast<char*>(flash::work_ram));
+    std::memcpy(flash::work_ram, asciiData, sizeof(asciiData));
     if (!flash::Store()) {
       printf("flash store error\r\n");
       return -1;

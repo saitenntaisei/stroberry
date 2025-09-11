@@ -291,7 +291,7 @@ void trueRunMode(std::uint8_t mode) {
         Error_Handler();
       }
       char asciiData[MAZE_SIZE + 1][MAZE_SIZE + 1];
-      std::copy(reinterpret_cast<char *>(flash::work_ram), reinterpret_cast<char *>(flash::work_ram) + sizeof(asciiData), reinterpret_cast<char *>(asciiData));
+      std::memcpy(asciiData, flash::work_ram, sizeof(asciiData));
       Maze maze;
       maze.loadFromArray(asciiData);
       maze.printWall();
