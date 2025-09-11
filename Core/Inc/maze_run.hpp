@@ -1,16 +1,16 @@
 #ifndef CORE_INC_MAZE_RUN_HPP_
 #define CORE_INC_MAZE_RUN_HPP_
-#include <functional>
+#include <algorithm>
+#include <cstdio>
 
 #include "../lib/MazeSolver2015/Agent.h"
 #include "../lib/MazeSolver2015/Maze.h"
 #include "../lib/MazeSolver2015/mazeData.h"
+#include "flash.hpp"
 
 namespace maze_run {
 // 探索した迷路の壁情報がはいる
 Maze maze;
-// クラッシュした時のためのバックアップ
-Maze maze_backup;
 // 探索の指示を出す
 Agent agent(maze);
 // 前回のAgentの状態を保存しとく
@@ -23,6 +23,7 @@ Direction wall;
 
 int search_run();
 void robot_move(const Direction& dir);
+void robot_stop();
 
 const Direction& get_wall_data();
 const IndexVec& get_robot_posion();
@@ -33,6 +34,17 @@ const IndexVec& get_robot_posion() {
 }
 
 int search_run() {
+  auto save_maze_to_flash = []() -> int {
+    char asciiData[MAZE_SIZE + 1][MAZE_SIZE + 1];
+    maze.saveToArray(asciiData);
+    std::memcpy(flash::work_ram, asciiData, sizeof(asciiData));
+    if (!flash::Store()) {
+      printf("flash store error\r\n");
+      return -1;
+    }
+    return 0;
+  };
+
   while (1) {
     // センサから取得した壁情報を入れる
     const Direction wallData = get_wall_data();
@@ -41,15 +53,21 @@ int search_run() {
 
     // 壁情報を更新 次に進むべき方向を計算
     agent.update(robotPos, wallData);
-
     // Agentの状態を確認
     // FINISHEDになったら計測走行にうつる
-    if (agent.getState() == Agent::FINISHED) break;
+    if (agent.getState() == Agent::FINISHED) {
+      if (save_maze_to_flash() != 0) {
+        return -1;
+      }
+      break;
+    }
 
     // ゴールにたどり着いた瞬間に一度だけmazeのバックアップをとる
     // Mazeクラスはoperator=が定義してあるからa = bでコピーできる
-    if (prev_State == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL) {
-      maze_backup = maze;
+    if (prev_State == Agent::SEARCHING_NOT_GOAL && agent.getState() != Agent::SEARCHING_NOT_GOAL) {
+      if (save_maze_to_flash() != 0) {
+        return -1;
+      }
     }
     prev_State = agent.getState();
 
@@ -61,6 +79,8 @@ int search_run() {
     // 止まらないと壁にぶつかる
     robot_move(nextDir);  // robotMove関数はDirection型を受け取ってロボットをそっちに動かす関数
   }
+  maze_run::robot_stop();
+  HAL_Delay(100);
   return 0;
 }
 
