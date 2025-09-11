@@ -295,7 +295,7 @@ void trueRunMode(std::uint8_t mode) {
       Maze maze;
       maze.loadFromArray(asciiData);
       maze.printWall();
-    }
+    } break;
 
     case 6: {  // 時計回り・反時計回りの回転テスト
       HAL_TIM_Base_Start_IT(&htim10);
