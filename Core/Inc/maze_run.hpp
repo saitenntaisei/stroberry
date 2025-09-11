@@ -1,17 +1,16 @@
 #ifndef CORE_INC_MAZE_RUN_HPP_
 #define CORE_INC_MAZE_RUN_HPP_
+#include <algorithm>
 #include <cstdio>
-#include <functional>
 
 #include "../lib/MazeSolver2015/Agent.h"
 #include "../lib/MazeSolver2015/Maze.h"
 #include "../lib/MazeSolver2015/mazeData.h"
+#include "flash.hpp"
 
 namespace maze_run {
 // 探索した迷路の壁情報がはいる
 Maze maze;
-// クラッシュした時のためのバックアップ
-Maze maze_backup;
 // 探索の指示を出す
 Agent agent(maze);
 // 前回のAgentの状態を保存しとく
@@ -52,7 +51,9 @@ int search_run() {
     // ゴールにたどり着いた瞬間に一度だけmazeのバックアップをとる
     // Mazeクラスはoperator=が定義してあるからa = bでコピーできる
     if (prev_State == Agent::SEARCHING_NOT_GOAL && agent.getState() != Agent::SEARCHING_NOT_GOAL) {
-      maze_backup = maze;
+      char asciiData[MAZE_SIZE + 1][MAZE_SIZE + 1];
+      maze.saveToArray(asciiData);
+      std::copy(reinterpret_cast<char*>(asciiData), reinterpret_cast<char*>(asciiData) + sizeof(asciiData), reinterpret_cast<char*>(flash::work_ram));
       // return 0;
     }
     prev_State = agent.getState();
