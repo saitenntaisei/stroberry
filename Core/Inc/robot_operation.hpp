@@ -92,6 +92,12 @@ void maze_run::robot_move(const Direction &dir) {
   return;
 }
 
+void maze_run::robot_stop() {
+
+  GlobalState::ctrl.reset();
+  return;
+}
+
 const Direction &maze_run::get_wall_data() {
   wall = 0;
 
@@ -257,22 +263,6 @@ void abjustMode(std::uint8_t mode) {
 
     } break;
 
-    case 7: {
-      std::vector<int> v = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-      std::copy(v.begin(), v.end(), reinterpret_cast<int *>(flash::work_ram));
-      if (!flash::Store()) {
-        printf("store failed\n");
-        Error_Handler();
-      }
-      // -- Load --
-      flash::Load();
-      std::vector<int> v2;
-      std::copy(reinterpret_cast<int *>(flash::work_ram), reinterpret_cast<int *>(flash::work_ram) + 10, std::back_inserter(v2));
-      for (auto i : v2) {
-        printf("%d ", i);
-      }
-    }
-
     default:
       break;
   }
@@ -287,6 +277,9 @@ void trueRunMode(std::uint8_t mode) {
       GlobalState::ctrl.set_front_wall_control_permission(true);
       // GlobalState::ctrl.set_side_wall_control(false);
       maze_run::search_run();
+      HAL_TIM_Base_Stop_IT(&htim10);
+      HAL_TIM_Base_Stop_IT(&htim11);
+      HAL_TIM_Base_Stop_IT(&htim13);
 
     } break;
 

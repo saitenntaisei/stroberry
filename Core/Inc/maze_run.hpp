@@ -1,5 +1,6 @@
 #ifndef CORE_INC_MAZE_RUN_HPP_
 #define CORE_INC_MAZE_RUN_HPP_
+#include <cstdio>
 #include <functional>
 
 #include "../lib/MazeSolver2015/Agent.h"
@@ -23,6 +24,7 @@ Direction wall;
 
 int search_run();
 void robot_move(const Direction& dir);
+void robot_stop();
 
 const Direction& get_wall_data();
 const IndexVec& get_robot_posion();
@@ -41,15 +43,17 @@ int search_run() {
 
     // 壁情報を更新 次に進むべき方向を計算
     agent.update(robotPos, wallData);
-
     // Agentの状態を確認
     // FINISHEDになったら計測走行にうつる
-    if (agent.getState() == Agent::FINISHED) break;
+    if (agent.getState() == Agent::FINISHED) {
+      break;
+    }
 
     // ゴールにたどり着いた瞬間に一度だけmazeのバックアップをとる
     // Mazeクラスはoperator=が定義してあるからa = bでコピーできる
-    if (prev_State == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL) {
+    if (prev_State == Agent::SEARCHING_NOT_GOAL && agent.getState() != Agent::SEARCHING_NOT_GOAL) {
       maze_backup = maze;
+      // return 0;
     }
     prev_State = agent.getState();
 
@@ -61,6 +65,8 @@ int search_run() {
     // 止まらないと壁にぶつかる
     robot_move(nextDir);  // robotMove関数はDirection型を受け取ってロボットをそっちに動かす関数
   }
+  maze_run::robot_stop();
+  HAL_Delay(100);
   return 0;
 }
 

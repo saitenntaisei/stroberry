@@ -205,7 +205,7 @@ int main() {
   GlobalState::ir_sensor.init();
   GlobalState::motor.left.init();
   GlobalState::motor.right.init();
-  // printf("stroberry\r\n");
+  printf("stroberry\r\n");
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET);
