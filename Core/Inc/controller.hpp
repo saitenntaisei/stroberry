@@ -23,9 +23,9 @@ class Controller {
   float target_ang_vel_ = 0, ang_acc_ = 0, target_degree_ = 0;
   float max_speed_ = 0, max_ang_vel_ = 0, max_degree_ = 0;
   static constexpr float kTurnMinVel = 36.0F;
-  static constexpr float kTurnVelError = 0.1F;      // 3.0F;
+  static constexpr float kTurnVelError = 0.1F;     // 3.0F;
   static constexpr float kLenStartDecVel = 10.0F;  // mm
-  static constexpr float kMinSpeed = 100.0F;         // mm/s
+  static constexpr float kMinSpeed = 100.0F;       // mm/s
 
   parts::RunModeT run_mode_ = parts::RunModeT::STOP_MODE;
   bool front_wall_control_ = false;

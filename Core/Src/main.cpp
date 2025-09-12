@@ -83,7 +83,7 @@ bool led_mode = true;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
     GlobalState::ctrl_.status_.UpdateEncoder<pwm::Encoder<float, std::int16_t>, pwm::Encoder<float, std::int16_t>, &pwm::Encoder<float, std::int16_t>::ReadEncoderValue,
-                                            &pwm::Encoder<float, std::int16_t>::ReadEncoderValue>(GlobalState::enc_.left, GlobalState::enc_.right);
+                                             &pwm::Encoder<float, std::int16_t>::ReadEncoderValue>(GlobalState::enc_.left, GlobalState::enc_.right);
   }
   if (htim == &htim6) {
     switch (GlobalState::test_mode_) {

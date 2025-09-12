@@ -40,7 +40,7 @@ data::drive_records GlobalState::drive_rec_;
 param::TestMode GlobalState::test_mode_ = param::TestMode::NONE;
 float GlobalState::motor_signal_ = 0.0f;
 parts::wheel<pwm::Encoder<float, std::int16_t>, pwm::Encoder<float, std::int16_t>> GlobalState::enc_ = {pwm::Encoder<float, std::int16_t>(TIM1),
-                                                                                                       pwm::Encoder<float, std::int16_t>(TIM8)};
+                                                                                                        pwm::Encoder<float, std::int16_t>(TIM8)};
 parts::wheel<pwm::Motor, pwm::Motor> GlobalState::motor_ = {pwm::Motor(&htim4, &htim4, TIM_CHANNEL_3, TIM_CHANNEL_4), pwm::Motor(&htim4, &htim4, TIM_CHANNEL_1, TIM_CHANNEL_2)};
 }  // namespace global_state
 
