@@ -1,9 +1,10 @@
 #include "./gyro.hpp"
 
+#include <plog/Log.h>
+
 #include <array>
 
 #include "./spi.h"
-#include <plog/Log.h>
 namespace spi {
 Gyro::Gyro() : gyro_offset_(0, 0, 0) {}
 void Gyro::Init() {

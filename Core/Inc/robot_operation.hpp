@@ -1,13 +1,14 @@
 #ifndef CORE_INC_ROBOT_OPERATION_HPP_
 #define CORE_INC_ROBOT_OPERATION_HPP_
 
+#include <plog/Log.h>
+
 #include <cstdint>
 
 #include "../lib/Mseq/Mseq.h"
 #include "./global_state.hpp"
 #include "flash.hpp"
 #include "maze_run.hpp"
-#include <plog/Log.h>
 
 using global_state::GlobalState;
 
@@ -254,7 +255,7 @@ void AdjustMode(std::uint8_t mode) {
         }
 
         PLOG(plog::info) << "FRONT_LEFT: " << ir_value[0] << ", FRONT_RIGHT: " << ir_value[1] << ", LEFT: " << ir_value[2] << ", RIGHT: " << ir_value[3]
-              << ", LEN: " << GlobalState::ctrl_.status_.GetLenMouse();
+                         << ", LEN: " << GlobalState::ctrl_.status_.GetLenMouse();
         HAL_Delay(1);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GlobalState::ctrl_.status_.GetLeftWall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, GlobalState::ctrl_.status_.GetFrontWall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -325,7 +326,7 @@ void TrueRunMode(std::uint8_t mode) {
         parts::wheel<float, float> side_wall_sensor_error = GlobalState::ctrl_.status_.GetSideWallSensorError();
         parts::wheel<float, float> front_wall_sensor_error = GlobalState::ctrl_.status_.GetFrontWallSensorValue();
         PLOG(plog::info) << "front_left: " << front_wall_sensor_error.left << ", front_right: " << front_wall_sensor_error.right << ", left: " << side_wall_sensor_error.left
-              << ", right: " << side_wall_sensor_error.right;
+                         << ", right: " << side_wall_sensor_error.right;
         HAL_Delay(1);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GlobalState::ctrl_.status_.GetLeftWall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, GlobalState::ctrl_.status_.GetFrontWall() ? GPIO_PIN_SET : GPIO_PIN_RESET);

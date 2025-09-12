@@ -1,12 +1,12 @@
 #ifndef CORE_INC_LOGGER_HPP_
 #define CORE_INC_LOGGER_HPP_
 
-#include <cstddef>
-
-#include <plog/Init.h>
-#include <plog/Log.h>
 #include <plog/Appenders/IAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
+#include <plog/Init.h>
+#include <plog/Log.h>
+
+#include <cstddef>
 
 extern "C" {
 #include "usart.h"

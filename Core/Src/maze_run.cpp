@@ -1,12 +1,13 @@
 #include "../Inc/maze_run.hpp"
 
+#include <plog/Log.h>
+
 #include <cstdio>
 #include <cstring>
 
 #include "../../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h"
 #include "../Inc/flash.hpp"
 #include "../lib/MazeSolver2015/MazeSolver_conf.h"
-#include <plog/Log.h>
 
 namespace maze_run {
 // メンバ関数の実装
