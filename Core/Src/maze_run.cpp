@@ -21,14 +21,14 @@ int MazeRunner::SearchRun() {
     return 0;
   };
 
-  while (1) {
+  while (true) {
     // センサから取得した壁情報を入れる
-    const Direction wallData = GetWallData();
+    const Direction kWallData = GetWallData();
     // ロボットの座標を取得
-    const IndexVec robotPos = GetRobotPosition();
+    const IndexVec kRobotPos = GetRobotPosition();
 
     // 壁情報を更新 次に進むべき方向を計算
-    agent_.update(robotPos, wallData);
+    agent_.update(kRobotPos, kWallData);
     // Agentの状態を確認
     // FINISHEDになったら計測走行にうつる
     if (agent_.getState() == Agent::FINISHED) {
@@ -48,12 +48,12 @@ int MazeRunner::SearchRun() {
     prev_state_ = agent_.getState();
 
     // Agentの状態が探索中の場合は次に進むべき方向を取得する
-    const Direction& nextDir = agent_.getNextDirection();
+    const Direction& next_dir = agent_.getNextDirection();
 
-    // nextDirの示す方向に進む
+    // next_dirの示す方向に進む
     // 突然今と180度逆の方向を示してくる場合もあるので注意
     // 止まらないと壁にぶつかる
-    RobotMove(nextDir);  // RobotMove関数はDirection型を受け取ってロボットをそっちに動かす関数
+    RobotMove(next_dir);  // RobotMove関数はDirection型を受け取ってロボットをそっちに動かす関数
   }
   RobotStop();
   HAL_Delay(100);
