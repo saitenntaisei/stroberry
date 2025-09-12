@@ -7,22 +7,22 @@
 namespace pwm {
 class Buzzer {
  private:
-  timerPin buzzer;
-  static constexpr std::uint16_t freq = 500;
+  timerPin buzzer_;
+  static constexpr std::uint16_t kFreq = 500;
 
  public:
   Buzzer(TIM_HandleTypeDef* tim, unsigned int channel);
-  void init();
-  void beep(std::string msg);
+  void Init();
+  void Beep(std::string msg);
 };
-Buzzer::Buzzer(TIM_HandleTypeDef* tim, unsigned int channel) : buzzer(tim, channel) {
+Buzzer::Buzzer(TIM_HandleTypeDef* tim, unsigned int channel) : buzzer_(tim, channel) {
   // static bool init = [&]() {
   //   HAL_TIM_PWM_Start(buzzer.tim, buzzer.channel);
   //   return true;
   // }();
 }
-void Buzzer::init() { HAL_TIM_PWM_Start(buzzer.tim, buzzer.channel); }
-void Buzzer::beep(std::string msg) {
+void Buzzer::Init() { HAL_TIM_PWM_Start(buzzer_.tim, buzzer_.channel); }
+void Buzzer::Beep(std::string msg) {
   std::string morse[] = {
       ".-",    // A
       "-...",  // B
@@ -60,14 +60,14 @@ void Buzzer::beep(std::string msg) {
     }
     for (auto x : code) {
       if (x == '.') {
-        __HAL_TIM_SET_COMPARE(buzzer.tim, buzzer.channel, freq);
+        __HAL_TIM_SET_COMPARE(buzzer_.tim, buzzer_.channel, kFreq);
         HAL_Delay(100);
-        __HAL_TIM_SET_COMPARE(buzzer.tim, buzzer.channel, 0);
+        __HAL_TIM_SET_COMPARE(buzzer_.tim, buzzer_.channel, 0);
         HAL_Delay(200);
       } else if (x == '-') {
-        __HAL_TIM_SET_COMPARE(buzzer.tim, buzzer.channel, freq);
+        __HAL_TIM_SET_COMPARE(buzzer_.tim, buzzer_.channel, kFreq);
         HAL_Delay(300);
-        __HAL_TIM_SET_COMPARE(buzzer.tim, buzzer.channel, 0);
+        __HAL_TIM_SET_COMPARE(buzzer_.tim, buzzer_.channel, 0);
       }
       HAL_Delay(100);
     }

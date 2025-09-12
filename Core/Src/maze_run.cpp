@@ -11,7 +11,7 @@ namespace maze_run {
 // 変数の定義
 Maze maze;
 Agent agent(maze);
-Agent::State prev_State = Agent::State::IDLE;
+Agent::State prev_state = Agent::State::IDLE;
 IndexVec robot_position(0, 0);
 Direction robot_dir(NORTH);
 bool is_start_block = true;
@@ -19,12 +19,12 @@ int prev_wall_cnt = 0;
 Direction wall;
 
 // 関数の実装
-const IndexVec& get_robot_posion() {
+const IndexVec& GetRobotPosition() {
   // 絶対座標系で返す
   return robot_position;
 }
 
-int search_run() {
+int SearchRun() {
   auto save_maze_to_flash = []() -> int {
     char asciiData[MAZE_SIZE + 1][MAZE_SIZE + 1];
     maze.saveToArray(asciiData);
@@ -38,9 +38,9 @@ int search_run() {
 
   while (1) {
     // センサから取得した壁情報を入れる
-    const Direction wallData = get_wall_data();
+    const Direction wallData = GetWallData();
     // ロボットの座標を取得
-    const IndexVec robotPos = get_robot_posion();
+    const IndexVec robotPos = GetRobotPosition();
 
     // 壁情報を更新 次に進むべき方向を計算
     agent.update(robotPos, wallData);
@@ -55,12 +55,12 @@ int search_run() {
 
     // ゴールにたどり着いた瞬間に一度だけmazeのバックアップをとる
     // Mazeクラスはoperator=が定義してあるからa = bでコピーできる
-    if (prev_State == Agent::SEARCHING_NOT_GOAL && agent.getState() != Agent::SEARCHING_NOT_GOAL) {
+    if (prev_state == Agent::SEARCHING_NOT_GOAL && agent.getState() != Agent::SEARCHING_NOT_GOAL) {
       if (save_maze_to_flash() != 0) {
         return -1;
       }
     }
-    prev_State = agent.getState();
+    prev_state = agent.getState();
 
     // Agentの状態が探索中の場合は次に進むべき方向を取得する
     const Direction& nextDir = agent.getNextDirection();
@@ -68,9 +68,9 @@ int search_run() {
     // nextDirの示す方向に進む
     // 突然今と180度逆の方向を示してくる場合もあるので注意
     // 止まらないと壁にぶつかる
-    robot_move(nextDir);  // robotMove関数はDirection型を受け取ってロボットをそっちに動かす関数
+    RobotMove(nextDir);  // RobotMove関数はDirection型を受け取ってロボットをそっちに動かす関数
   }
-  maze_run::robot_stop();
+  maze_run::RobotStop();
   HAL_Delay(100);
   return 0;
 }

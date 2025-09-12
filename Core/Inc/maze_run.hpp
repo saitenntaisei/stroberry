@@ -10,19 +10,19 @@ extern Maze maze;
 // 探索の指示を出す
 extern Agent agent;
 // 前回のAgentの状態を保存しとく
-extern Agent::State prev_State;
+extern Agent::State prev_state;
 extern IndexVec robot_position;
 extern Direction robot_dir;
 extern bool is_start_block;
 extern int prev_wall_cnt;
 extern Direction wall;
 
-int search_run();
-void robot_move(const Direction& dir);
-void robot_stop();
+int SearchRun();
+void RobotMove(const Direction& dir);
+void RobotStop();
 
-const Direction& get_wall_data();
-const IndexVec& get_robot_posion();
+const Direction& GetWallData();
+const IndexVec& GetRobotPosition();
 
 }  // namespace maze_run
 #endif  // CORE_INC_MAZE_RUN_HPP_
