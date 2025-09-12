@@ -10,10 +10,10 @@
 
 using global_state::GlobalState;
 
-void maze_run::RobotMove(const Direction &dir) {
+void maze_run::MazeRunner::RobotMove(const Direction &dir) {
   std::int8_t robot_dir_index = 0;
   while (1) {
-    if (robot_dir.byte == NORTH << robot_dir_index) break;
+    if (robot_dir_.byte == NORTH << robot_dir_index) break;
     robot_dir_index++;
   }
 
@@ -26,7 +26,7 @@ void maze_run::RobotMove(const Direction &dir) {
   std::int8_t dir_diff = next_dir_index - robot_dir_index;
   // 直進
   if (dir_diff == 0) {
-    if (is_start_block) {
+    if (is_start_block_) {
       GlobalState::batt_.monitoring_state_ = false;
       GlobalState::ctrl_.SetSideWallControl(false);
       GlobalState::ctrl_.Back1s();
@@ -37,7 +37,7 @@ void maze_run::RobotMove(const Direction &dir) {
       GlobalState::batt_.monitoring_state_ = true;
       GlobalState::ctrl_.SetSideWallControl(true);
 
-      is_start_block = false;
+      is_start_block_ = false;
     } else {
       GlobalState::ctrl_.Straight(180.0, 200, 200, 200);
     }
@@ -59,7 +59,7 @@ void maze_run::RobotMove(const Direction &dir) {
     GlobalState::ctrl_.Straight(90.0, 200, 200, 200);
     GlobalState::ctrl_.SetSideWallControl(true);
   } else {  // 180度ターン
-    if (prev_wall_cnt == 3 || GlobalState::ctrl_.status_.GetFrontWall()) {
+    if (prev_wall_cnt_ == 3 || GlobalState::ctrl_.status_.GetFrontWall()) {
       GlobalState::ctrl_.Straight(90.0, 200, 200, 0.0);
       GlobalState::ctrl_.Turn(180, 540, 720);
       GlobalState::batt_.monitoring_state_ = false;
@@ -78,27 +78,27 @@ void maze_run::RobotMove(const Direction &dir) {
     }
   }
 
-  robot_dir = dir;
+  robot_dir_ = dir;
   // robot positionをdirの分だけ動かす
   if (NORTH == dir.byte) {
-    robot_position += IndexVec::vecNorth;
+    robot_position_ += IndexVec::vecNorth;
   } else if (SOUTH == dir.byte) {
-    robot_position += IndexVec::vecSouth;
+    robot_position_ += IndexVec::vecSouth;
   } else if (EAST == dir.byte) {
-    robot_position += IndexVec::vecEast;
+    robot_position_ += IndexVec::vecEast;
   } else if (WEST == dir.byte) {
-    robot_position += IndexVec::vecWest;
+    robot_position_ += IndexVec::vecWest;
   }
   return;
 }
 
-void maze_run::RobotStop() {
+void maze_run::MazeRunner::RobotStop() {
   GlobalState::ctrl_.Reset();
   return;
 }
 
-const Direction &maze_run::GetWallData() {
-  wall = 0;
+const Direction &maze_run::MazeRunner::GetWallData() {
+  wall_ = 0;
 
   bool is_front_wall = GlobalState::ctrl_.status_.GetFrontWall();
   bool is_left_wall = GlobalState::ctrl_.status_.GetLeftWall();
@@ -115,28 +115,28 @@ const Direction &maze_run::GetWallData() {
 
   std::int8_t robot_dir_index = 0;
   while (1) {
-    if (robot_dir.byte == NORTH << robot_dir_index) break;
+    if (robot_dir_.byte == NORTH << robot_dir_index) break;
     robot_dir_index++;
   }
 
   if (is_front_wall) {
-    wall.byte |= robot_dir;
+    wall_.byte |= robot_dir_;
   }
 
   if (is_right_wall) {
-    wall.byte |= NORTH << (robot_dir_index + 1) % 4;
+    wall_.byte |= NORTH << (robot_dir_index + 1) % 4;
   }
 
   if (is_left_wall) {
     if (robot_dir_index == 0)
-      wall.byte |= WEST;
+      wall_.byte |= WEST;
     else
-      wall.byte |= NORTH << (robot_dir_index - 1) % 4;
+      wall_.byte |= NORTH << (robot_dir_index - 1) % 4;
   }
 
-  prev_wall_cnt = wall.nWall();
+  prev_wall_cnt_ = wall_.nWall();
 
-  return wall;
+  return wall_;
 }
 
 namespace robot_operation {
@@ -275,7 +275,8 @@ void TrueRunMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim13);
       GlobalState::ctrl_.SetFrontWallControlPermission(true);
       // GlobalState::ctrl.set_side_wall_control(false);
-      if (maze_run::SearchRun() != 0) {
+      maze_run::MazeRunner runner;
+      if (runner.SearchRun() != 0) {
         Error_Handler();
       }
 
