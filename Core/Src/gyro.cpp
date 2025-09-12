@@ -1,4 +1,8 @@
 #include "./gyro.hpp"
+
+#include <array>
+
+#include "./spi.h"
 namespace spi {
 Gyro::Gyro() : gyro_offset(0, 0, 0) {}
 void Gyro::init() {
@@ -48,45 +52,36 @@ float Gyro::spi_gyro_OUT_X(void) {
 float Gyro::spi_gyro_OUT_Y(void) {
   std::uint16_t Y_H = spi_gyro_read(0x2B);
   std::uint16_t Y_L = spi_gyro_read(0x2A);
-  return static_cast<float>((std::int16_t)((Y_H << 8) + Y_L)) * gyro_sensitivty;
+  return static_cast<float>(static_cast<std::int16_t>((Y_H << 8) + Y_L)) * gyro_sensitivty;
 }
-geometry Gyro::read_gyro() {
+geometry Gyro::read_gyro() const {
   geometry dps(0, 0, 0);
   dps.z = spi_gyro_OUT_Z() - gyro_offset.z;
   dps.y = spi_gyro_OUT_Y() - gyro_offset.y;
   dps.x = spi_gyro_OUT_X() - gyro_offset.x;
   dps.z /= 1.027f;
-  // if (abs(dps.z) < 0.5)
-  //     dps.z = 0;
-  // if (abs(dps.x) < 0.5)
-  //     dps.x = 0;
-  // if (abs(dps.y) < 0.5)
-  //     dps.y = 0;
 
   return dps;
 }
 
 void Gyro::spi_gyro_write(std::uint8_t address, std::uint8_t value) {
-  std::uint8_t transmit[2] = {address, value};
-  HAL_GPIO_WritePin(IMU_CS_GPIO_Port, IMU_CS_Pin,
-                    GPIO_PIN_RESET);  // CSピン立ち下げ
+  std::array<std::uint8_t, 2> transmit_data = {address, value};
+  HAL_GPIO_WritePin(IMU_CS_GPIO_Port, IMU_CS_Pin, GPIO_PIN_RESET);  // CSピン立ち下げ
   HAL_Delay(1);
-  HAL_SPI_Transmit(&hspi1, transmit, 2, 100);
+  HAL_SPI_Transmit(&hspi1, transmit_data.data(), transmit_data.size(), 100);
   HAL_Delay(1);
   HAL_GPIO_WritePin(IMU_CS_GPIO_Port, IMU_CS_Pin,
                     GPIO_PIN_SET);  // CSピン立ち上げ
 }
+
 std::uint8_t Gyro::spi_gyro_read(std::uint8_t address) {
-  HAL_GPIO_WritePin(IMU_CS_GPIO_Port, IMU_CS_Pin,
-                    GPIO_PIN_RESET);  // CSピン立ち下げ
-  std::uint8_t transmit;
-  transmit = address | 0x80;
+  HAL_GPIO_WritePin(IMU_CS_GPIO_Port, IMU_CS_Pin, GPIO_PIN_RESET);  // CSピン立ち下げ
+  std::uint8_t transmit = address | 0x80;
   std::uint8_t receive = 0x00;
   HAL_SPI_Transmit(&hspi1, &transmit, 1, 100);
   HAL_SPI_Receive(&hspi1, &receive, 1, 100);
   // HAL_SPI_TransmitReceive(&hspi1, &transmit, &receive, 2, 100);
-  HAL_GPIO_WritePin(IMU_CS_GPIO_Port, IMU_CS_Pin,
-                    GPIO_PIN_SET);  // CSピン立ち上げ
+  HAL_GPIO_WritePin(IMU_CS_GPIO_Port, IMU_CS_Pin, GPIO_PIN_SET);  // CSピン立ち上げ
   return receive;
 }
 }  // namespace spi
