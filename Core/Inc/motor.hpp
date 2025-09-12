@@ -14,16 +14,16 @@ using timer_pin = struct timerPin {
 };
 class Motor {
  private:
-  timerPin out_1;
-  timerPin out_2;
-  adc::Battery<float, std::uint32_t> batt;
+  timerPin out_1_;
+  timerPin out_2_;
+  adc::Battery<float, std::uint32_t> batt_;
   /* data */
  public:
   Motor(TIM_HandleTypeDef* tim_1, TIM_HandleTypeDef* tim_2, unsigned int channel_1, unsigned int channel_2);
-  void init(void);
-  void drive(int16_t duty);
-  void drive_vcc(float volt);
-  void brake();
+  void Init(void);
+  void Drive(int16_t duty);
+  void DriveVcc(float volt);
+  void Brake();
 };
 
 }  // namespace pwm

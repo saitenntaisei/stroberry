@@ -10,3 +10,6 @@
 [submodule "Core/lib/MazeSolver2015"]
 	path = Core/lib/MazeSolver2015
 	url = git@github.com:idt12312/MazeSolver2015.git
+[submodule "Core/lib/plog"]
+	path = Core/lib/plog
+	url = git@github.com:SergiusTheBest/plog.git

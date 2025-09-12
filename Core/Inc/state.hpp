@@ -8,137 +8,137 @@ namespace state {
 template <typename T>
 class Status {
  private:
-  T right_speed_old = 0, left_speed_old = 0;
-  T right_speed_new = 0, left_speed_new = 0;
-  T previous_speed = 0;
-  static constexpr float diameter_wheel = 32.82F;
-  static constexpr float radius_wheel = diameter_wheel / 2.0F;
-  T speed = 0;
-  T left_speed = 0, right_speed = 0;
-  T len_mouse = 0;
-  T ts = 0;
+  T right_speed_old_ = 0, left_speed_old_ = 0;
+  T right_speed_new_ = 0, left_speed_new_ = 0;
+  T previous_speed_ = 0;
+  static constexpr float kDiameterWheel = 32.82F;
+  static constexpr float kRadiusWheel = kDiameterWheel / 2.0F;
+  T speed_ = 0;
+  T left_speed_ = 0, right_speed_ = 0;
+  T len_mouse_ = 0;
+  T ts_ = 0;
 
-  T ang_vel = 0;
-  T degree = 0;
-  bool front_wall = false;
-  bool left_wall = false;
-  bool right_wall = false;
-  static constexpr parts::wheel<T, T> side_wall_control_th = {12.0f, 12.0f};
-  static constexpr parts::wheel<T, T> front_wall_control_th = {13.0f, 13.0f};
-  parts::wheel<T, T> side_wall_sensor_error = {0, 0};
-  parts::wheel<T, T> front_wall_sensor_error = {0, 0};
-  parts::wheel<T, T> front_wall_sensor_value = {0, 0};
-  static constexpr parts::wheel<T, T> side_wall_sensor_ref = {12.8f, 12.8f};
-  static constexpr parts::wheel<T, T> front_wall_sensor_ref = {14.5f, 14.5f};
-  parts::wheel<bool, bool> is_side_wall_control = {false, false};
-  parts::wheel<bool, bool> is_front_wall_control = {false, false};
-  static constexpr float left_threshold = 11.5f, right_threshold = 11.5f, front_threshold = 24.0f;
+  T ang_vel_ = 0;
+  T degree_ = 0;
+  bool front_wall_ = false;
+  bool left_wall_ = false;
+  bool right_wall_ = false;
+  static constexpr parts::wheel<T, T> kSideWallControlTh = {12.0f, 12.0f};
+  static constexpr parts::wheel<T, T> kFrontWallControlTh = {13.0f, 13.0f};
+  parts::wheel<T, T> side_wall_sensor_error_ = {0, 0};
+  parts::wheel<T, T> front_wall_sensor_error_ = {0, 0};
+  parts::wheel<T, T> front_wall_sensor_value_ = {0, 0};
+  static constexpr parts::wheel<T, T> kSideWallSensorRef = {12.8f, 12.8f};
+  static constexpr parts::wheel<T, T> kFrontWallSensorRef = {14.5f, 14.5f};
+  parts::wheel<bool, bool> is_side_wall_control_ = {false, false};
+  parts::wheel<bool, bool> is_front_wall_control_ = {false, false};
+  static constexpr float kLeftThreshold = 11.5f, kRightThreshold = 11.5f, kFrontThreshold = 24.0f;
   /* data */
  public:
   enum WallSensor { FRONT_LEFT, FRONT_RIGHT, LEFT, RIGHT };
   Status(T ts = 0.001F);  // NOLINT
   template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
-  void update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc);
-  void update_gyro(std::function<T(void)> gyro_yaw);
-  void update_wall_sensor(std::function<float *(void)> wall_sensor);
-  T get_ang_vel() { return ang_vel; }
-  T get_ang() { return degree; }
-  T get_speed() { return speed; }
-  T get_len_mouse() { return len_mouse; }
-  void reset() {
-    len_mouse = 0;
-    degree = 0;
+  void UpdateEncoder(LEFTENC &left_enc, RIGHTENC &right_enc);
+  void UpdateGyro(std::function<T(void)> gyro_yaw);
+  void UpdateWallSensor(std::function<float *(void)> wall_sensor);
+  T GetAngVel() { return ang_vel_; }
+  T GetAng() { return degree_; }
+  T GetSpeed() { return speed_; }
+  T GetLenMouse() { return len_mouse_; }
+  void Reset() {
+    len_mouse_ = 0;
+    degree_ = 0;
   }
-  bool get_front_wall() { return front_wall; }
-  bool get_left_wall() { return left_wall; }
-  bool get_right_wall() { return right_wall; }
-  parts::wheel<bool, bool> get_is_side_wall_control() { return is_side_wall_control; }
-  parts::wheel<bool, bool> get_is_front_wall_control() { return is_front_wall_control; }
-  parts::wheel<T, T> get_side_wall_sensor_error() { return side_wall_sensor_error; }
-  parts::wheel<T, T> get_front_wall_sensor_error() { return front_wall_sensor_error; }
-  parts::wheel<T, T> get_front_wall_sensor_value() { return front_wall_sensor_value; }
+  bool GetFrontWall() { return front_wall_; }
+  bool GetLeftWall() { return left_wall_; }
+  bool GetRightWall() { return right_wall_; }
+  parts::wheel<bool, bool> GetIsSideWallControl() { return is_side_wall_control_; }
+  parts::wheel<bool, bool> GetIsFrontWallControl() { return is_front_wall_control_; }
+  parts::wheel<T, T> GetSideWallSensorError() { return side_wall_sensor_error_; }
+  parts::wheel<T, T> GetFrontWallSensorError() { return front_wall_sensor_error_; }
+  parts::wheel<T, T> GetFrontWallSensorValue() { return front_wall_sensor_value_; }
 };
 template <typename T>
-Status<T>::Status(T ts) : ts(ts) {}
+Status<T>::Status(T ts) : ts_(ts) {}
 template <typename T>
 template <class LEFTENC, class RIGHTENC, T (LEFTENC::*LEFTENCFn)(), T (RIGHTENC::*RIGHTENCFn)()>
-void Status<T>::update_encoder(LEFTENC &left_enc, RIGHTENC &right_enc) {  // unit is control freq(1ms)
+void Status<T>::UpdateEncoder(LEFTENC &left_enc, RIGHTENC &right_enc) {  // unit is control freq(1ms)
   T left_rads = -(left_enc.*LEFTENCFn)();
   T right_rads = (right_enc.*RIGHTENCFn)();
-  left_speed_new = left_rads * static_cast<T>(radius_wheel) * 100;    // mm/s
-  right_speed_new = right_rads * static_cast<T>(radius_wheel) * 100;  // mm/s
-  left_speed_old = left_speed;
-  right_speed_old = right_speed;
+  left_speed_new_ = left_rads * static_cast<T>(kRadiusWheel) * 100;    // mm/s
+  right_speed_new_ = right_rads * static_cast<T>(kRadiusWheel) * 100;  // mm/s
+  left_speed_old_ = left_speed_;
+  right_speed_old_ = right_speed_;
   // lowpass
   // left_speed = left_speed_new * 0.1F + left_speed_old * 0.9F;     // NOLINT
   // right_speed = right_speed_new * 0.1F + right_speed_old * 0.9F;  // NOLINT
-  left_speed = left_speed_new;
-  right_speed = right_speed_new;
-  previous_speed = speed;
-  speed = (left_speed + right_speed) / 2;
-  len_mouse += (left_speed_new + right_speed_new) / 2 / 100;  // mm
+  left_speed_ = left_speed_new_;
+  right_speed_ = right_speed_new_;
+  previous_speed_ = speed_;
+  speed_ = (left_speed_ + right_speed_) / 2;
+  len_mouse_ += (left_speed_new_ + right_speed_new_) / 2 / 100;  // mm
 }
 template <typename T>
-void Status<T>::update_wall_sensor(std::function<float *(void)> wall_sensor) {
+void Status<T>::UpdateWallSensor(std::function<float *(void)> wall_sensor) {
   float *wall_sensor_value = wall_sensor();
 
-  if (static_cast<float>(wall_sensor_value[FRONT_LEFT]) > front_wall_control_th.left) {
-    is_front_wall_control.left = true;
-    front_wall_sensor_error.left = static_cast<float>(wall_sensor_value[FRONT_LEFT]) - front_wall_sensor_ref.left;
+  if (static_cast<float>(wall_sensor_value[FRONT_LEFT]) > kFrontWallControlTh.left) {
+    is_front_wall_control_.left = true;
+    front_wall_sensor_error_.left = static_cast<float>(wall_sensor_value[FRONT_LEFT]) - kFrontWallSensorRef.left;
   } else {
-    is_front_wall_control.left = false;
-    front_wall_sensor_error.left = 0;
+    is_front_wall_control_.left = false;
+    front_wall_sensor_error_.left = 0;
   }
 
-  if (static_cast<float>(wall_sensor_value[FRONT_RIGHT]) > front_wall_control_th.right) {
-    is_front_wall_control.right = true;
-    front_wall_sensor_error.right = static_cast<float>(wall_sensor_value[FRONT_RIGHT]) - front_wall_sensor_ref.right;
+  if (static_cast<float>(wall_sensor_value[FRONT_RIGHT]) > kFrontWallControlTh.right) {
+    is_front_wall_control_.right = true;
+    front_wall_sensor_error_.right = static_cast<float>(wall_sensor_value[FRONT_RIGHT]) - kFrontWallSensorRef.right;
   } else {
-    is_front_wall_control.right = false;
-    front_wall_sensor_error.right = 0;
+    is_front_wall_control_.right = false;
+    front_wall_sensor_error_.right = 0;
   }
-  if (wall_sensor_value[LEFT] > left_threshold) {
-    left_wall = true;
+  if (wall_sensor_value[LEFT] > kLeftThreshold) {
+    left_wall_ = true;
   } else {
-    left_wall = false;
+    left_wall_ = false;
   }
-  if (wall_sensor_value[RIGHT] > right_threshold) {
-    right_wall = true;
+  if (wall_sensor_value[RIGHT] > kRightThreshold) {
+    right_wall_ = true;
   } else {
-    right_wall = false;
+    right_wall_ = false;
   }
-  if (static_cast<float>(wall_sensor_value[LEFT]) > side_wall_control_th.left) {
-    is_side_wall_control.left = true;
-    side_wall_sensor_error.left = static_cast<float>(wall_sensor_value[LEFT]) - side_wall_sensor_ref.left;
+  if (static_cast<float>(wall_sensor_value[LEFT]) > kSideWallControlTh.left) {
+    is_side_wall_control_.left = true;
+    side_wall_sensor_error_.left = static_cast<float>(wall_sensor_value[LEFT]) - kSideWallSensorRef.left;
   } else {
-    is_side_wall_control.left = false;
-    side_wall_sensor_error.left = 0;
+    is_side_wall_control_.left = false;
+    side_wall_sensor_error_.left = 0;
   }
-  if (static_cast<float>(wall_sensor_value[RIGHT]) > side_wall_control_th.right) {
-    is_side_wall_control.right = true;
-    side_wall_sensor_error.right = static_cast<float>(wall_sensor_value[RIGHT]) - side_wall_sensor_ref.right;
+  if (static_cast<float>(wall_sensor_value[RIGHT]) > kSideWallControlTh.right) {
+    is_side_wall_control_.right = true;
+    side_wall_sensor_error_.right = static_cast<float>(wall_sensor_value[RIGHT]) - kSideWallSensorRef.right;
   } else {
-    is_side_wall_control.right = false;
-    side_wall_sensor_error.right = 0;
+    is_side_wall_control_.right = false;
+    side_wall_sensor_error_.right = 0;
   }
 
-  if (wall_sensor_value[FRONT_LEFT] > front_threshold / 2 && wall_sensor_value[FRONT_RIGHT] > front_threshold / 2) {
-    front_wall = true;
+  if (wall_sensor_value[FRONT_LEFT] > kFrontThreshold / 2 && wall_sensor_value[FRONT_RIGHT] > kFrontThreshold / 2) {
+    front_wall_ = true;
   } else {
-    front_wall = false;
+    front_wall_ = false;
   }
 
-  if ((right_wall == false || left_wall == false) && (wall_sensor_value[FRONT_LEFT] > front_threshold / 2 || wall_sensor_value[FRONT_RIGHT] > front_threshold / 2)) {
-    front_wall = true;
+  if ((right_wall_ == false || left_wall_ == false) && (wall_sensor_value[FRONT_LEFT] > kFrontThreshold / 2 || wall_sensor_value[FRONT_RIGHT] > kFrontThreshold / 2)) {
+    front_wall_ = true;
   }
-  front_wall_sensor_value.left = static_cast<float>(wall_sensor_value[FRONT_LEFT]);
-  front_wall_sensor_value.right = static_cast<float>(wall_sensor_value[FRONT_RIGHT]);
+  front_wall_sensor_value_.left = static_cast<float>(wall_sensor_value[FRONT_LEFT]);
+  front_wall_sensor_value_.right = static_cast<float>(wall_sensor_value[FRONT_RIGHT]);
 }
 template <typename T>
-void Status<T>::update_gyro(std::function<T(void)> gyro_yaw) {  // unit is control freq(1ms)
+void Status<T>::UpdateGyro(std::function<T(void)> gyro_yaw) {  // unit is control freq(1ms)
 
-  ang_vel = gyro_yaw();
-  degree += ang_vel * ts;
+  ang_vel_ = gyro_yaw();
+  degree_ += ang_vel_ * ts_;
 }
 }  // namespace state
 #endif  // CORE_INC_STATE_HPP_

@@ -69,7 +69,7 @@ bool Store() {
  * @param std::uint8_t * data write data
  * @param std::uint32_t size write data size
  */
-bool Store_struct(std::uint8_t *data, std::uint32_t size) {
+bool StoreStruct(std::uint8_t *data, std::uint32_t size) {
   if (!Clear()) return false;  // erease sector1
   HAL_FLASH_Unlock();          // unlock flash
   std::uint32_t address = reinterpret_cast<std::uint32_t>(&_backup_flash_start);
@@ -82,11 +82,11 @@ bool Store_struct(std::uint8_t *data, std::uint32_t size) {
   HAL_FLASH_Lock();  // lock flash
   return result == HAL_OK;
 }
-void Load_struct(std::uint8_t *data, std::uint32_t size) {
+void LoadStruct(std::uint8_t *data, std::uint32_t size) {
   memcpy(data, &_backup_flash_start, size);  // copy data
 }
 
-std::uint16_t Flash_string(std::string *str, std::uint16_t pos) {
+std::uint16_t FlashString(std::string *str, std::uint16_t pos) {
   const char *cstr = str->c_str();
   if (strlen(cstr) + 1 > static_cast<size_t>(BACKUP_FLASH_SECTOR_SIZE - pos)) {
     return -1;

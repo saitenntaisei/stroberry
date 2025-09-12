@@ -31,9 +31,7 @@
 
 #include <cstdint>
 
-#include "./battery.hpp"
 #include "./buzzer.hpp"
-#include "./controller.hpp"
 #include "./data.hpp"
 #include "./encoder.hpp"
 #include "./global_state.hpp"
@@ -41,7 +39,7 @@
 #include "./ir_sensor.hpp"
 #include "./motor.hpp"
 #include "./robot_operation.hpp"
-#include "./state.hpp"
+#include "logger.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -82,29 +80,29 @@ bool led_mode = true;
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim10) {
-    GlobalState::ctrl.status.update_encoder<pwm::Encoder<float, std::int16_t>, pwm::Encoder<float, std::int16_t>, &pwm::Encoder<float, std::int16_t>::read_encoder_value,
-                                            &pwm::Encoder<float, std::int16_t>::read_encoder_value>(GlobalState::enc.left, GlobalState::enc.right);
+    GlobalState::ctrl_.status_.UpdateEncoder<pwm::Encoder<float, std::int16_t>, pwm::Encoder<float, std::int16_t>, &pwm::Encoder<float, std::int16_t>::ReadEncoderValue,
+                                             &pwm::Encoder<float, std::int16_t>::ReadEncoderValue>(GlobalState::enc_.left, GlobalState::enc_.right);
   }
   if (htim == &htim6) {
-    switch (GlobalState::test_mode) {
+    switch (GlobalState::test_mode_) {
       case param::TestMode::TURN_MODE:
-        GlobalState::drive_rec.push_back(data::drive_record(GlobalState::ctrl.status.get_ang_vel(), GlobalState::motor_signal));
+        GlobalState::drive_rec_.push_back(data::drive_record(GlobalState::ctrl_.status_.GetAngVel(), GlobalState::motor_signal_));
         break;
       case param::TestMode::STRAIGHT_MODE:
-        GlobalState::drive_rec.push_back(data::drive_record(GlobalState::ctrl.status.get_speed(), GlobalState::motor_signal));
+        GlobalState::drive_rec_.push_back(data::drive_record(GlobalState::ctrl_.status_.GetSpeed(), GlobalState::motor_signal_));
         break;
       default:
         break;
     }
   }
   if (htim == &htim11) {
-    GlobalState::ctrl.status.update_wall_sensor([]() { return GlobalState::ir_sensor.get_average_ir_values(); });
-    GlobalState::ctrl.status.update_gyro([]() { return GlobalState::gyro.read_gyro().z; });
+    GlobalState::ctrl_.status_.UpdateWallSensor([]() { return GlobalState::ir_sensor_.GetAverageIrValues(); });
+    GlobalState::ctrl_.status_.UpdateGyro([]() { return GlobalState::gyro_.ReadGyro().z; });
   }
 
   if (htim == &htim13) {
-    GlobalState::ctrl.update();
-    GlobalState::ctrl.drive_motor<pwm::Motor, &pwm::Motor::drive_vcc>(GlobalState::motor.left, GlobalState::motor.right, -1, 1);
+    GlobalState::ctrl_.Update();
+    GlobalState::ctrl_.DriveMotor<pwm::Motor, &pwm::Motor::DriveVcc>(GlobalState::motor_.left, GlobalState::motor_.right, -1, 1);
   }
 
   if (htim == &htim7) {
@@ -115,21 +113,21 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
       HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, ((system_mode & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET));
       HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, ((system_mode >> 1) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
     }
-    GlobalState::batt.read_batt();
+    GlobalState::batt_.ReadBatt();
   }
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle) {
   __disable_irq();
   if (AdcHandle == &hadc2) {
-    GlobalState::ir_sensor.ir_sampling();
+    GlobalState::ir_sensor_.IrSampling();
 
-    if (GlobalState::ir_sensor.ir_selection == adc::IrSensor<std::uint32_t>::IrSelection::FRONT) {
-      GlobalState::ir_light_2.ir_flash_stop();
-      GlobalState::ir_light_1.ir_flash_start();
+    if (GlobalState::ir_sensor_.ir_selection_ == adc::IrSensor<std::uint32_t>::IrSelection::FRONT) {
+      GlobalState::ir_light_2_.IrFlashStop();
+      GlobalState::ir_light_1_.IrFlashStart();
     } else {
-      GlobalState::ir_light_1.ir_flash_stop();
-      GlobalState::ir_light_2.ir_flash_start();
+      GlobalState::ir_light_1_.IrFlashStop();
+      GlobalState::ir_light_2_.IrFlashStart();
     }
   }
   __enable_irq();
@@ -198,14 +196,16 @@ int main() {
   MX_TIM13_Init();
   /* USER CODE BEGIN 2 */
   setbuf(stdout, nullptr);
+  // Initialize plog with UART appender (info level)
+  logging::InitLogger(plog::info);
   HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
   HAL_Delay(500);
-  GlobalState::buzzer.init();
-  GlobalState::ir_sensor.init();
-  GlobalState::motor.left.init();
-  GlobalState::motor.right.init();
-  printf("stroberry\r\n");
+  GlobalState::buzzer_.Init();
+  GlobalState::ir_sensor_.Init();
+  GlobalState::motor_.left.Init();
+  GlobalState::motor_.right.Init();
+  PLOG(plog::info) << "stroberry";
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET);
@@ -216,8 +216,8 @@ int main() {
   // HAL_TIM_Base_Start_IT(&htim11);
   HAL_TIM_Base_Start_IT(&htim7);
   // HAL_TIM_Base_Start_IT(&htim6);
-  GlobalState::ir_light_1.ir_flash_start();  // front
-  GlobalState::ir_light_2.ir_flash_start();  // side
+  GlobalState::ir_light_1_.IrFlashStart();  // front
+  GlobalState::ir_light_2_.IrFlashStart();  // side
   HAL_TIM_GenerateEvent(&htim3, TIM_EVENTSOURCE_UPDATE);
   HAL_TIM_Base_Start_IT(&htim3);
 
@@ -231,7 +231,7 @@ int main() {
     /* USER CODE BEGIN 3 */
 
     while (system_mode > 0) {
-      if (GlobalState::ir_sensor.get_ir_value(0) >= 14.0f && GlobalState::ir_sensor.get_ir_value(1) >= 14.0f) {
+      if (GlobalState::ir_sensor_.GetIrValue(0) >= 14.0f && GlobalState::ir_sensor_.GetIrValue(1) >= 14.0f) {
         led_mode = false;
         HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
@@ -239,16 +239,16 @@ int main() {
         HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GPIO_PIN_RESET);
-        GlobalState::gyro.init();
+        GlobalState::gyro_.Init();
         HAL_Delay(3000);
 
         switch (system_mode) {
           case 1:
-            robot_operation::trueRunMode(run_mode);
+            robot_operation::TrueRunMode(run_mode);
             break;
 
           case 2:
-            robot_operation::abjustMode(run_mode);
+            robot_operation::AdjustMode(run_mode);
             break;
         }
         system_mode = 0;
@@ -329,7 +329,7 @@ void Error_Handler(void) {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state
    */
-  printf("error\r\n");
+  PLOG(plog::info) << "error";
 
   HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_1);
   HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_2);

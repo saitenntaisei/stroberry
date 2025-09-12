@@ -26,9 +26,9 @@ bool Clear();
 bool Store();
 std::uint8_t* Load();
 
-bool Store_struct(std::uint8_t* data, std::uint32_t size);
-void Load_struct(std::uint8_t* data, std::uint32_t size);
-std::uint16_t Flash_string(std::string* str, std::uint16_t pos = 0);
+bool StoreStruct(std::uint8_t* data, std::uint32_t size);
+void LoadStruct(std::uint8_t* data, std::uint32_t size);
+std::uint16_t FlashString(std::string* str, std::uint16_t pos = 0);
 }  // namespace flash
 namespace text {
 
