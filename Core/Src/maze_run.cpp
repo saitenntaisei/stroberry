@@ -6,6 +6,7 @@
 #include "../../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h"
 #include "../Inc/flash.hpp"
 #include "../lib/MazeSolver2015/MazeSolver_conf.h"
+#include <plog/Log.h>
 
 namespace maze_run {
 // メンバ関数の実装
@@ -15,7 +16,7 @@ int MazeRunner::SearchRun() {
     maze_.saveToArray(asciiData);
     std::memcpy(flash::work_ram, asciiData, sizeof(asciiData));
     if (!flash::Store()) {
-      printf("flash store error\r\n");
+      PLOG(plog::info) << "flash store error";
       return -1;
     }
     return 0;

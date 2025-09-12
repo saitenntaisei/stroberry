@@ -3,6 +3,7 @@
 #include <array>
 
 #include "./spi.h"
+#include <plog/Log.h>
 namespace spi {
 Gyro::Gyro() : gyro_offset_(0, 0, 0) {}
 void Gyro::Init() {
@@ -27,14 +28,14 @@ void Gyro::Init() {
   gyro_offset_.z = temp.z / times;
   gyro_offset_.y = temp.y / times;
   gyro_offset_.y = temp.y / times;
-  printf("offset:=x:%f y:%f z:%f\r\n", gyro_offset_.x, gyro_offset_.y, gyro_offset_.z);
+  PLOG(plog::info) << "offset:=x:" << gyro_offset_.x << " y:" << gyro_offset_.y << " z:" << gyro_offset_.z;
 }
 
 void Gyro::SpiGyroWhoAmI(void) {
   HAL_Delay(100);
   while (true) {
     std::uint8_t report = SpiGyroRead(0x0F);
-    printf("WHO_AM_I = %d\r\n", report);
+    PLOG(plog::info) << "WHO_AM_I = " << static_cast<int>(report);
     if (report == 215) break;
     HAL_Delay(100);
   }

@@ -7,6 +7,7 @@
 #include "./global_state.hpp"
 #include "flash.hpp"
 #include "maze_run.hpp"
+#include <plog/Log.h>
 
 using global_state::GlobalState;
 
@@ -182,7 +183,7 @@ void AdjustMode(std::uint8_t mode) {
       GlobalState::motor_.left.DriveVcc(0);
       GlobalState::motor_.right.DriveVcc(0);
 
-      printf("%d\r\n", GlobalState::drive_rec_.size() * sizeof(data::twist));
+      PLOG(plog::info) << (GlobalState::drive_rec_.size() * sizeof(data::twist));
       if (GlobalState::drive_rec_.size() * sizeof(data::twist) > BACKUP_FLASH_SECTOR_SIZE) {
         HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_SET);
         Error_Handler();
@@ -219,7 +220,7 @@ void AdjustMode(std::uint8_t mode) {
       HAL_TIM_Base_Stop_IT(&htim6);
       GlobalState::motor_.left.DriveVcc(0);
       GlobalState::motor_.right.DriveVcc(0);
-      printf("%d\r\n", GlobalState::drive_rec_.size() * sizeof(data::twist));
+      PLOG(plog::info) << (GlobalState::drive_rec_.size() * sizeof(data::twist));
       if (GlobalState::drive_rec_.size() * sizeof(data::twist) > BACKUP_FLASH_SECTOR_SIZE) {
         HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_SET);
         Error_Handler();
@@ -234,9 +235,9 @@ void AdjustMode(std::uint8_t mode) {
     case 5: {  // フラッシュメモリから記録データを読み込み表示
       flash::Load();
       std::copy((data::drive_record *)flash::work_ram, (data::drive_record *)flash::work_ram + 4000, std::back_inserter(GlobalState::drive_rec_));
-      printf("speed, signal\r\n");
+      PLOG(plog::info) << "speed, signal";
       for (auto rec : GlobalState::drive_rec_) {
-        printf("%f, %f\r\n", rec.speed, rec.signal);
+        PLOG(plog::info) << rec.speed << ", " << rec.signal;
 
         HAL_Delay(1);
       }
@@ -252,7 +253,8 @@ void AdjustMode(std::uint8_t mode) {
           ir_value[i] = GlobalState::ir_sensor_.GetIrValue(i);
         }
 
-        printf("FRONT_LEFT: %f, FRONT_RIGHT: %f, LEFT: %f, RIGHT: %f, LEN: %f\r\n", ir_value[0], ir_value[1], ir_value[2], ir_value[3], GlobalState::ctrl_.status_.GetLenMouse());
+        PLOG(plog::info) << "FRONT_LEFT: " << ir_value[0] << ", FRONT_RIGHT: " << ir_value[1] << ", LEFT: " << ir_value[2] << ", RIGHT: " << ir_value[3]
+              << ", LEN: " << GlobalState::ctrl_.status_.GetLenMouse();
         HAL_Delay(1);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GlobalState::ctrl_.status_.GetLeftWall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, GlobalState::ctrl_.status_.GetFrontWall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -288,7 +290,7 @@ void TrueRunMode(std::uint8_t mode) {
 
     case 1: {
       if (!flash::Load()) {
-        printf("flash load error\r\n");
+        PLOG(plog::info) << "flash load error";
         Error_Handler();
       }
       char asciiData[MAZE_SIZE + 1][MAZE_SIZE + 1];
@@ -322,8 +324,8 @@ void TrueRunMode(std::uint8_t mode) {
       while (true) {
         parts::wheel<float, float> side_wall_sensor_error = GlobalState::ctrl_.status_.GetSideWallSensorError();
         parts::wheel<float, float> front_wall_sensor_error = GlobalState::ctrl_.status_.GetFrontWallSensorValue();
-        printf("front_left: %f, front_right: %f, left: %f, right: %f\r\n", front_wall_sensor_error.left, front_wall_sensor_error.right, side_wall_sensor_error.left,
-               side_wall_sensor_error.right);
+        PLOG(plog::info) << "front_left: " << front_wall_sensor_error.left << ", front_right: " << front_wall_sensor_error.right << ", left: " << side_wall_sensor_error.left
+              << ", right: " << side_wall_sensor_error.right;
         HAL_Delay(1);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GlobalState::ctrl_.status_.GetLeftWall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, GlobalState::ctrl_.status_.GetFrontWall() ? GPIO_PIN_SET : GPIO_PIN_RESET);

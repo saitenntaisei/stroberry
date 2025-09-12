@@ -31,9 +31,7 @@
 
 #include <cstdint>
 
-#include "./battery.hpp"
 #include "./buzzer.hpp"
-#include "./controller.hpp"
 #include "./data.hpp"
 #include "./encoder.hpp"
 #include "./global_state.hpp"
@@ -41,7 +39,7 @@
 #include "./ir_sensor.hpp"
 #include "./motor.hpp"
 #include "./robot_operation.hpp"
-#include "./state.hpp"
+#include "logger.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -198,6 +196,8 @@ int main() {
   MX_TIM13_Init();
   /* USER CODE BEGIN 2 */
   setbuf(stdout, nullptr);
+  // Initialize plog with UART appender (info level)
+  logging::InitLogger(plog::info);
   HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8, TIM_CHANNEL_ALL);
   HAL_Delay(500);
@@ -205,7 +205,7 @@ int main() {
   GlobalState::ir_sensor_.Init();
   GlobalState::motor_.left.Init();
   GlobalState::motor_.right.Init();
-  printf("stroberry\r\n");
+  PLOG(plog::info) << "stroberry";
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET);
@@ -329,7 +329,7 @@ void Error_Handler(void) {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state
    */
-  printf("error\r\n");
+  PLOG(plog::info) << "error";
 
   HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_1);
   HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_2);
