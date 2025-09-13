@@ -39,9 +39,7 @@ CheckOptions:
   - key:             readability-identifier-naming.TemplateParameterCase
     value:           CamelCase
   - key:             readability-identifier-naming.ConstantCase
-    value:           CamelCase
-  - key:             readability-identifier-naming.ConstantPrefix
-    value:           'k'
+    value:           lower_case
   - key:             readability-identifier-naming.MemberConstantCase
     value:           CamelCase
   - key:             readability-identifier-naming.MemberConstantPrefix
@@ -50,10 +48,12 @@ CheckOptions:
     value:           CamelCase
   - key:             readability-identifier-naming.GlobalConstantPrefix
     value:           'k'
-  - key:             readability-identifier-naming.ConstexprVariableCase
+  - key:             readability-identifier-naming.StaticConstantCase
     value:           CamelCase
-  - key:             readability-identifier-naming.ConstexprVariablePrefix
+  - key:             readability-identifier-naming.StaticConstantPrefix
     value:           'k'
+  - key:             readability-identifier-naming.ConstexprVariableCase
+    value:           lower_case
   - key:             readability-identifier-naming.EnumConstantCase
     value:           CamelCase
   - key:             readability-identifier-naming.EnumConstantPrefix

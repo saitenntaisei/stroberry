@@ -62,4 +62,21 @@ int MazeRunner::SearchRun() {
   return 0;
 }
 
+void MazeRunner::LoadMaze4TrueRun(Maze& maze) { agent_.resumeAt(Agent::FINISHED, maze); }
+
+int MazeRunner::TrueRun() {
+  agent_.calcRunSequence(false);
+  const OperationList& run_sequence = agent_.getRunSequence();
+  // Operationを先頭から順番に実行していく
+  for (size_t i = 0; i < run_sequence.size(); i++) {
+    // Operationの実行が終わるまで待つ(nマス進んだ,右に曲がった)
+
+    // i番目のを実行
+    RobotMove(run_sequence[i]);  // RobotMove関数はOperation型を受け取ってそれを実行する関数
+  }
+  RobotStop();
+  HAL_Delay(100);
+  return 0;
+}
+
 }  // namespace maze_run
