@@ -94,6 +94,46 @@ void maze_run::MazeRunner::RobotMove(const Direction &dir) {
   return;
 }
 
+void maze_run::MazeRunner::RobotMove(const Operation &op) {
+  if (op.op == Operation::FORWARD) {  // 直進
+    if (is_start_block_) {
+      GlobalState::batt_.monitoring_state_ = false;
+      GlobalState::ctrl_.SetSideWallControl(false);
+      GlobalState::ctrl_.Back1s();
+
+      GlobalState::ctrl_.Reset();
+      HAL_Delay(1);
+      GlobalState::ctrl_.Straight(180.0 - 40.0, 200, 200, 200);
+      GlobalState::batt_.monitoring_state_ = true;
+      GlobalState::ctrl_.SetSideWallControl(true);
+
+      is_start_block_ = false;
+    } else {
+      GlobalState::ctrl_.Straight(180.0, 200, 200, 200);
+    }
+  } else if (op.op == Operation::TURN_RIGHT90) {  // Right
+    GlobalState::ctrl_.SetSideWallControl(false);
+    GlobalState::ctrl_.Straight(90.0, 200, 200, 0.0);
+    HAL_Delay(1);
+    GlobalState::ctrl_.Turn(-90, 540, 720);
+    HAL_Delay(1);
+    GlobalState::ctrl_.Straight(90.0, 200, 200, 200);
+    GlobalState::ctrl_.SetSideWallControl(true);
+
+  } else if (op.op == Operation::TURN_LEFT90) {  // LEFT
+    GlobalState::ctrl_.SetSideWallControl(false);
+    GlobalState::ctrl_.Straight(90.0, 200, 200, 0.0);
+    HAL_Delay(1);
+    GlobalState::ctrl_.Turn(90, 540, 720);
+    HAL_Delay(1);
+    GlobalState::ctrl_.Straight(90.0, 200, 200, 200);
+    GlobalState::ctrl_.SetSideWallControl(true);
+  } else if (op.op == Operation::STOP) {  // 180度ターン
+    maze_run::MazeRunner::RobotStop();
+  }
+  return;
+}
+
 void maze_run::MazeRunner::RobotStop() {
   GlobalState::ctrl_.Reset();
   return;
@@ -299,6 +339,27 @@ void TrueRunMode(std::uint8_t mode) {
       Maze maze;
       maze.loadFromArray(asciiData);
       maze.printWall();
+    } break;
+
+    case 2: {
+      HAL_TIM_Base_Start_IT(&htim10);
+      HAL_TIM_Base_Start_IT(&htim11);
+      HAL_TIM_Base_Start_IT(&htim13);
+      if (!flash::Load()) {
+        PLOG(plog::info) << "flash load error";
+        Error_Handler();
+      }
+      char asciiData[MAZE_SIZE + 1][MAZE_SIZE + 1];
+      std::memcpy(asciiData, flash::work_ram, sizeof(asciiData));
+      Maze maze;
+      maze.loadFromArray(asciiData);
+      maze_run::MazeRunner runner;
+      runner.LoadMaze4TrueRun(maze);
+      runner.TrueRun();
+      HAL_TIM_Base_Stop_IT(&htim10);
+      HAL_TIM_Base_Stop_IT(&htim11);
+      HAL_TIM_Base_Stop_IT(&htim13);
+
     } break;
 
     case 6: {  // 時計回り・反時計回りの回転テスト

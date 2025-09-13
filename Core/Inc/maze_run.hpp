@@ -10,9 +10,12 @@ class MazeRunner {
   MazeRunner() : agent_(maze_), robot_position_(0, 0), robot_dir_(NORTH), wall_(0) {}
 
   int SearchRun();
+  int TrueRun();
 
   void RobotMove(const Direction& dir);
+  void RobotMove(const Operation& op);
   void RobotStop();
+  void LoadMaze4TrueRun(Maze& maze);
 
   const Direction& GetWallData();
   const IndexVec& GetRobotPosition() const { return robot_position_; }
