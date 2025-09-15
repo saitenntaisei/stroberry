@@ -1,0 +1,4 @@
+Drivers/** linguist-generated=true
+Core/lib/** linguist-vendored=true
+Core/Src/*.c linguist-generated=true
+Core/Inc/*.h linguist-generated=true
