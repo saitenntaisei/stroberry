@@ -25,6 +25,7 @@ class Status {
   bool right_wall_ = false;
   static constexpr parts::wheel<T, T> kSideWallControlTh = {12.5f, 12.5f};
   static constexpr parts::wheel<T, T> kFrontWallControlTh = {13.0f, 13.0f};
+  static constexpr parts::wheel<T, T> kFrontWallControlNeedTh = {15.5f, 15.5f};
   parts::wheel<T, T> side_wall_sensor_error_ = {0, 0};
   parts::wheel<T, T> front_wall_sensor_error_ = {0, 0};
   parts::wheel<T, T> front_wall_sensor_value_ = {0, 0};
@@ -32,6 +33,7 @@ class Status {
   static constexpr parts::wheel<T, T> kFrontWallSensorRef = {14.5f, 14.5f};
   parts::wheel<bool, bool> is_side_wall_control_ = {false, false};
   parts::wheel<bool, bool> is_front_wall_control_ = {false, false};
+  bool is_front_wall_control_need_ = false;
   static constexpr float kLeftThreshold = 11.5f, kRightThreshold = 11.5f, kFrontThreshold = 25.0f;
   /* data */
  public:
@@ -54,6 +56,7 @@ class Status {
   bool GetRightWall() { return right_wall_; }
   parts::wheel<bool, bool> GetIsSideWallControl() { return is_side_wall_control_; }
   parts::wheel<bool, bool> GetIsFrontWallControl() { return is_front_wall_control_; }
+  bool GetIsFrontWallControlNeed() { return is_front_wall_control_need_; }
   parts::wheel<T, T> GetSideWallSensorError() { return side_wall_sensor_error_; }
   parts::wheel<T, T> GetFrontWallSensorError() { return front_wall_sensor_error_; }
   parts::wheel<T, T> GetFrontWallSensorValue() { return front_wall_sensor_value_; }
@@ -97,6 +100,10 @@ void Status<T>::UpdateWallSensor(std::function<float *(void)> wall_sensor) {
     is_front_wall_control_.right = false;
     front_wall_sensor_error_.right = 0;
   }
+
+  is_front_wall_control_need_ =
+      (static_cast<float>(wall_sensor_value[FRONT_LEFT]) > kFrontWallControlNeedTh.left || static_cast<float>(wall_sensor_value[FRONT_RIGHT]) > kFrontWallControlNeedTh.right);
+
   if (wall_sensor_value[LEFT] > kLeftThreshold) {
     left_wall_ = true;
   } else {
