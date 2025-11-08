@@ -8,6 +8,7 @@
 #include "../../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h"
 #include "../Inc/flash.hpp"
 #include "../lib/MazeSolver2015/MazeSolver_conf.h"
+#include "stm32f4xx_hal_conf.h"
 
 namespace maze_run {
 // メンバ関数の実装
@@ -34,18 +35,19 @@ int MazeRunner::SearchRun() {
     // Agentの状態を確認
     // FINISHEDになったら計測走行にうつる
     if (agent_.getState() == Agent::FINISHED) {
-      if (save_maze_to_flash() != 0) {
-        return -1;
-      }
+
       break;
     }
 
     // ゴールにたどり着いた瞬間に一度だけmazeのバックアップをとる
     // Mazeクラスはoperator=が定義してあるからa = bでコピーできる
     if (prev_state_ == Agent::SEARCHING_NOT_GOAL && agent_.getState() != Agent::SEARCHING_NOT_GOAL) {
+      RobotStop();
+      HAL_Delay(100);
       if (save_maze_to_flash() != 0) {
         return -1;
       }
+    
     }
     prev_state_ = agent_.getState();
 
@@ -59,6 +61,9 @@ int MazeRunner::SearchRun() {
   }
   RobotStop();
   HAL_Delay(100);
+  if (save_maze_to_flash() != 0) {
+        return -1;
+  }
   return 0;
 }
 
