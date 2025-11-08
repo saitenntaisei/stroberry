@@ -23,16 +23,16 @@ class Status {
   bool front_wall_ = false;
   bool left_wall_ = false;
   bool right_wall_ = false;
-  static constexpr parts::wheel<T, T> kSideWallControlTh = {12.0f, 12.0f};
+  static constexpr parts::wheel<T, T> kSideWallControlTh = {12.5f, 12.5f};
   static constexpr parts::wheel<T, T> kFrontWallControlTh = {13.0f, 13.0f};
   parts::wheel<T, T> side_wall_sensor_error_ = {0, 0};
   parts::wheel<T, T> front_wall_sensor_error_ = {0, 0};
   parts::wheel<T, T> front_wall_sensor_value_ = {0, 0};
-  static constexpr parts::wheel<T, T> kSideWallSensorRef = {12.8f, 12.8f};
+  static constexpr parts::wheel<T, T> kSideWallSensorRef = {13.5f, 13.2f};
   static constexpr parts::wheel<T, T> kFrontWallSensorRef = {14.5f, 14.5f};
   parts::wheel<bool, bool> is_side_wall_control_ = {false, false};
   parts::wheel<bool, bool> is_front_wall_control_ = {false, false};
-  static constexpr float kLeftThreshold = 11.5f, kRightThreshold = 11.5f, kFrontThreshold = 24.0f;
+  static constexpr float kLeftThreshold = 11.5f, kRightThreshold = 11.5f, kFrontThreshold = 25.0f;
   /* data */
  public:
   enum WallSensor { FRONT_LEFT, FRONT_RIGHT, LEFT, RIGHT };

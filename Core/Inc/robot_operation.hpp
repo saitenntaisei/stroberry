@@ -4,6 +4,7 @@
 #include <plog/Log.h>
 
 #include <cstdint>
+#include <iostream>
 
 #include "../lib/Mseq/Mseq.h"
 #include "./global_state.hpp"
@@ -189,7 +190,7 @@ void AdjustMode(std::uint8_t mode) {
       HAL_TIM_Base_Start_IT(&htim10);
       HAL_TIM_Base_Start_IT(&htim11);
       HAL_TIM_Base_Start_IT(&htim13);
-      GlobalState::ctrl_.Turn(3600, 540, 720);
+      GlobalState::ctrl_.Turn(-3600, 540, 720);
 
       // GlobalState::ctrl.turn(-90, 540, 720);
       // GlobalState::ctrl.turn(-90, 540, 180);
@@ -386,9 +387,8 @@ void TrueRunMode(std::uint8_t mode) {
       while (true) {
         parts::wheel<float, float> side_wall_sensor_error = GlobalState::ctrl_.status_.GetSideWallSensorError();
         parts::wheel<float, float> front_wall_sensor_error = GlobalState::ctrl_.status_.GetFrontWallSensorValue();
-        PLOG(plog::info) << "front_left: " << front_wall_sensor_error.left << ", front_right: " << front_wall_sensor_error.right << ", left: " << side_wall_sensor_error.left
-                         << ", right: " << side_wall_sensor_error.right;
-        HAL_Delay(1);
+        std::cout << "front_left: " << front_wall_sensor_error.left << ", front_right: " << front_wall_sensor_error.right << ", left: " << side_wall_sensor_error.left << ", right:"<< side_wall_sensor_error.right<< std::endl;
+        HAL_Delay(100);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GlobalState::ctrl_.status_.GetLeftWall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, GlobalState::ctrl_.status_.GetFrontWall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED2_Pin, GlobalState::ctrl_.status_.GetFrontWall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
