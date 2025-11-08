@@ -2,6 +2,7 @@
 
 #include <plog/Log.h>
 
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 
@@ -35,7 +36,6 @@ int MazeRunner::SearchRun() {
     // Agentの状態を確認
     // FINISHEDになったら計測走行にうつる
     if (agent_.getState() == Agent::FINISHED) {
-
       break;
     }
 
@@ -47,7 +47,6 @@ int MazeRunner::SearchRun() {
       if (save_maze_to_flash() != 0) {
         return -1;
       }
-    
     }
     prev_state_ = agent_.getState();
 
@@ -62,7 +61,7 @@ int MazeRunner::SearchRun() {
   RobotStop();
   HAL_Delay(100);
   if (save_maze_to_flash() != 0) {
-        return -1;
+    return -1;
   }
   return 0;
 }
@@ -77,7 +76,9 @@ int MazeRunner::TrueRun() {
     // Operationの実行が終わるまで待つ(nマス進んだ,右に曲がった)
 
     // i番目のを実行
-    RobotMove(run_sequence[i]);  // RobotMove関数はOperation型を受け取ってそれを実行する関数
+    for (std::uint8_t cnt = 0; cnt < run_sequence[i].n; cnt++) {
+      RobotMove(run_sequence[i]);  // RobotMove関数はOperation型を受け取ってそれを実行する関数
+    }
   }
   RobotStop();
   HAL_Delay(100);
