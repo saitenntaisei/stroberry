@@ -387,7 +387,8 @@ void TrueRunMode(std::uint8_t mode) {
       while (true) {
         parts::wheel<float, float> side_wall_sensor_error = GlobalState::ctrl_.status_.GetSideWallSensorError();
         parts::wheel<float, float> front_wall_sensor_error = GlobalState::ctrl_.status_.GetFrontWallSensorValue();
-        std::cout << "front_left: " << front_wall_sensor_error.left << ", front_right: " << front_wall_sensor_error.right << ", left: " << side_wall_sensor_error.left << ", right:"<< side_wall_sensor_error.right<< std::endl;
+        std::cout << "front_left: " << front_wall_sensor_error.left << ", front_right: " << front_wall_sensor_error.right << ", left: " << side_wall_sensor_error.left
+                  << ", right:" << side_wall_sensor_error.right << std::endl;
         HAL_Delay(100);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, GlobalState::ctrl_.status_.GetLeftWall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, GlobalState::ctrl_.status_.GetFrontWall() ? GPIO_PIN_SET : GPIO_PIN_RESET);
