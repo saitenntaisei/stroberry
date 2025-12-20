@@ -61,7 +61,7 @@ geometry Gyro::ReadGyro() const {
   dps.z = SpiGyroOutZ() - gyro_offset_.z;
   dps.y = SpiGyroOutY() - gyro_offset_.y;
   dps.x = SpiGyroOutX() - gyro_offset_.x;
-  dps.z /= 1.032f;
+  dps.z /= 1.027f;
 
   return dps;
 }
