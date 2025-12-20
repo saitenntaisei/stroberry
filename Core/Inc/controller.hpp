@@ -200,7 +200,7 @@ void Controller<T, STATUS, PID>::Straight(T len, T acc, T max_sp, T end_sp) {  /
 
   if (enable_front_wall_control_) {
     parts::wheel<bool, bool> is_front_wall_exsist = status_.GetIsFrontWallControl();
-    if (is_front_wall_exsist.left && is_front_wall_exsist.right && status_.GetIsFrontWallControlNeed() && std::abs(end_speed) < FLT_EPSILON) {
+    if (is_front_wall_exsist.left && is_front_wall_exsist.right && std::abs(end_speed) < FLT_EPSILON) {
       side_wall_control_ = false;
       front_wall_control_ = true;
     }
